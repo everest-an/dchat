@@ -32,6 +32,19 @@ Check out the live demo of Dchat in action. The application showcases all core f
 
 For deployment instructions, see the [Deployment](#-deployment) section below.
 
+## 📚 Documentation
+
+Comprehensive documentation is available in the [docs](./docs/) directory:
+
+- **[📖 Whitepaper](./docs/whitepaper/dchat-whitepaper.md)** - Technical and business overview
+- **[💼 Business Plan](./docs/business/business-plan.md)** - Market analysis and strategy  
+- **[🎯 Pitch Deck](./docs/pitch-deck/dchat_pitch_deck_with_ui.pdf)** - Investor presentation
+- **[👥 User Manual](./docs/user-manual/dchat_user_manual_en.md)** - User guide and features
+- **[🔧 Technical Specs](./docs/technical/technical-specifications.md)** - Architecture details
+- **[🎨 Design System](./docs/design/dchat_design_system.md)** - UI/UX guidelines
+
+Visit the [Documentation Index](./docs/README.md) for a complete overview.
+
 ## 🛠️ Installation & Setup
 
 ### Prerequisites
