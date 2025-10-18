@@ -26,10 +26,11 @@ Dchat is a Web3-native business communication platform that combines end-to-end 
 - **Authentication**: JWT-based authentication
 - **Database**: SQLite (development) / PostgreSQL (production)
 
-## 📱 Live Demo
+## 📱 Demo
 
-- **English Version**: [Live Demo](https://g8h3ilcq76yy.manus.space)
-- **Chinese Version**: [Live Demo](https://77h9ikc6m0o3.manus.space)
+Check out the live demo of Dchat in action. The application showcases all core features including wallet authentication, secure messaging, project collaboration, and professional networking.
+
+For deployment instructions, see the [Deployment](#-deployment) section below.
 
 ## 🛠️ Installation & Setup
 
