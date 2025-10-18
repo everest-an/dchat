@@ -81,18 +81,13 @@ const LoginScreen = ({ onLogin }) => {
         {/* Connect Wallet Button */}
         <Button
           onClick={handleConnectWallet}
-          disabled={isConnecting || !isMetaMaskInstalled}
+          disabled={isConnecting}
           className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-xl text-base font-medium flex items-center justify-center gap-3 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isConnecting ? (
             <>
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               Connecting...
-            </>
-          ) : !isMetaMaskInstalled ? (
-            <>
-              <Wallet className="w-5 h-5" />
-              Install MetaMask
             </>
           ) : (
             <>
