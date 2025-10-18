@@ -1,9 +1,13 @@
 import { useState } from 'react'
 import { Settings, Edit, Linkedin, Wallet, Shield, Bell, HelpCircle, LogOut, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import LinkedInConnect from './LinkedInConnect'
+import LinkedInMessages from './LinkedInMessages'
 
 const Profile = ({ user, onLogout }) => {
   const [showWalletAddress, setShowWalletAddress] = useState(false)
+  const [linkedInData, setLinkedInData] = useState(null)
+  const [showLinkedInMessages, setShowLinkedInMessages] = useState(false)
 
   const menuItems = [
     {
@@ -101,12 +105,11 @@ const Profile = ({ user, onLogout }) => {
           </div>
 
           {/* LinkedIn Integration */}
-          <div className="flex items-center justify-between py-3 border-t border-gray-100">
-            <div className="flex items-center gap-3">
-              <Linkedin className="w-5 h-5 text-blue-600" />
-              <span className="text-sm text-gray-700">LinkedIn Connected</span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
+          <div className="py-3 border-t border-gray-100">
+            <LinkedInConnect 
+              onConnect={setLinkedInData} 
+              isConnected={linkedInData}
+            />
           </div>
 
           {/* Wallet Address */}
@@ -118,7 +121,7 @@ const Profile = ({ user, onLogout }) => {
                 <p className="text-xs text-gray-500 font-mono">
                   {showWalletAddress 
                     ? (user?.walletAddress || '0x1234567890abcdef1234567890abcdef12345678')
-                    : 'bc1qar0srr7cpjkvyx...'}
+                    : `${(user?.walletAddress || '0x0000').substring(0, 6)}...${(user?.walletAddress || '0x0000').substring((user?.walletAddress || '0x0000').length - 4)}`}
                 </p>
               </div>
             </div>
@@ -186,6 +189,13 @@ const Profile = ({ user, onLogout }) => {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* LinkedIn Messages */}
+      <div className="px-4 mb-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <LinkedInMessages isLinkedInConnected={linkedInData} />
         </div>
       </div>
 

@@ -1,25 +1,44 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Wallet, MessageCircle, Lock, Shield } from 'lucide-react'
+import { Wallet, MessageCircle, Lock, Shield, AlertCircle } from 'lucide-react'
+import { useMetaMask } from '@/hooks/useMetaMask'
 
 const LoginScreen = ({ onLogin }) => {
-  const [isConnecting, setIsConnecting] = useState(false)
+  const { 
+    account, 
+    isConnecting, 
+    error, 
+    isMetaMaskInstalled, 
+    connect 
+  } = useMetaMask()
 
   const handleConnectWallet = async () => {
-    setIsConnecting(true)
+    const walletAddress = await connect()
     
-    // Simulate wallet connection process
-    setTimeout(() => {
+    if (walletAddress) {
+      // Create user object with wallet address
       const mockUser = {
-        walletAddress: '0x1234...5678',
-        name: 'Alex Chen',
-        company: 'Tech Innovations Inc.',
-        position: 'Senior Product Manager'
+        walletAddress: walletAddress,
+        name: 'User',
+        company: 'Web3 Company',
+        position: 'Blockchain Enthusiast'
       }
       onLogin(mockUser)
-      setIsConnecting(false)
-    }, 2000)
+    }
   }
+
+  // Auto-login if already connected
+  useEffect(() => {
+    if (account && !isConnecting) {
+      const mockUser = {
+        walletAddress: account,
+        name: 'User',
+        company: 'Web3 Company',
+        position: 'Blockchain Enthusiast'
+      }
+      onLogin(mockUser)
+    }
+  }, [account, isConnecting])
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
@@ -39,16 +58,41 @@ const LoginScreen = ({ onLogin }) => {
 
       {/* Main Content Area */}
       <div className="w-full max-w-sm space-y-8">
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm text-red-800">{error}</p>
+              {!isMetaMaskInstalled && (
+                <a 
+                  href="https://metamask.io/download/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-red-600 underline mt-2 inline-block"
+                >
+                  Install MetaMask
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Connect Wallet Button */}
         <Button
           onClick={handleConnectWallet}
-          disabled={isConnecting}
-          className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-xl text-base font-medium flex items-center justify-center gap-3 transition-all duration-200"
+          disabled={isConnecting || !isMetaMaskInstalled}
+          className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-xl text-base font-medium flex items-center justify-center gap-3 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isConnecting ? (
             <>
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               Connecting...
+            </>
+          ) : !isMetaMaskInstalled ? (
+            <>
+              <Wallet className="w-5 h-5" />
+              Install MetaMask
             </>
           ) : (
             <>
