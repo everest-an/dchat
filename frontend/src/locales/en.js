@@ -3,8 +3,28 @@ export default {
   login: {
     title: 'Dchat',
     subtitle: 'Secure Business Communication Platform',
-    connectWallet: 'Connect Wallet',
+    connectWallet: 'Web3 Wallet',
+    connectMetaMask: 'Connect MetaMask',
+    emailLogin: 'Email',
+    phoneLogin: 'Phone',
+    alipayLogin: 'Alipay',
+    orContinueWith: 'Or continue with',
     description: 'Blockchain-based end-to-end encrypted business communication',
+    walletDescription: 'Connect your Web3 wallet to continue',
+    emailDescription: 'Enter your email to receive a verification code',
+    phoneDescription: 'Enter your phone number to receive a verification code',
+    alipayDescription: 'Continue with your Alipay account',
+    emailPlaceholder: 'your@email.com',
+    phonePlaceholder: '+86 138 0000 0000',
+    codePlaceholder: '6-digit code',
+    sendCode: 'Send Code',
+    verify: 'Verify & Login',
+    enterCode: 'Enter the verification code',
+    changeEmail: 'Change email',
+    changePhone: 'Change phone number',
+    continueWithAlipay: 'Continue with Alipay',
+    autoWalletInfo: 'Email, phone, and Alipay login will automatically create a secure wallet for you',
+    autoWalletCreate: 'A secure wallet will be automatically created for you',
     features: {
       encryption: 'End-to-end encryption protection',
       quantum: 'Quantum-resistant encryption',
@@ -94,7 +114,8 @@ export default {
     confirm: 'Confirm',
     loading: 'Loading...',
     error: 'Error',
-    success: 'Success'
+    success: 'Success',
+    back: 'Back'
   }
 }
 

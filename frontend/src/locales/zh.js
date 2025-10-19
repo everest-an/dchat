@@ -3,8 +3,28 @@ export default {
   login: {
     title: 'Dchat',
     subtitle: '安全商业通信平台',
-    connectWallet: '连接钱包',
+    connectWallet: 'Web3钱包',
+    connectMetaMask: '连接MetaMask',
+    emailLogin: '邮箱',
+    phoneLogin: '手机号',
+    alipayLogin: '支付宝',
+    orContinueWith: '或使用以下方式继续',
     description: '基于区块链的端到端加密商业通信',
+    walletDescription: '连接您的Web3钱包以继续',
+    emailDescription: '输入您的邮箱以接收验证码',
+    phoneDescription: '输入您的手机号以接收验证码',
+    alipayDescription: '使用您的支付宝账号继续',
+    emailPlaceholder: 'your@email.com',
+    phonePlaceholder: '+86 138 0000 0000',
+    codePlaceholder: '6位验证码',
+    sendCode: '发送验证码',
+    verify: '验证并登录',
+    enterCode: '输入验证码',
+    changeEmail: '更换邮箱',
+    changePhone: '更换手机号',
+    continueWithAlipay: '使用支付宝继续',
+    autoWalletInfo: '邮箱、手机号和支付宝登录将自动为您创建安全钱包',
+    autoWalletCreate: '系统将自动为您创建一个安全钱包',
     features: {
       encryption: '端到端加密保护',
       quantum: '抗量子加密',
@@ -94,7 +114,8 @@ export default {
     confirm: '确认',
     loading: '加载中...',
     error: '错误',
-    success: '成功'
+    success: '成功',
+    back: '返回'
   }
 }
 
