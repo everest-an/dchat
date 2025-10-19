@@ -3,15 +3,17 @@ import { Button } from '@/components/ui/button'
 import { Wallet, MessageCircle, Lock, Shield, AlertCircle, Mail, Phone, ArrowLeft } from 'lucide-react'
 import { useMetaMask } from '@/hooks/useMetaMask'
 import { useLanguage } from '../contexts/LanguageContext'
+import { API_ENDPOINTS, apiCall } from '../config/api'
 
 const LoginScreen = ({ onLogin }) => {
   const { t } = useLanguage()
-  const [loginMethod, setLoginMethod] = useState('select') // 'select', 'wallet', 'email', 'phone', 'alipay'
+  const [loginMethod, setLoginMethod] = useState('select')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [verificationCode, setVerificationCode] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [step, setStep] = useState(1) // For multi-step flows
+  const [error, setError] = useState('')
+  const [step, setStep] = useState(1)
   
   const { 
     account, 
@@ -22,51 +24,73 @@ const LoginScreen = ({ onLogin }) => {
   } = useMetaMask()
 
   const handleConnectWallet = async () => {
-    const walletAddress = await connect()
-    
-    if (walletAddress) {
-      const mockUser = {
-        walletAddress: walletAddress,
-        loginMethod: 'wallet',
-        name: 'User',
-        company: 'Web3 Company',
-        position: 'Blockchain Enthusiast'
+    try {
+      const walletAddress = await connect()
+      
+      if (walletAddress) {
+        // Sign a message to prove ownership
+        const message = `Sign this message to login to Dchat: ${Date.now()}`
+        const signature = await window.ethereum.request({
+          method: 'personal_sign',
+          params: [message, walletAddress]
+        })
+
+        // Call backend API
+        const response = await apiCall(API_ENDPOINTS.WALLET_LOGIN, {
+          method: 'POST',
+          body: JSON.stringify({
+            walletAddress,
+            signature,
+            message
+          })
+        })
+
+        if (response.success) {
+          localStorage.setItem('authToken', response.token)
+          onLogin(response.user)
+        }
       }
-      onLogin(mockUser)
+    } catch (error) {
+      console.error('Wallet login error:', error)
+      setError(error.message || 'Failed to login with wallet')
     }
   }
 
   const handleEmailLogin = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setError('')
     
     try {
-      // TODO: Call backend API to send verification code
-      // For now, simulate the process
       if (step === 1) {
         // Send verification code
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await apiCall(API_ENDPOINTS.SEND_CODE, {
+          method: 'POST',
+          body: JSON.stringify({
+            identifier: email,
+            type: 'email'
+          })
+        })
         setStep(2)
       } else {
-        // Verify code and create/login user
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        // Generate a custodial wallet for the user
-        const custodialWallet = '0x' + Math.random().toString(16).substr(2, 40)
-        
-        const mockUser = {
-          email: email,
-          walletAddress: custodialWallet,
-          loginMethod: 'email',
-          isCustodial: true,
-          name: email.split('@')[0],
-          company: 'New User',
-          position: 'Professional'
+        // Verify code and login
+        const response = await apiCall(API_ENDPOINTS.VERIFY_LOGIN, {
+          method: 'POST',
+          body: JSON.stringify({
+            identifier: email,
+            code: verificationCode,
+            type: 'email'
+          })
+        })
+
+        if (response.success) {
+          localStorage.setItem('authToken', response.token)
+          onLogin(response.user)
         }
-        onLogin(mockUser)
       }
     } catch (error) {
       console.error('Email login error:', error)
+      setError(error.message || 'Failed to login with email')
     } finally {
       setIsSubmitting(false)
     }
@@ -75,31 +99,38 @@ const LoginScreen = ({ onLogin }) => {
   const handlePhoneLogin = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setError('')
     
     try {
       if (step === 1) {
         // Send SMS verification code
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await apiCall(API_ENDPOINTS.SEND_CODE, {
+          method: 'POST',
+          body: JSON.stringify({
+            identifier: phone,
+            type: 'phone'
+          })
+        })
         setStep(2)
       } else {
-        // Verify code and create/login user
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        const custodialWallet = '0x' + Math.random().toString(16).substr(2, 40)
-        
-        const mockUser = {
-          phone: phone,
-          walletAddress: custodialWallet,
-          loginMethod: 'phone',
-          isCustodial: true,
-          name: 'User',
-          company: 'New User',
-          position: 'Professional'
+        // Verify code and login
+        const response = await apiCall(API_ENDPOINTS.VERIFY_LOGIN, {
+          method: 'POST',
+          body: JSON.stringify({
+            identifier: phone,
+            code: verificationCode,
+            type: 'phone'
+          })
+        })
+
+        if (response.success) {
+          localStorage.setItem('authToken', response.token)
+          onLogin(response.user)
         }
-        onLogin(mockUser)
       }
     } catch (error) {
       console.error('Phone login error:', error)
+      setError(error.message || 'Failed to login with phone')
     } finally {
       setIsSubmitting(false)
     }
@@ -107,26 +138,30 @@ const LoginScreen = ({ onLogin }) => {
 
   const handleAlipayLogin = async () => {
     setIsSubmitting(true)
+    setError('')
     
     try {
-      // TODO: Integrate Alipay OAuth
-      // For now, simulate the process
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      // For demo purposes, generate a mock Alipay ID
+      // In production, this would go through Alipay OAuth flow
+      const alipayId = 'alipay_' + Math.random().toString(36).substr(2, 9)
       
-      const custodialWallet = '0x' + Math.random().toString(16).substr(2, 40)
-      
-      const mockUser = {
-        alipayId: 'alipay_' + Math.random().toString(36).substr(2, 9),
-        walletAddress: custodialWallet,
-        loginMethod: 'alipay',
-        isCustodial: true,
-        name: 'Alipay User',
-        company: 'New User',
-        position: 'Professional'
+      const response = await apiCall(API_ENDPOINTS.ALIPAY_LOGIN, {
+        method: 'POST',
+        body: JSON.stringify({
+          alipayId,
+          alipayInfo: {
+            name: 'Alipay User'
+          }
+        })
+      })
+
+      if (response.success) {
+        localStorage.setItem('authToken', response.token)
+        onLogin(response.user)
       }
-      onLogin(mockUser)
     } catch (error) {
       console.error('Alipay login error:', error)
+      setError(error.message || 'Failed to login with Alipay')
     } finally {
       setIsSubmitting(false)
     }
@@ -138,19 +173,13 @@ const LoginScreen = ({ onLogin }) => {
     setEmail('')
     setPhone('')
     setVerificationCode('')
+    setError('')
   }
 
   // Auto-login if wallet already connected
   useEffect(() => {
     if (account && !isConnecting && loginMethod === 'select') {
-      const mockUser = {
-        walletAddress: account,
-        loginMethod: 'wallet',
-        name: 'User',
-        company: 'Web3 Company',
-        position: 'Blockchain Enthusiast'
-      }
-      onLogin(mockUser)
+      handleConnectWallet()
     }
   }, [account, isConnecting, loginMethod])
 
@@ -171,6 +200,14 @@ const LoginScreen = ({ onLogin }) => {
             {t('login.subtitle')}
           </p>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="w-full max-w-sm mb-4 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-red-800">{error}</p>
+          </div>
+        )}
 
         {/* Login Options */}
         <div className="w-full max-w-sm space-y-4">
@@ -262,7 +299,6 @@ const LoginScreen = ({ onLogin }) => {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
         <div className="w-full max-w-sm">
-          {/* Back Button */}
           <Button
             onClick={resetLoginFlow}
             variant="ghost"
@@ -272,7 +308,6 @@ const LoginScreen = ({ onLogin }) => {
             {t('common.back') || 'Back'}
           </Button>
 
-          {/* Logo */}
           <div className="flex flex-col items-center mb-12">
             <div className="flex items-center justify-center w-16 h-16 mb-4">
               <Wallet className="w-12 h-12 text-black" />
@@ -285,12 +320,11 @@ const LoginScreen = ({ onLogin }) => {
             </p>
           </div>
 
-          {/* Error Message */}
-          {walletError && (
+          {(walletError || error) && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 mb-6">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-sm text-red-800">{walletError}</p>
+                <p className="text-sm text-red-800">{walletError || error}</p>
                 {!isMetaMaskInstalled && (
                   <a 
                     href="https://metamask.io/download/" 
@@ -305,7 +339,6 @@ const LoginScreen = ({ onLogin }) => {
             </div>
           )}
 
-          {/* Connect Button */}
           <Button
             onClick={handleConnectWallet}
             disabled={isConnecting}
@@ -337,7 +370,6 @@ const LoginScreen = ({ onLogin }) => {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
         <div className="w-full max-w-sm">
-          {/* Back Button */}
           <Button
             onClick={resetLoginFlow}
             variant="ghost"
@@ -347,7 +379,6 @@ const LoginScreen = ({ onLogin }) => {
             {t('common.back') || 'Back'}
           </Button>
 
-          {/* Logo */}
           <div className="flex flex-col items-center mb-12">
             <div className="flex items-center justify-center w-16 h-16 mb-4">
               <Mail className="w-12 h-12 text-black" />
@@ -363,7 +394,13 @@ const LoginScreen = ({ onLogin }) => {
             </p>
           </div>
 
-          {/* Form */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 mb-6">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          )}
+
           <form onSubmit={handleEmailLogin} className="space-y-4">
             {step === 1 ? (
               <div>
@@ -421,12 +458,11 @@ const LoginScreen = ({ onLogin }) => {
     )
   }
 
-  // Phone Login Screen
+  // Phone Login Screen  
   if (loginMethod === 'phone') {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
         <div className="w-full max-w-sm">
-          {/* Back Button */}
           <Button
             onClick={resetLoginFlow}
             variant="ghost"
@@ -436,7 +472,6 @@ const LoginScreen = ({ onLogin }) => {
             {t('common.back') || 'Back'}
           </Button>
 
-          {/* Logo */}
           <div className="flex flex-col items-center mb-12">
             <div className="flex items-center justify-center w-16 h-16 mb-4">
               <Phone className="w-12 h-12 text-black" />
@@ -452,7 +487,13 @@ const LoginScreen = ({ onLogin }) => {
             </p>
           </div>
 
-          {/* Form */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 mb-6">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          )}
+
           <form onSubmit={handlePhoneLogin} className="space-y-4">
             {step === 1 ? (
               <div>
@@ -515,7 +556,6 @@ const LoginScreen = ({ onLogin }) => {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
         <div className="w-full max-w-sm">
-          {/* Back Button */}
           <Button
             onClick={resetLoginFlow}
             variant="ghost"
@@ -525,7 +565,6 @@ const LoginScreen = ({ onLogin }) => {
             {t('common.back') || 'Back'}
           </Button>
 
-          {/* Logo */}
           <div className="flex flex-col items-center mb-12">
             <div className="flex items-center justify-center w-16 h-16 mb-4">
               <svg className="w-12 h-12 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
@@ -540,7 +579,13 @@ const LoginScreen = ({ onLogin }) => {
             </p>
           </div>
 
-          {/* Connect Button */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 mb-6">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          )}
+
           <Button
             onClick={handleAlipayLogin}
             disabled={isSubmitting}
