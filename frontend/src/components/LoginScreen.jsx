@@ -176,12 +176,7 @@ const LoginScreen = ({ onLogin }) => {
     setError('')
   }
 
-  // Auto-login if wallet already connected
-  useEffect(() => {
-    if (account && !isConnecting && loginMethod === 'select') {
-      handleConnectWallet()
-    }
-  }, [account, isConnecting, loginMethod])
+  // Removed auto-login to prevent loops and ScamSniffer issues
 
   // Login Method Selection Screen
   if (loginMethod === 'select') {
