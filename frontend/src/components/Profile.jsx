@@ -245,7 +245,7 @@ const Profile = ({ user, onLogout }) => {
             <ExternalLink className="w-4 h-4 text-gray-400" />
           </a>
           <a
-            href="https://github.com/everest-an/dchat/blob/main/docs/whitepaper/dchat-whitepaper-v2.md"
+            href="https://github.com/everest-an/dchat/blob/main/docs/whitepaper/dchat-whitepaper.md"
             target="_blank"
             rel="noopener noreferrer"
             className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
