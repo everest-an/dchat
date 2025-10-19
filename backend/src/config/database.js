@@ -1,20 +1,34 @@
 const mysql = require('mysql2/promise');
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT || 4000,
-  user: process.env.DB_USER,
+// 为Serverless环境优化的连接配置
+const poolConfig = {
+  host: process.env.DB_HOST || 'gateway01.eu-central-1.prod.aws.tidbcloud.com',
+  port: parseInt(process.env.DB_PORT) || 4000,
+  user: process.env.DB_USER || '3weSfx6NGnayDMr.root',
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  database: process.env.DB_NAME || 'test',
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 1, // Serverless环境使用单连接
+  maxIdle: 1,
+  idleTimeout: 60000,
   queueLimit: 0,
   enableKeepAlive: true,
   keepAliveInitialDelay: 0,
+  connectTimeout: 10000, // 10秒连接超时
   ssl: {
     rejectUnauthorized: false
   }
+};
+
+console.log('Database config:', {
+  host: poolConfig.host,
+  port: poolConfig.port,
+  user: poolConfig.user,
+  database: poolConfig.database,
+  hasPassword: !!poolConfig.password
 });
+
+const pool = mysql.createPool(poolConfig);
 
 // Test database connection
 const testConnection = async () => {
