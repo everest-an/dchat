@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Settings, Edit, Linkedin, Wallet, Shield, Bell, HelpCircle, LogOut, ChevronRight } from 'lucide-react'
+import { Settings, Edit, Linkedin, Wallet, Shield, Bell, HelpCircle, LogOut, ChevronRight, Github, FileText, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import LinkedInConnect from './LinkedInConnect'
 import LinkedInMessages from './LinkedInMessages'
@@ -226,6 +226,36 @@ const Profile = ({ user, onLogout }) => {
               </button>
             )
           })}
+        </div>
+      </div>
+
+      {/* Resources */}
+      <div className="px-4 mb-6">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <a
+            href="https://github.com/everest-an/dchat"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors border-b border-gray-100"
+          >
+            <div className="flex items-center gap-3">
+              <Github className="w-5 h-5 text-gray-600" />
+              <span className="text-sm text-gray-800">GitHub Repository</span>
+            </div>
+            <ExternalLink className="w-4 h-4 text-gray-400" />
+          </a>
+          <a
+            href="https://github.com/everest-an/dchat/blob/main/docs/whitepaper/dchat-whitepaper-v2.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <FileText className="w-5 h-5 text-gray-600" />
+              <span className="text-sm text-gray-800">Whitepaper</span>
+            </div>
+            <ExternalLink className="w-4 h-4 text-gray-400" />
+          </a>
         </div>
       </div>
 
