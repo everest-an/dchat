@@ -15,9 +15,10 @@ const poolConfig = {
   enableKeepAlive: true,
   keepAliveInitialDelay: 0,
   connectTimeout: 10000, // 10秒连接超时
-  ssl: {
-    rejectUnauthorized: false
-  }
+  // SSL disabled for testing
+  // ssl: {
+  //   rejectUnauthorized: false
+  // }
 };
 
 console.log('Database config:', {
