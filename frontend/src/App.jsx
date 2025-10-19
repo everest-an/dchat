@@ -5,6 +5,7 @@ import './App.css'
 // 导入组件
 import LoginScreen from './components/LoginScreen'
 import MainApp from './components/MainApp'
+import { LanguageProvider } from './contexts/LanguageContext'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -21,8 +22,9 @@ function App() {
   }
 
   return (
-    <Router>
-      <div className="min-h-screen bg-background">
+    <LanguageProvider>
+      <Router>
+        <div className="min-h-screen bg-background">
         <Routes>
           <Route 
             path="/login" 
@@ -41,8 +43,9 @@ function App() {
             } 
           />
         </Routes>
-      </div>
-    </Router>
+        </div>
+      </Router>
+    </LanguageProvider>
   )
 }
 

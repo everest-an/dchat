@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Wallet, MessageCircle, Lock, Shield, AlertCircle } from 'lucide-react'
 import { useMetaMask } from '@/hooks/useMetaMask'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const LoginScreen = ({ onLogin }) => {
+  const { t } = useLanguage()
   const { 
     account, 
     isConnecting, 
@@ -50,9 +52,9 @@ const LoginScreen = ({ onLogin }) => {
             <Lock className="w-6 h-6 text-black absolute -bottom-1 -right-1 bg-white rounded-full p-1" strokeWidth={2} />
           </div>
         </div>
-        <h1 className="text-3xl font-bold text-black mb-2">Dchat</h1>
+        <h1 className="text-3xl font-bold text-black mb-2">{t('login.title')}</h1>
         <p className="text-gray-500 text-center max-w-sm">
-          Secure Business Communication Platform
+          {t('login.subtitle')}
         </p>
       </div>
 
@@ -87,41 +89,41 @@ const LoginScreen = ({ onLogin }) => {
           {isConnecting ? (
             <>
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Connecting...
+              {t('common.loading')}
             </>
           ) : (
             <>
               <Wallet className="w-5 h-5" />
-              Connect Wallet
+              {t('login.connectWallet')}
             </>
           )}
         </Button>
 
         {/* Description Text */}
         <p className="text-gray-400 text-sm text-center leading-relaxed">
-          Blockchain-based end-to-end encrypted business communication
+          {t('login.description')}
         </p>
 
         {/* Features List */}
         <div className="space-y-4 pt-8">
           <div className="flex items-center gap-3 text-sm text-gray-600">
             <Shield className="w-4 h-4 text-gray-400" />
-            <span>End-to-end encryption protection</span>
+            <span>{t('login.features.encryption')}</span>
           </div>
           <div className="flex items-center gap-3 text-sm text-gray-600">
             <Lock className="w-4 h-4 text-gray-400" />
-            <span>Quantum-resistant encryption</span>
+            <span>{t('login.features.quantum')}</span>
           </div>
           <div className="flex items-center gap-3 text-sm text-gray-600">
             <MessageCircle className="w-4 h-4 text-gray-400" />
-            <span>Blockchain message storage</span>
+            <span>{t('login.features.blockchain')}</span>
           </div>
         </div>
       </div>
 
       {/* Footer Information */}
       <div className="mt-auto pb-8 text-xs text-gray-400 text-center">
-        <p>By connecting your wallet, you agree to our Terms of Service and Privacy Policy</p>
+        <p>{t('login.terms')}</p>
       </div>
     </div>
   )

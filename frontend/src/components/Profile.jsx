@@ -3,8 +3,11 @@ import { Settings, Edit, Linkedin, Wallet, Shield, Bell, HelpCircle, LogOut, Che
 import { Button } from '@/components/ui/button'
 import LinkedInConnect from './LinkedInConnect'
 import LinkedInMessages from './LinkedInMessages'
+import LanguageSwitcher from './LanguageSwitcher'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const Profile = ({ user, onLogout }) => {
+  const { t } = useLanguage()
   const [showWalletAddress, setShowWalletAddress] = useState(false)
   const [linkedInData, setLinkedInData] = useState(null)
   const [showLinkedInMessages, setShowLinkedInMessages] = useState(false)
@@ -12,25 +15,25 @@ const Profile = ({ user, onLogout }) => {
   const menuItems = [
     {
       id: 'notifications',
-      label: 'Notification Settings',
+      label: t('profile.notificationSettings'),
       icon: Bell,
       action: () => console.log('Notification settings')
     },
     {
       id: 'security',
-      label: 'Security & Privacy',
+      label: t('profile.securityPrivacy'),
       icon: Shield,
       action: () => console.log('Security settings')
     },
     {
       id: 'wallet',
-      label: 'Wallet Management',
+      label: t('profile.walletManagement'),
       icon: Wallet,
       action: () => console.log('Wallet management')
     },
     {
       id: 'help',
-      label: 'Help & Support',
+      label: t('profile.helpSupport'),
       icon: HelpCircle,
       action: () => console.log('Help')
     }
@@ -75,14 +78,17 @@ const Profile = ({ user, onLogout }) => {
       {/* Header */}
       <div className="bg-white px-4 pt-12 pb-6">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-black">Profile</h1>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-10 h-10 rounded-full"
-          >
-            <Settings className="w-5 h-5" />
-          </Button>
+          <h1 className="text-2xl font-bold text-black">{t('profile.title')}</h1>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-10 h-10 rounded-full"
+            >
+              <Settings className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
 
         {/* User Info Card */}
@@ -99,7 +105,7 @@ const Profile = ({ user, onLogout }) => {
                 <p className="text-sm text-gray-500">{user?.position || 'Senior Product Manager'}</p>
               </div>
             </div>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" title={t('profile.edit')}>
               <Edit className="w-4 h-4" />
             </Button>
           </div>
@@ -117,7 +123,7 @@ const Profile = ({ user, onLogout }) => {
             <div className="flex items-center gap-3">
               <Wallet className="w-5 h-5 text-gray-600" />
               <div>
-                <p className="text-sm text-gray-700">Wallet Address</p>
+                <p className="text-sm text-gray-700">{t('profile.walletAddress')}</p>
                 <p className="text-xs text-gray-500 font-mono">
                   {showWalletAddress 
                     ? (user?.walletAddress || '0x1234567890abcdef1234567890abcdef12345678')
@@ -131,7 +137,7 @@ const Profile = ({ user, onLogout }) => {
               onClick={() => setShowWalletAddress(!showWalletAddress)}
               className="text-xs"
             >
-              {showWalletAddress ? 'Hide' : 'Show'}
+              {showWalletAddress ? t('profile.hide') : t('profile.show')}
             </Button>
           </div>
         </div>
@@ -140,7 +146,7 @@ const Profile = ({ user, onLogout }) => {
       {/* Current Projects */}
       <div className="px-4 mb-6">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <h3 className="font-medium text-black mb-3">Current Projects</h3>
+          <h3 className="font-medium text-black mb-3">{t('profile.currentProjects')}</h3>
           <div className="space-y-3">
             {projects.map((project) => (
               <div key={project.id} className="flex items-center justify-between">
@@ -166,7 +172,7 @@ const Profile = ({ user, onLogout }) => {
       {/* Available Resources */}
       <div className="px-4 mb-6">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <h3 className="font-medium text-black mb-3">Available Resources</h3>
+          <h3 className="font-medium text-black mb-3">{t('profile.availableResources')}</h3>
           <div className="flex flex-wrap gap-2">
             {resources.map((resource, index) => (
               <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
@@ -180,7 +186,7 @@ const Profile = ({ user, onLogout }) => {
       {/* Seeking Opportunities */}
       <div className="px-4 mb-6">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <h3 className="font-medium text-black mb-3">Seeking Opportunities</h3>
+          <h3 className="font-medium text-black mb-3">{t('profile.seekingOpportunities')}</h3>
           <div className="space-y-2">
             {opportunities.map((opportunity, index) => (
               <div key={index} className="flex items-center gap-2">
@@ -231,7 +237,7 @@ const Profile = ({ user, onLogout }) => {
           className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
         >
           <LogOut className="w-5 h-5 mr-3" />
-          Logout
+          {t('profile.logout')}
         </Button>
       </div>
     </div>
