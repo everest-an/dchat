@@ -32,7 +32,7 @@ exports.sendVerificationCode = async (req, res) => {
       return res.status(500).json({ error: 'Failed to save verification code' });
     }
 
-    console.log(\`📧 Verification code for \${identifier}: \${code}\`);
+    console.log(`📧 Verification code for ${identifier}: ${code}`);
     
     res.json({ 
       success: true, 
@@ -160,7 +160,7 @@ exports.walletLogin = async (req, res) => {
       const userData = {
         wallet_address: walletAddress,
         login_method: 'wallet',
-        display_name: \`\${walletAddress.substring(0, 6)}...\${walletAddress.substring(38)}\`
+        display_name: `${walletAddress.substring(0, 6)}...${walletAddress.substring(38)}`
       };
 
       const { data: newUser, error: createError } = await supabase
@@ -228,7 +228,7 @@ exports.alipayLogin = async (req, res) => {
         login_method: 'alipay',
         wallet_address: wallet.address,
         encrypted_wallet: encryptedWallet,
-        display_name: \`Alipay_\${alipayId.substring(0, 8)}\`
+        display_name: `Alipay_${alipayId.substring(0, 8)}`
       };
 
       const { data: newUser, error: createError } = await supabase
