@@ -22,10 +22,28 @@ Welcome to the comprehensive documentation for Dchat, the secure Web3-native bus
 - **[Technical Specifications](./technical/technical-specifications.md)** - Detailed technical architecture and implementation specifications.
 - **[Requirements Analysis](./technical/dchat_requirements.md)** - Original requirements and feature analysis.
 - **[Production Plan](./technical/dchat_production_plan.md)** - Roadmap for upgrading demo to production-ready application.
+- **[Deployment Guide](./DEPLOYMENT_GUIDE.md)** - Complete deployment process and configuration guide.
+- **[Login Fix Guide](./LOGIN_FIX_GUIDE.md)** - Troubleshooting guide for login functionality issues.
 
 ### 🎨 Design Documentation
 - **[Design System](./design/dchat_design_system.md)** - UI/UX design guidelines and component specifications.
 - **[Design Assets](./design/)** - Application mockups, icons, and visual design resources.
+
+### 🗄️ Database Documentation
+- **[Supabase Initialization Script](./database/supabase_init.sql)** - Database schema and Row Level Security policies.
+
+## 🌐 Live Deployment
+
+### Production URLs
+- **Frontend**: https://dechatcom.vercel.app
+- **Custom Domain**: https://dechat.com (DNS configuration in progress)
+- **Backend API**: https://backend-op1c06n9l-everest-ans-projects.vercel.app
+
+### Deployment Status
+- ✅ Frontend deployed on Vercel
+- ✅ Backend deployed on Vercel Serverless
+- ✅ Supabase database initialized
+- 🔄 Custom domain DNS propagation in progress
 
 ## 🚀 Quick Start Guides
 
