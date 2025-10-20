@@ -9,7 +9,8 @@ module.exports = {
       optimizer: {
         enabled: true,
         runs: 200
-      }
+      },
+      viaIR: true  // Enable IR optimizer to fix "Stack too deep" error
     }
   },
   networks: {
