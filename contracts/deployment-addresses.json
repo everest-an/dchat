@@ -1,0 +1,11 @@
+{
+  "network": "sepolia",
+  "deployer": "0x66794fC75C351ad9677cB00B2043868C11dfcadA",
+  "timestamp": "2025-10-20T11:33:49.405Z",
+  "contracts": {
+    "MessageStorage": "0x5a7f2f9538D6a5044142123c12A254F73bf77F6f",
+    "PaymentEscrow": "0xB71fD2eD9a15A2Bef002b1206A97e9Bddd7436d6",
+    "UserIdentity": "0x32a75De07Cd3FE59A8437445BE37D0546B4Bb17a",
+    "ProjectCollaboration": "0x09668e0764B43E8093a65d33620DeAd9BDa1d85c"
+  }
+}
