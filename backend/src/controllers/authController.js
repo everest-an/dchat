@@ -1,5 +1,5 @@
 const { supabase } = require('../config/supabase');
-const { generateVerificationCode } = require('../utils/verification');
+const { generateCode } = require('../utils/verification');
 const { createWallet, encryptWallet } = require('../utils/wallet');
 const jwt = require('jsonwebtoken');
 
@@ -14,7 +14,7 @@ exports.sendVerificationCode = async (req, res) => {
       return res.status(400).json({ error: 'Identifier and type are required' });
     }
 
-    const code = generateVerificationCode();
+    const code = generateCode();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     const { error } = await supabase
