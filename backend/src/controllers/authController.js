@@ -37,7 +37,7 @@ exports.sendVerificationCode = async (req, res) => {
     res.json({ 
       success: true, 
       message: 'Verification code sent',
-      ...(process.env.NODE_ENV !== 'production' && { code })
+      code: code  // Always return code for testing
     });
 
   } catch (error) {
