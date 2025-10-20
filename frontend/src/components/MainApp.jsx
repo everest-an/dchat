@@ -13,7 +13,7 @@ const MainApp = ({ user, onLogout }) => {
   const showBottomNav = !location.pathname.startsWith('/chat/')
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen flex flex-col">
       {/* 主要内容区域 */}
       <div className="flex-1 overflow-hidden">
         <Routes>

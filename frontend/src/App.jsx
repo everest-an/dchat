@@ -5,6 +5,7 @@ import './App.css'
 // 导入组件
 import LoginScreen from './components/LoginScreen'
 import MainApp from './components/MainApp'
+import ResponsiveContainer from './components/ResponsiveContainer'
 import { LanguageProvider } from './contexts/LanguageContext'
 
 function App() {
@@ -60,26 +61,26 @@ function App() {
   return (
     <LanguageProvider>
       <Router>
-        <div className="min-h-screen bg-background">
-        <Routes>
-          <Route 
-            path="/login" 
-            element={
-              !isAuthenticated ? 
-                <LoginScreen onLogin={handleLogin} /> : 
-                <Navigate to="/" replace />
-            } 
-          />
-          <Route 
-            path="/*" 
-            element={
-              isAuthenticated ? 
-                <MainApp user={user} onLogout={handleLogout} /> : 
-                <Navigate to="/login" replace />
-            } 
-          />
-        </Routes>
-        </div>
+        <ResponsiveContainer>
+          <Routes>
+            <Route 
+              path="/login" 
+              element={
+                !isAuthenticated ? 
+                  <LoginScreen onLogin={handleLogin} /> : 
+                  <Navigate to="/" replace />
+              } 
+            />
+            <Route 
+              path="/*" 
+              element={
+                isAuthenticated ? 
+                  <MainApp user={user} onLogout={handleLogout} /> : 
+                  <Navigate to="/login" replace />
+              } 
+            />
+          </Routes>
+        </ResponsiveContainer>
       </Router>
     </LanguageProvider>
   )
