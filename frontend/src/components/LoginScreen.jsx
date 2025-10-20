@@ -4,6 +4,7 @@ import { Wallet, MessageCircle, Lock, Shield, AlertCircle, Mail, Phone, ArrowLef
 import { useMetaMask } from '@/hooks/useMetaMask'
 import { useLanguage } from '../contexts/LanguageContext'
 import { API_ENDPOINTS, apiCall } from '../config/api'
+import web3Service from '../services/web3Service'
 
 const LoginScreen = ({ onLogin }) => {
   const { t } = useLanguage()
@@ -25,30 +26,72 @@ const LoginScreen = ({ onLogin }) => {
 
   const handleConnectWallet = async () => {
     try {
-      const walletAddress = await connect()
+      // Connect wallet using web3Service
+      const walletInfo = await web3Service.connectWallet()
       
-      if (walletAddress) {
+      if (walletInfo && walletInfo.address) {
+        // Check if user is registered on-chain
+        const isRegistered = await web3Service.isUserRegistered(walletInfo.address)
+        
+        if (!isRegistered) {
+          // Auto-register user with wallet address as username
+          const username = `User_${walletInfo.address.slice(0, 6)}`
+          const email = `${walletInfo.address}@dchat.web3`
+          
+          try {
+            await web3Service.registerUser(username, email)
+          } catch (regError) {
+            console.warn('Auto-registration failed:', regError)
+            // Continue anyway, user can register later
+          }
+        }
+        
+        // Get user profile from smart contract
+        let userProfile
+        try {
+          userProfile = await web3Service.getUserProfile(walletInfo.address)
+        } catch (error) {
+          console.warn('Failed to get user profile:', error)
+          userProfile = {
+            address: walletInfo.address,
+            username: `User_${walletInfo.address.slice(0, 6)}`,
+            reputationScore: 100
+          }
+        }
+        
         // Sign a message to prove ownership
         const message = `Sign this message to login to Dchat: ${Date.now()}`
-        const signature = await window.ethereum.request({
-          method: 'personal_sign',
-          params: [message, walletAddress]
-        })
+        const signature = await web3Service.signMessage(message)
 
-        // Call backend API
-        const response = await apiCall(API_ENDPOINTS.WALLET_LOGIN, {
-          method: 'POST',
-          body: JSON.stringify({
-            walletAddress,
-            signature,
-            message
+        // Call backend API (optional, for traditional features)
+        try {
+          const response = await apiCall(API_ENDPOINTS.WALLET_LOGIN, {
+            method: 'POST',
+            body: JSON.stringify({
+              walletAddress: walletInfo.address,
+              signature,
+              message,
+              userProfile
+            })
           })
-        })
 
-        if (response.success) {
-          localStorage.setItem('authToken', response.token)
-          onLogin(response.user)
+          if (response.success) {
+            localStorage.setItem('authToken', response.token)
+          }
+        } catch (apiError) {
+          console.warn('Backend API call failed:', apiError)
+          // Continue with Web3-only mode
         }
+        
+        // Login with Web3 profile
+        onLogin({
+          walletAddress: walletInfo.address,
+          username: userProfile.username || `User_${walletInfo.address.slice(0, 6)}`,
+          reputationScore: userProfile.reputationScore || 100,
+          isLinkedInVerified: userProfile.isLinkedInVerified || false,
+          isEmailVerified: userProfile.isEmailVerified || false,
+          web3Enabled: true
+        })
       }
     } catch (error) {
       console.error('Wallet login error:', error)
