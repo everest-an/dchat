@@ -64,13 +64,17 @@ const LoginScreen = ({ onLogin }) => {
     try {
       if (step === 1) {
         // Send verification code
-        await apiCall(API_ENDPOINTS.SEND_CODE, {
+        const response = await apiCall(API_ENDPOINTS.SEND_CODE, {
           method: 'POST',
           body: JSON.stringify({
             identifier: email,
             type: 'email'
           })
         })
+        if (response.code) {
+          console.log('Verification code:', response.code)
+          alert(`Verification code: ${response.code}`)
+        }
         setStep(2)
       } else {
         // Verify code and login
