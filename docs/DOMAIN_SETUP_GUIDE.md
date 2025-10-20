@@ -38,20 +38,12 @@
 
 Vercel 会显示需要配置的 DNS 记录,通常是以下两种之一:
 
-**方案 A: A 记录(推荐)**
-```
-Type: A
-Name: @
-Value: 76.76.21.21
-TTL: 3600
-```
-
-**方案 B: CNAME 记录**
+**推荐方案: CNAME 记录**
 ```
 Type: CNAME
 Name: @
 Value: cname.vercel-dns.com
-TTL: 3600
+TTL: 600
 ```
 
 **www 子域名**
@@ -75,15 +67,15 @@ TTL: 3600
 1. 点击域名右侧的 **"解析"** 按钮
 2. 进入 DNS 解析设置页面
 
-### 2.3 添加 A 记录(主域名)
+### 2.3 配置主域名 CNAME 记录
 
-1. 点击 **"添加记录"** 按钮
+1. 点击 **"添加记录"** 按钮(如果已有 A 记录,需要先删除或修改)
 2. 填写以下信息:
-   - **记录类型**: A
+   - **记录类型**: CNAME
    - **主机记录**: @
    - **解析线路**: 默认
-   - **记录值**: `76.76.21.21`
-   - **TTL**: 600(10分钟)或 3600(1小时)
+   - **记录值**: `cname.vercel-dns.com`
+   - **TTL**: 600(10分钟)
 3. 点击 **"确认"** 保存
 
 ### 2.4 添加 CNAME 记录(www 子域名)
@@ -132,8 +124,8 @@ dig www.dechat.com
 
 **预期结果**:
 ```
-dechat.com → 76.76.21.21
-www.dechat.com → cname.vercel-dns.com → 76.76.21.21
+dechat.com → cname.vercel-dns.com → 76.76.21.241 (或其他 Vercel IP)
+www.dechat.com → cname.vercel-dns.com → 76.76.21.241 (或其他 Vercel IP)
 ```
 
 ### 3.3 在 Vercel 验证域名
@@ -230,15 +222,15 @@ Vercel 会自动为您的自定义域名配置 SSL 证书:
 
 | 记录类型 | 主机记录 | 记录值 | TTL | 用途 |
 |---------|---------|--------|-----|------|
-| A | @ | 76.76.21.21 | 600 | 主域名指向 Vercel |
+| CNAME | @ | cname.vercel-dns.com | 600 | 主域名指向 Vercel |
 | CNAME | www | cname.vercel-dns.com | 600 | www 子域名指向 Vercel |
 
 ### Vercel 域名配置清单
 
 - [ ] 添加 dechat.com 到 Vercel 项目
 - [ ] 添加 www.dechat.com 到 Vercel 项目
-- [ ] 配置阿里云 A 记录
-- [ ] 配置阿里云 CNAME 记录
+- [x] 配置阿里云主域名 CNAME 记录
+- [x] 配置阿里云 www CNAME 记录
 - [ ] 等待 DNS 传播
 - [ ] 验证域名在 Vercel 中显示为 Active
 - [ ] 验证 SSL 证书自动配置
@@ -266,7 +258,8 @@ Vercel 会自动为您的自定义域名配置 SSL 证书:
 
 ---
 
-**最后更新**: 2025-10-20
-**状态**: 待配置
-**预计完成时间**: DNS 配置后 10-30 分钟
+**最后更新**: 2025-10-20 03:15 GMT+8
+**状态**: DNS 已配置,等待传播
+**配置方式**: CNAME 记录(推荐)
+**预计生效时间**: 10-30 分钟
 
