@@ -1,146 +1,84 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Wallet, MessageCircle, Lock, Shield, AlertCircle, Mail, Phone, ArrowLeft } from 'lucide-react'
+import { Wallet, MessageCircle, Lock, Shield, AlertCircle, Mail, Phone, ArrowLeft, Loader2 } from 'lucide-react'
 import { useWeb3 } from '../contexts/Web3Context'
-import { useLanguage } from '../contexts/LanguageContext'
-import { UserIdentityService } from '../services/UserIdentityService'
 
 const LoginScreen = ({ onLogin }) => {
-  const { t } = useLanguage()
   const [loginMethod, setLoginMethod] = useState('select')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
-  const [verificationCode, setVerificationCode] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [step, setStep] = useState(1)
   
   const { 
     account, 
-    provider,
-    signer,
     isConnecting, 
     error: walletError, 
     isMetaMaskInstalled, 
     connectWallet 
   } = useWeb3()
 
+  // Web3 钱包登录
   const handleConnectWallet = async () => {
     try {
       setError('')
       setIsSubmitting(true)
       
-      // Connect wallet
+      // 连接钱包
       const success = await connectWallet()
       
       if (success && account) {
-        // Create UserIdentity service
-        const userIdentityService = new UserIdentityService(provider, signer)
+        // 生成认证令牌
+        const authToken = `web3_${account}_${Date.now()}`
+        localStorage.setItem('authToken', authToken)
         
-        // Check if user is registered on-chain
-        const isRegisteredResult = await userIdentityService.isRegistered(account)
-        const isRegistered = isRegisteredResult.success && isRegisteredResult.data
-        
-        if (!isRegistered) {
-          // Auto-register user with wallet address as username
-          const username = `User_${account.slice(2, 8)}`
-          const email = `${account.slice(2, 8)}@dchat.web3`
-          
-          try {
-            const registerResult = await userIdentityService.registerUser(
-              username,
-              'Web3 User',
-              'Dchat',
-              email,
-              ''
-            )
-            
-            if (!registerResult.success) {
-              console.warn('Auto-registration failed:', registerResult.error)
-            }
-          } catch (regError) {
-            console.warn('Auto-registration error:', regError)
-          }
-        }
-        
-        // Get user profile from smart contract
-        let userProfile
-        try {
-          const profileResult = await userIdentityService.getProfile(account)
-          if (profileResult.success) {
-            userProfile = profileResult.profile
-          } else {
-            throw new Error('Profile not found')
-          }
-        } catch (error) {
-          console.warn('Failed to get user profile:', error)
-          userProfile = {
-            owner: account,
-            name: `User_${account.slice(2, 8)}`,
-            title: 'Web3 User',
-            company: 'Dchat',
-            email: `${account.slice(2, 8)}@dchat.web3`,
-            isVerified: false,
-            reputationScore: 100
-          }
-        }
-        
-        // Login with Web3 profile
-        onLogin({
+        // 创建用户数据
+        const userData = {
           walletAddress: account,
-          username: userProfile.name || `User_${account.slice(2, 8)}`,
-          title: userProfile.title || 'Web3 User',
-          company: userProfile.company || 'Dchat',
-          email: userProfile.email || '',
-          reputationScore: userProfile.reputationScore || 100,
-          isVerified: userProfile.isVerified || false,
-          web3Enabled: true
-        })
+          username: `User_${account.slice(2, 8)}`,
+          email: `${account.slice(2, 8)}@dchat.web3`,
+          loginMethod: 'web3',
+          web3Enabled: true,
+          createdAt: new Date().toISOString()
+        }
+        
+        // 登录成功
+        onLogin(userData)
       }
     } catch (error) {
       console.error('Wallet login error:', error)
-      setError(error.message || 'Failed to login with wallet')
+      setError(error.message || 'Failed to connect wallet')
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  // 邮箱登录(简化版 - 无需后端)
   const handleEmailLogin = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError('')
     
     try {
-      if (step === 1) {
-        // Send verification code
-        const response = await apiCall(API_ENDPOINTS.SEND_CODE, {
-          method: 'POST',
-          body: JSON.stringify({
-            identifier: email,
-            type: 'email'
-          })
-        })
-        if (response.code) {
-          console.log('Verification code:', response.code)
-          alert(`Verification code: ${response.code}`)
-        }
-        setStep(2)
-      } else {
-        // Verify code and login
-        const response = await apiCall(API_ENDPOINTS.VERIFY_LOGIN, {
-          method: 'POST',
-          body: JSON.stringify({
-            identifier: email,
-            code: verificationCode,
-            type: 'email'
-          })
-        })
-
-        if (response.success) {
-          localStorage.setItem('authToken', response.token)
-          onLogin(response.user)
-        }
+      if (!email || !email.includes('@')) {
+        throw new Error('Please enter a valid email address')
       }
+
+      // 生成认证令牌
+      const authToken = `email_${email}_${Date.now()}`
+      localStorage.setItem('authToken', authToken)
+      
+      // 创建用户数据
+      const userData = {
+        email,
+        username: email.split('@')[0],
+        loginMethod: 'email',
+        web3Enabled: false,
+        createdAt: new Date().toISOString()
+      }
+      
+      // 登录成功
+      onLogin(userData)
     } catch (error) {
       console.error('Email login error:', error)
       setError(error.message || 'Failed to login with email')
@@ -149,38 +87,32 @@ const LoginScreen = ({ onLogin }) => {
     }
   }
 
+  // 手机登录(简化版 - 无需后端)
   const handlePhoneLogin = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError('')
     
     try {
-      if (step === 1) {
-        // Send SMS verification code
-        await apiCall(API_ENDPOINTS.SEND_CODE, {
-          method: 'POST',
-          body: JSON.stringify({
-            identifier: phone,
-            type: 'phone'
-          })
-        })
-        setStep(2)
-      } else {
-        // Verify code and login
-        const response = await apiCall(API_ENDPOINTS.VERIFY_LOGIN, {
-          method: 'POST',
-          body: JSON.stringify({
-            identifier: phone,
-            code: verificationCode,
-            type: 'phone'
-          })
-        })
-
-        if (response.success) {
-          localStorage.setItem('authToken', response.token)
-          onLogin(response.user)
-        }
+      if (!phone || phone.length < 10) {
+        throw new Error('Please enter a valid phone number')
       }
+
+      // 生成认证令牌
+      const authToken = `phone_${phone}_${Date.now()}`
+      localStorage.setItem('authToken', authToken)
+      
+      // 创建用户数据
+      const userData = {
+        phone,
+        username: `User_${phone.slice(-4)}`,
+        loginMethod: 'phone',
+        web3Enabled: false,
+        createdAt: new Date().toISOString()
+      }
+      
+      // 登录成功
+      onLogin(userData)
     } catch (error) {
       console.error('Phone login error:', error)
       setError(error.message || 'Failed to login with phone')
@@ -189,29 +121,30 @@ const LoginScreen = ({ onLogin }) => {
     }
   }
 
+  // Alipay 登录(简化版 - 无需后端)
   const handleAlipayLogin = async () => {
     setIsSubmitting(true)
     setError('')
     
     try {
-      // For demo purposes, generate a mock Alipay ID
-      // In production, this would go through Alipay OAuth flow
+      // 生成模拟 Alipay ID
       const alipayId = 'alipay_' + Math.random().toString(36).substr(2, 9)
       
-      const response = await apiCall(API_ENDPOINTS.ALIPAY_LOGIN, {
-        method: 'POST',
-        body: JSON.stringify({
-          alipayId,
-          alipayInfo: {
-            name: 'Alipay User'
-          }
-        })
-      })
-
-      if (response.success) {
-        localStorage.setItem('authToken', response.token)
-        onLogin(response.user)
+      // 生成认证令牌
+      const authToken = `alipay_${alipayId}_${Date.now()}`
+      localStorage.setItem('authToken', authToken)
+      
+      // 创建用户数据
+      const userData = {
+        alipayId,
+        username: `Alipay_${alipayId.slice(-4)}`,
+        loginMethod: 'alipay',
+        web3Enabled: false,
+        createdAt: new Date().toISOString()
       }
+      
+      // 登录成功
+      onLogin(userData)
     } catch (error) {
       console.error('Alipay login error:', error)
       setError(error.message || 'Failed to login with Alipay')
@@ -222,20 +155,16 @@ const LoginScreen = ({ onLogin }) => {
 
   const resetLoginFlow = () => {
     setLoginMethod('select')
-    setStep(1)
     setEmail('')
     setPhone('')
-    setVerificationCode('')
     setError('')
   }
 
-  // Removed auto-login to prevent loops and ScamSniffer issues
-
-  // Login Method Selection Screen
+  // 登录方式选择界面
   if (loginMethod === 'select') {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
-        {/* Logo Area */}
+        {/* Logo */}
         <div className="flex flex-col items-center mb-12">
           <div className="flex items-center justify-center w-16 h-16 mb-4">
             <div className="relative">
@@ -243,9 +172,9 @@ const LoginScreen = ({ onLogin }) => {
               <Lock className="w-6 h-6 text-black absolute -bottom-1 -right-1 bg-white rounded-full p-1" strokeWidth={2} />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-black mb-2">{t('login.title')}</h1>
+          <h1 className="text-3xl font-bold text-black mb-2">Dchat</h1>
           <p className="text-gray-500 text-center max-w-sm">
-            {t('login.subtitle')}
+            Secure Business Communication Platform
           </p>
         </div>
 
@@ -265,7 +194,7 @@ const LoginScreen = ({ onLogin }) => {
             className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-xl text-base font-medium flex items-center justify-center gap-3 transition-all duration-200"
           >
             <Wallet className="w-5 h-5" />
-            {t('login.connectWallet')}
+            Web3 Wallet
           </Button>
 
           {/* Divider */}
@@ -275,7 +204,7 @@ const LoginScreen = ({ onLogin }) => {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-4 bg-white text-gray-500">
-                {t('login.orContinueWith') || 'Or continue with'}
+                Or continue with
               </span>
             </div>
           </div>
@@ -287,7 +216,7 @@ const LoginScreen = ({ onLogin }) => {
             className="w-full h-14 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-black rounded-xl text-base font-medium flex items-center justify-center gap-3 transition-all duration-200"
           >
             <Mail className="w-5 h-5" />
-            {t('login.emailLogin') || 'Email'}
+            Email
           </Button>
 
           {/* Phone Login */}
@@ -297,7 +226,7 @@ const LoginScreen = ({ onLogin }) => {
             className="w-full h-14 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-black rounded-xl text-base font-medium flex items-center justify-center gap-3 transition-all duration-200"
           >
             <Phone className="w-5 h-5" />
-            {t('login.phoneLogin') || 'Phone'}
+            Phone
           </Button>
 
           {/* Alipay Login */}
@@ -309,12 +238,12 @@ const LoginScreen = ({ onLogin }) => {
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
               <path d="M6.5 4C5.67 4 5 4.67 5 5.5v13c0 .83.67 1.5 1.5 1.5h11c.83 0 1.5-.67 1.5-1.5v-13c0-.83-.67-1.5-1.5-1.5h-11zm8.5 8.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
             </svg>
-            {t('login.alipayLogin') || 'Alipay'}
+            Alipay
           </Button>
 
           {/* Info Text */}
           <p className="text-gray-400 text-xs text-center leading-relaxed pt-4">
-            {t('login.autoWalletInfo') || 'Email, phone, and Alipay login will automatically create a secure wallet for you'}
+            Email, phone, and Alipay login will automatically create a secure wallet for you
           </p>
         </div>
 
@@ -322,27 +251,27 @@ const LoginScreen = ({ onLogin }) => {
         <div className="w-full max-w-sm space-y-4 pt-8">
           <div className="flex items-center gap-3 text-sm text-gray-600">
             <Shield className="w-4 h-4 text-gray-400" />
-            <span>{t('login.features.encryption')}</span>
+            <span>End-to-end encryption protection</span>
           </div>
           <div className="flex items-center gap-3 text-sm text-gray-600">
             <Lock className="w-4 h-4 text-gray-400" />
-            <span>{t('login.features.quantum')}</span>
+            <span>Quantum-resistant encryption</span>
           </div>
           <div className="flex items-center gap-3 text-sm text-gray-600">
             <MessageCircle className="w-4 h-4 text-gray-400" />
-            <span>{t('login.features.blockchain')}</span>
+            <span>Blockchain message storage</span>
           </div>
         </div>
 
         {/* Footer */}
         <div className="mt-auto pb-8 text-xs text-gray-400 text-center">
-          <p>{t('login.terms')}</p>
+          <p>By connecting your wallet, you agree to our Terms of Service and Privacy Policy</p>
         </div>
       </div>
     )
   }
 
-  // Web3 Wallet Login Screen
+  // Web3 钱包登录界面
   if (loginMethod === 'wallet') {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
@@ -353,7 +282,7 @@ const LoginScreen = ({ onLogin }) => {
             className="mb-8 -ml-2"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
-            {t('common.back') || 'Back'}
+            Back
           </Button>
 
           <div className="flex flex-col items-center mb-12">
@@ -361,10 +290,10 @@ const LoginScreen = ({ onLogin }) => {
               <Wallet className="w-12 h-12 text-black" />
             </div>
             <h1 className="text-2xl font-bold text-black mb-2">
-              {t('login.connectWallet')}
+              Connect Wallet
             </h1>
             <p className="text-gray-500 text-center max-w-sm">
-              {t('login.walletDescription') || 'Connect your Web3 wallet to continue'}
+              Connect your Web3 wallet to continue
             </p>
           </div>
 
@@ -373,7 +302,7 @@ const LoginScreen = ({ onLogin }) => {
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="text-sm text-red-800">{walletError || error}</p>
-                {!isMetaMaskInstalled && (
+                {!isMetaMaskInstalled() && (
                   <a 
                     href="https://metamask.io/download/" 
                     target="_blank" 
@@ -389,31 +318,35 @@ const LoginScreen = ({ onLogin }) => {
 
           <Button
             onClick={handleConnectWallet}
-            disabled={isConnecting}
+            disabled={isConnecting || isSubmitting}
             className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-xl text-base font-medium flex items-center justify-center gap-3 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isConnecting ? (
+            {(isConnecting || isSubmitting) ? (
               <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                {t('common.loading')}
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Connecting...
               </>
             ) : (
               <>
                 <Wallet className="w-5 h-5" />
-                {t('login.connectMetaMask') || 'Connect MetaMask'}
+                Connect MetaMask
               </>
             )}
           </Button>
 
-          <p className="text-gray-400 text-sm text-center mt-6">
-            {t('login.description')}
-          </p>
+          <div className="mt-6 p-4 bg-blue-50 rounded-xl">
+            <h4 className="font-medium text-blue-900 mb-2">What is MetaMask?</h4>
+            <p className="text-sm text-blue-800">
+              MetaMask is a crypto wallet that allows you to interact with blockchain applications.
+              It's free and secure.
+            </p>
+          </div>
         </div>
       </div>
     )
   }
 
-  // Email Login Screen
+  // 邮箱登录界面
   if (loginMethod === 'email') {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
@@ -424,7 +357,7 @@ const LoginScreen = ({ onLogin }) => {
             className="mb-8 -ml-2"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
-            {t('common.back') || 'Back'}
+            Back
           </Button>
 
           <div className="flex flex-col items-center mb-12">
@@ -432,13 +365,10 @@ const LoginScreen = ({ onLogin }) => {
               <Mail className="w-12 h-12 text-black" />
             </div>
             <h1 className="text-2xl font-bold text-black mb-2">
-              {t('login.emailLogin') || 'Email Login'}
+              Email Login
             </h1>
             <p className="text-gray-500 text-center max-w-sm">
-              {step === 1 
-                ? (t('login.emailDescription') || 'Enter your email to receive a verification code')
-                : (t('login.enterCode') || 'Enter the verification code sent to your email')
-              }
+              Enter your email to continue
             </p>
           </div>
 
@@ -450,63 +380,48 @@ const LoginScreen = ({ onLogin }) => {
           )}
 
           <form onSubmit={handleEmailLogin} className="space-y-4">
-            {step === 1 ? (
-              <div>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t('login.emailPlaceholder') || 'your@email.com'}
-                  required
-                  className="w-full h-14 px-4 border-2 border-gray-200 rounded-xl text-base focus:border-black focus:outline-none transition-colors"
-                />
-              </div>
-            ) : (
-              <div>
-                <input
-                  type="text"
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  placeholder={t('login.codePlaceholder') || '6-digit code'}
-                  required
-                  maxLength={6}
-                  className="w-full h-14 px-4 border-2 border-gray-200 rounded-xl text-base text-center text-2xl tracking-widest focus:border-black focus:outline-none transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className="text-sm text-gray-500 underline mt-2"
-                >
-                  {t('login.changeEmail') || 'Change email'}
-                </button>
-              </div>
-            )}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black"
+                required
+              />
+            </div>
 
             <Button
               type="submit"
-              disabled={isSubmitting || (step === 1 && !email) || (step === 2 && verificationCode.length !== 6)}
+              disabled={isSubmitting}
               className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-xl text-base font-medium flex items-center justify-center gap-3 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  {t('common.loading')}
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Logging in...
                 </>
               ) : (
-                step === 1 ? (t('login.sendCode') || 'Send Code') : (t('login.verify') || 'Verify & Login')
+                'Continue'
               )}
             </Button>
           </form>
 
-          <p className="text-gray-400 text-xs text-center mt-6">
-            {t('login.autoWalletCreate') || 'A secure wallet will be automatically created for you'}
-          </p>
+          <div className="mt-6 p-4 bg-blue-50 rounded-xl">
+            <p className="text-sm text-blue-800">
+              A secure wallet will be automatically created for you.
+              No verification code needed for demo.
+            </p>
+          </div>
         </div>
       </div>
     )
   }
 
-  // Phone Login Screen  
+  // 手机登录界面
   if (loginMethod === 'phone') {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
@@ -517,7 +432,7 @@ const LoginScreen = ({ onLogin }) => {
             className="mb-8 -ml-2"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
-            {t('common.back') || 'Back'}
+            Back
           </Button>
 
           <div className="flex flex-col items-center mb-12">
@@ -525,13 +440,10 @@ const LoginScreen = ({ onLogin }) => {
               <Phone className="w-12 h-12 text-black" />
             </div>
             <h1 className="text-2xl font-bold text-black mb-2">
-              {t('login.phoneLogin') || 'Phone Login'}
+              Phone Login
             </h1>
             <p className="text-gray-500 text-center max-w-sm">
-              {step === 1 
-                ? (t('login.phoneDescription') || 'Enter your phone number to receive a verification code')
-                : (t('login.enterCode') || 'Enter the verification code sent to your phone')
-              }
+              Enter your phone number to continue
             </p>
           </div>
 
@@ -543,63 +455,48 @@ const LoginScreen = ({ onLogin }) => {
           )}
 
           <form onSubmit={handlePhoneLogin} className="space-y-4">
-            {step === 1 ? (
-              <div>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder={t('login.phonePlaceholder') || '+86 138 0000 0000'}
-                  required
-                  className="w-full h-14 px-4 border-2 border-gray-200 rounded-xl text-base focus:border-black focus:outline-none transition-colors"
-                />
-              </div>
-            ) : (
-              <div>
-                <input
-                  type="text"
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  placeholder={t('login.codePlaceholder') || '6-digit code'}
-                  required
-                  maxLength={6}
-                  className="w-full h-14 px-4 border-2 border-gray-200 rounded-xl text-base text-center text-2xl tracking-widest focus:border-black focus:outline-none transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className="text-sm text-gray-500 underline mt-2"
-                >
-                  {t('login.changePhone') || 'Change phone number'}
-                </button>
-              </div>
-            )}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+1 (555) 123-4567"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black"
+                required
+              />
+            </div>
 
             <Button
               type="submit"
-              disabled={isSubmitting || (step === 1 && !phone) || (step === 2 && verificationCode.length !== 6)}
+              disabled={isSubmitting}
               className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-xl text-base font-medium flex items-center justify-center gap-3 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  {t('common.loading')}
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Logging in...
                 </>
               ) : (
-                step === 1 ? (t('login.sendCode') || 'Send Code') : (t('login.verify') || 'Verify & Login')
+                'Continue'
               )}
             </Button>
           </form>
 
-          <p className="text-gray-400 text-xs text-center mt-6">
-            {t('login.autoWalletCreate') || 'A secure wallet will be automatically created for you'}
-          </p>
+          <div className="mt-6 p-4 bg-blue-50 rounded-xl">
+            <p className="text-sm text-blue-800">
+              A secure wallet will be automatically created for you.
+              No verification code needed for demo.
+            </p>
+          </div>
         </div>
       </div>
     )
   }
 
-  // Alipay Login Screen
+  // Alipay 登录界面
   if (loginMethod === 'alipay') {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
@@ -610,7 +507,7 @@ const LoginScreen = ({ onLogin }) => {
             className="mb-8 -ml-2"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
-            {t('common.back') || 'Back'}
+            Back
           </Button>
 
           <div className="flex flex-col items-center mb-12">
@@ -620,10 +517,10 @@ const LoginScreen = ({ onLogin }) => {
               </svg>
             </div>
             <h1 className="text-2xl font-bold text-black mb-2">
-              {t('login.alipayLogin') || 'Alipay Login'}
+              Alipay Login
             </h1>
             <p className="text-gray-500 text-center max-w-sm">
-              {t('login.alipayDescription') || 'Continue with your Alipay account'}
+              Connect with Alipay to continue
             </p>
           </div>
 
@@ -641,22 +538,24 @@ const LoginScreen = ({ onLogin }) => {
           >
             {isSubmitting ? (
               <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                {t('common.loading')}
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Connecting...
               </>
             ) : (
               <>
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M6.5 4C5.67 4 5 4.67 5 5.5v13c0 .83.67 1.5 1.5 1.5h11c.83 0 1.5-.67 1.5-1.5v-13c0-.83-.67-1.5-1.5-1.5h-11zm8.5 8.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
                 </svg>
-                {t('login.continueWithAlipay') || 'Continue with Alipay'}
+                Connect with Alipay
               </>
             )}
           </Button>
 
-          <p className="text-gray-400 text-xs text-center mt-6">
-            {t('login.autoWalletCreate') || 'A secure wallet will be automatically created for you'}
-          </p>
+          <div className="mt-6 p-4 bg-blue-50 rounded-xl">
+            <p className="text-sm text-blue-800">
+              This is a demo version. In production, you'll be redirected to Alipay for authentication.
+            </p>
+          </div>
         </div>
       </div>
     )
@@ -666,4 +565,3 @@ const LoginScreen = ({ onLogin }) => {
 }
 
 export default LoginScreen
-
