@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Wallet, MessageCircle, Lock, Shield, AlertCircle, Mail, Phone, ArrowLeft } from 'lucide-react'
-import { useMetaMask } from '@/hooks/useMetaMask'
+import { useWeb3 } from '../contexts/Web3Context'
 import { useLanguage } from '../contexts/LanguageContext'
-import { API_ENDPOINTS, apiCall } from '../config/api'
-import web3Service from '../services/web3Service'
+import { UserIdentityService } from '../services/UserIdentityService'
 
 const LoginScreen = ({ onLogin }) => {
   const { t } = useLanguage()
@@ -18,84 +17,91 @@ const LoginScreen = ({ onLogin }) => {
   
   const { 
     account, 
+    provider,
+    signer,
     isConnecting, 
     error: walletError, 
     isMetaMaskInstalled, 
-    connect 
-  } = useMetaMask()
+    connectWallet 
+  } = useWeb3()
 
   const handleConnectWallet = async () => {
     try {
-      // Connect wallet using web3Service
-      const walletInfo = await web3Service.connectWallet()
+      setError('')
+      setIsSubmitting(true)
       
-      if (walletInfo && walletInfo.address) {
+      // Connect wallet
+      const success = await connectWallet()
+      
+      if (success && account) {
+        // Create UserIdentity service
+        const userIdentityService = new UserIdentityService(provider, signer)
+        
         // Check if user is registered on-chain
-        const isRegistered = await web3Service.isUserRegistered(walletInfo.address)
+        const isRegisteredResult = await userIdentityService.isRegistered(account)
+        const isRegistered = isRegisteredResult.success && isRegisteredResult.data
         
         if (!isRegistered) {
           // Auto-register user with wallet address as username
-          const username = `User_${walletInfo.address.slice(0, 6)}`
-          const email = `${walletInfo.address}@dchat.web3`
+          const username = `User_${account.slice(2, 8)}`
+          const email = `${account.slice(2, 8)}@dchat.web3`
           
           try {
-            await web3Service.registerUser(username, email)
+            const registerResult = await userIdentityService.registerUser(
+              username,
+              'Web3 User',
+              'Dchat',
+              email,
+              ''
+            )
+            
+            if (!registerResult.success) {
+              console.warn('Auto-registration failed:', registerResult.error)
+            }
           } catch (regError) {
-            console.warn('Auto-registration failed:', regError)
-            // Continue anyway, user can register later
+            console.warn('Auto-registration error:', regError)
           }
         }
         
         // Get user profile from smart contract
         let userProfile
         try {
-          userProfile = await web3Service.getUserProfile(walletInfo.address)
+          const profileResult = await userIdentityService.getProfile(account)
+          if (profileResult.success) {
+            userProfile = profileResult.profile
+          } else {
+            throw new Error('Profile not found')
+          }
         } catch (error) {
           console.warn('Failed to get user profile:', error)
           userProfile = {
-            address: walletInfo.address,
-            username: `User_${walletInfo.address.slice(0, 6)}`,
+            owner: account,
+            name: `User_${account.slice(2, 8)}`,
+            title: 'Web3 User',
+            company: 'Dchat',
+            email: `${account.slice(2, 8)}@dchat.web3`,
+            isVerified: false,
             reputationScore: 100
           }
         }
         
-        // Sign a message to prove ownership
-        const message = `Sign this message to login to Dchat: ${Date.now()}`
-        const signature = await web3Service.signMessage(message)
-
-        // Call backend API (optional, for traditional features)
-        try {
-          const response = await apiCall(API_ENDPOINTS.WALLET_LOGIN, {
-            method: 'POST',
-            body: JSON.stringify({
-              walletAddress: walletInfo.address,
-              signature,
-              message,
-              userProfile
-            })
-          })
-
-          if (response.success) {
-            localStorage.setItem('authToken', response.token)
-          }
-        } catch (apiError) {
-          console.warn('Backend API call failed:', apiError)
-          // Continue with Web3-only mode
-        }
-        
         // Login with Web3 profile
         onLogin({
-          walletAddress: walletInfo.address,
-          username: userProfile.username || `User_${walletInfo.address.slice(0, 6)}`,
+          walletAddress: account,
+          username: userProfile.name || `User_${account.slice(2, 8)}`,
+          title: userProfile.title || 'Web3 User',
+          company: userProfile.company || 'Dchat',
+          email: userProfile.email || '',
           reputationScore: userProfile.reputationScore || 100,
-          isLinkedInVerified: userProfile.isLinkedInVerified || false,
-          isEmailVerified: userProfile.isEmailVerified || false,
+          isVerified: userProfile.isVerified || false,
           web3Enabled: true
         })
       }
     } catch (error) {
       console.error('Wallet login error:', error)
       setError(error.message || 'Failed to login with wallet')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 

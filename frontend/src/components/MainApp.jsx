@@ -5,6 +5,11 @@ import ChatRoom from './ChatRoom'
 import Moments from './Moments'
 import Projects from './Projects'
 import Profile from './Profile'
+import Portfolio from './Portfolio'
+import OpportunityMatching from './OpportunityMatching'
+import SubscriptionManager from './SubscriptionManager'
+import PaymentManager from './PaymentManager'
+import NotificationCenter from './NotificationCenter'
 
 const MainApp = ({ user, onLogout }) => {
   const location = useLocation()
@@ -14,6 +19,14 @@ const MainApp = ({ user, onLogout }) => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* 顶部通知栏 */}
+      {showBottomNav && (
+        <div className="flex items-center justify-between px-4 py-2 border-b bg-white">
+          <h1 className="text-lg font-semibold">DChat</h1>
+          <NotificationCenter />
+        </div>
+      )}
+
       {/* 主要内容区域 */}
       <div className="flex-1 overflow-hidden">
         <Routes>
@@ -21,6 +34,10 @@ const MainApp = ({ user, onLogout }) => {
           <Route path="/chat/:id" element={<ChatRoom />} />
           <Route path="/moments" element={<Moments />} />
           <Route path="/projects" element={<Projects />} />
+          <Route path="/portfolio" element={<Portfolio />} />
+          <Route path="/matching" element={<OpportunityMatching />} />
+          <Route path="/subscriptions" element={<SubscriptionManager />} />
+          <Route path="/payments" element={<PaymentManager />} />
           <Route path="/profile" element={<Profile user={user} onLogout={onLogout} />} />
         </Routes>
       </div>

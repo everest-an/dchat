@@ -7,6 +7,7 @@ import LoginScreen from './components/LoginScreen'
 import MainApp from './components/MainApp'
 import ResponsiveContainer from './components/ResponsiveContainer'
 import { LanguageProvider } from './contexts/LanguageContext'
+import { Web3Provider } from './contexts/Web3Context'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -59,30 +60,32 @@ function App() {
   }
 
   return (
-    <LanguageProvider>
-      <Router>
-        <ResponsiveContainer>
-          <Routes>
-            <Route 
-              path="/login" 
-              element={
-                !isAuthenticated ? 
-                  <LoginScreen onLogin={handleLogin} /> : 
-                  <Navigate to="/" replace />
-              } 
-            />
-            <Route 
-              path="/*" 
-              element={
-                isAuthenticated ? 
-                  <MainApp user={user} onLogout={handleLogout} /> : 
-                  <Navigate to="/login" replace />
-              } 
-            />
-          </Routes>
-        </ResponsiveContainer>
-      </Router>
-    </LanguageProvider>
+    <Web3Provider>
+      <LanguageProvider>
+        <Router>
+          <ResponsiveContainer>
+            <Routes>
+              <Route 
+                path="/login" 
+                element={
+                  !isAuthenticated ? 
+                    <LoginScreen onLogin={handleLogin} /> : 
+                    <Navigate to="/" replace />
+                } 
+              />
+              <Route 
+                path="/*" 
+                element={
+                  isAuthenticated ? 
+                    <MainApp user={user} onLogout={handleLogout} /> : 
+                    <Navigate to="/login" replace />
+                } 
+              />
+            </Routes>
+          </ResponsiveContainer>
+        </Router>
+      </LanguageProvider>
+    </Web3Provider>
   )
 }
 

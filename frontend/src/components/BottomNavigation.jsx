@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { MessageCircle, Grid3X3, Briefcase, User } from 'lucide-react'
+import { MessageCircle, Briefcase, Target, Wallet, User } from 'lucide-react'
 
 const BottomNavigation = () => {
   const navigate = useNavigate()
@@ -13,16 +13,22 @@ const BottomNavigation = () => {
       path: '/'
     },
     {
-      id: 'moments',
-      label: 'Moments',
-      icon: Grid3X3,
-      path: '/moments'
+      id: 'portfolio',
+      label: 'Portfolio',
+      icon: Briefcase,
+      path: '/portfolio'
     },
     {
-      id: 'projects',
-      label: 'Projects',
-      icon: Briefcase,
-      path: '/projects'
+      id: 'matching',
+      label: 'Matching',
+      icon: Target,
+      path: '/matching'
+    },
+    {
+      id: 'payments',
+      label: 'Payments',
+      icon: Wallet,
+      path: '/payments'
     },
     {
       id: 'profile',
