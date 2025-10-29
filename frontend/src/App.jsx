@@ -8,6 +8,8 @@ import MainApp from './components/MainApp'
 import ResponsiveContainer from './components/ResponsiveContainer'
 import { LanguageProvider } from './contexts/LanguageContext'
 import { Web3Provider } from './contexts/Web3Context'
+import { ToastProvider } from './contexts/ToastContext'
+import { Toaster } from './components/ui/toaster'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -50,10 +52,10 @@ function App() {
   // 加载中显示
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen bg-white">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading...</p>
+          <div className="w-16 h-16 border-4 border-gray-200 border-t-black rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     )
@@ -61,7 +63,8 @@ function App() {
 
   return (
     <Web3Provider>
-      <LanguageProvider>
+      <ToastProvider>
+        <LanguageProvider>
         <Router>
           <ResponsiveContainer>
             <Routes>
@@ -83,11 +86,12 @@ function App() {
               />
             </Routes>
           </ResponsiveContainer>
+          <Toaster />
         </Router>
-      </LanguageProvider>
+        </LanguageProvider>
+      </ToastProvider>
     </Web3Provider>
   )
 }
 
 export default App
-
