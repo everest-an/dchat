@@ -1,0 +1,149 @@
+.
+├── BLOCKCHAIN_INTEGRATION.md
+├── CHANGELOG.md
+├── COMMERCIAL_FEATURES.md
+├── CONTRIBUTING.md
+├── DELIVERY_PACKAGE.md
+├── DEPLOYMENT.md
+├── DEPLOYMENT_COMPLETE.md
+├── DEPLOYMENT_GUIDE.md
+├── DEPLOYMENT_SUMMARY.md
+├── DEVELOPMENT_SUMMARY.md
+├── LICENSE
+├── PROJECT_ANALYSIS.md
+├── PROJECT_COMPLETION_REPORT.md
+├── PROJECT_STRUCTURE.txt
+├── README.md
+├── RESPONSIVE_DESIGN.md
+├── TESTING_CHECKLIST.md
+├── TESTING_GUIDE.md
+├── USER_GUIDE.md
+├── VERCEL_DEPLOYMENT.md
+├── backend
+│   ├── README.md
+│   ├── VERCEL_ENV_SETUP.md
+│   ├── api
+│   │   └── index.js
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── requirements.txt
+│   ├── src
+│   │   ├── __init__.py
+│   │   ├── config
+│   │   ├── controllers
+│   │   ├── main.py
+│   │   ├── middleware
+│   │   ├── models
+│   │   ├── routes
+│   │   ├── scripts
+│   │   ├── server.js
+│   │   ├── services
+│   │   ├── static
+│   │   └── utils
+│   └── vercel.json
+├── blockchain
+│   ├── contracts
+│   │   ├── MessageStorage.sol
+│   │   ├── PaymentChannel.sol
+│   │   └── UserRegistry.sol
+│   └── scripts
+│       └── deploy-example.js
+├── contracts
+│   ├── README.md
+│   ├── artifacts
+│   │   ├── build-info
+│   │   └── contracts
+│   ├── cache
+│   │   └── solidity-files-cache.json
+│   ├── contracts
+│   │   ├── LivingPortfolio.sol
+│   │   ├── MessageStorage.sol
+│   │   ├── MessageStorageV2.sol
+│   │   ├── PaymentEscrow.sol
+│   │   ├── ProjectCollaboration.sol
+│   │   ├── UserIdentity.sol
+│   │   └── UserIdentityV2.sol
+│   ├── deploy.js
+│   ├── deployComplete.js
+│   ├── deployV2.js
+│   ├── deployment-addresses.json
+│   ├── deployment-complete-addresses.json
+│   ├── deployment-v2-addresses.json
+│   ├── hardhat.config.js
+│   ├── package-lock.json
+│   └── package.json
+├── docs
+│   ├── DEPLOYMENT_GUIDE.md
+│   ├── DOMAIN_SETUP_GUIDE.md
+│   ├── FINAL_STATUS.md
+│   ├── LOGIN_FIX_GUIDE.md
+│   ├── README.md
+│   ├── business
+│   │   └── business-plan.md
+│   ├── database
+│   │   └── supabase_init.sql
+│   ├── design
+│   │   ├── dchat_app_icon.png
+│   │   ├── dchat_bottom_navigation.png
+│   │   ├── dchat_chat_interface.png
+│   │   ├── dchat_chat_list.png
+│   │   ├── dchat_design_system.md
+│   │   ├── dchat_login_screen.png
+│   │   ├── dchat_mobile_mockup.png
+│   │   ├── dchat_moments_feed.png
+│   │   └── dchat_profile_page.png
+│   ├── pitch-deck
+│   │   ├── Dchat_Hackathon_Pitch.pdf
+│   │   ├── Dchat_Pitch_Deck_CN.pdf
+│   │   ├── Dchat_Pitch_Deck_EN.pdf
+│   │   ├── competitive_advantage.html
+│   │   ├── dchat_pitch_deck_with_ui.pdf
+│   │   ├── funding_ask.html
+│   │   ├── hackathon_pitch.md
+│   │   ├── market_opportunity.html
+│   │   ├── problem_statement.html
+│   │   ├── product_demo.html
+│   │   ├── solution_overview.html
+│   │   ├── team_background.html
+│   │   └── title_slide.html
+│   ├── technical
+│   │   ├── dchat_production_plan.md
+│   │   ├── dchat_requirements.md
+│   │   └── technical-specifications.md
+│   ├── user-manual
+│   │   ├── dchat_user_manual.md
+│   │   └── dchat_user_manual_en.md
+│   └── whitepaper
+│       ├── dchat-whitepaper-v2.md
+│       └── dchat-whitepaper.md
+├── frontend
+│   ├── components.json
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── jsconfig.json
+│   ├── netlify.toml
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── pnpm-lock.yaml
+│   ├── public
+│   │   └── favicon.ico
+│   ├── src
+│   │   ├── App.css
+│   │   ├── App.jsx
+│   │   ├── abis
+│   │   ├── assets
+│   │   ├── components
+│   │   ├── config
+│   │   ├── contexts
+│   │   ├── hooks
+│   │   ├── index.css
+│   │   ├── lib
+│   │   ├── locales
+│   │   ├── main.jsx
+│   │   ├── services
+│   │   └── utils
+│   ├── vercel.json
+│   └── vite.config.js
+└── vercel.json
+
+42 directories, 104 files
