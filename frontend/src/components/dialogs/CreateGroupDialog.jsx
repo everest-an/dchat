@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom'
 import { useToast } from '../../contexts/ToastContext'
 import { useWeb3 } from '../../contexts/Web3Context'
 import { UserProfileService } from '../../services/UserProfileService'
+import { subscriptionService } from '../../services/SubscriptionService'
+import UpgradeDialog from './UpgradeDialog'
 
 const CreateGroupDialog = ({ isOpen, onClose }) => {
   const navigate = useNavigate()
@@ -15,6 +17,8 @@ const CreateGroupDialog = ({ isOpen, onClose }) => {
   const [groupDescription, setGroupDescription] = useState('')
   const [memberAddress, setMemberAddress] = useState('')
   const [members, setMembers] = useState([])
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
+  const [upgradeMessage, setUpgradeMessage] = useState({ title: '', description: '' })
 
   const handleAddMember = () => {
     if (!memberAddress.trim()) {
@@ -34,6 +38,18 @@ const CreateGroupDialog = ({ isOpen, onClose }) => {
 
     if (members.some(m => m.address.toLowerCase() === memberAddress.toLowerCase())) {
       error('Error', 'Member already added')
+      return
+    }
+
+    // Check subscription limit (including creator)
+    const totalMembers = members.length + 2 // +1 for creator, +1 for new member
+    if (!subscriptionService.canAddGroupMember(account, totalMembers)) {
+      const limits = subscriptionService.getUserLimits(account)
+      setUpgradeMessage({
+        title: 'Group Member Limit Reached',
+        description: `Free plan allows up to ${limits.groupMembers} members per group. Upgrade to Pro for unlimited members.`
+      })
+      setShowUpgradeDialog(true)
       return
     }
 
@@ -225,6 +241,14 @@ const CreateGroupDialog = ({ isOpen, onClose }) => {
           </Button>
         </div>
       </div>
+
+      {/* Upgrade Dialog */}
+      <UpgradeDialog
+        isOpen={showUpgradeDialog}
+        onClose={() => setShowUpgradeDialog(false)}
+        title={upgradeMessage.title}
+        description={upgradeMessage.description}
+      />
     </div>
   )
 }

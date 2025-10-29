@@ -8,6 +8,8 @@ import { MessageStorageService } from '../services/MessageStorageService'
 import { UserProfileService } from '../services/UserProfileService'
 import { ipfsService } from '../services/IPFSService'
 import { encryptMessage, decryptMessage } from '../utils/encryption'
+import { subscriptionService } from '../services/SubscriptionService'
+import UpgradeDialog from './dialogs/UpgradeDialog'
 
 const ChatRoom = () => {
   const navigate = useNavigate()
@@ -24,6 +26,8 @@ const ChatRoom = () => {
   const [recipientProfile, setRecipientProfile] = useState(null)
   const [messageService, setMessageService] = useState(null)
   const [showMenu, setShowMenu] = useState(false)
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
+  const [upgradeMessage, setUpgradeMessage] = useState({ title: '', description: '' })
   
   const messagesEndRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -204,6 +208,19 @@ const ChatRoom = () => {
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
+
+    // Check file size limit
+    if (!subscriptionService.canUploadFile(account, file.size)) {
+      const limits = subscriptionService.getUserLimits(account)
+      const maxSize = subscriptionService.formatSize(limits.fileSize)
+      setUpgradeMessage({
+        title: 'File Size Limit Exceeded',
+        description: `Free plan allows files up to ${maxSize}. Upgrade to Pro for files up to 100MB, or Enterprise for unlimited file size.`
+      })
+      setShowUpgradeDialog(true)
+      e.target.value = '' // Reset file input
+      return
+    }
 
     setUploading(true)
     setUploadProgress(0)
@@ -483,6 +500,14 @@ const ChatRoom = () => {
           </button>
         </div>
       </div>
+
+      {/* Upgrade Dialog */}
+      <UpgradeDialog
+        isOpen={showUpgradeDialog}
+        onClose={() => setShowUpgradeDialog(false)}
+        title={upgradeMessage.title}
+        description={upgradeMessage.description}
+      />
     </div>
   )
 }
