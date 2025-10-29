@@ -1,244 +1,344 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Plus, Lock, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Search, Plus, QrCode, ScanLine, Settings, User } from 'lucide-react'
+import { Button } from './ui/button'
 import { useWeb3 } from '../contexts/Web3Context'
-import { MessageStorageService } from '../services/MessageStorageService'
+import { useToast } from '../contexts/ToastContext'
+import { UserProfileService } from '../services/UserProfileService'
+import QRCodeDialog from './QRCodeDialog'
+import ScanQRDialog from './ScanQRDialog'
+import EditProfileDialog from './dialogs/EditProfileDialog'
+import CreateGroupDialog from './dialogs/CreateGroupDialog'
 
 const ChatList = () => {
   const navigate = useNavigate()
-  const { account, provider, signer, isConnected } = useWeb3()
-  const [searchQuery, setSearchQuery] = useState('')
+  const { account, disconnect } = useWeb3()
+  const { success, error: showError } = useToast()
+  
   const [conversations, setConversations] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [messageService, setMessageService] = useState(null)
+  const [filteredConversations, setFilteredConversations] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showQRCode, setShowQRCode] = useState(false)
+  const [showScan, setShowScan] = useState(false)
+  const [showProfile, setShowProfile] = useState(false)
+  const [showNewChat, setShowNewChat] = useState(false)
+  const [newChatAddress, setNewChatAddress] = useState('')
+  const [showCreateGroup, setShowCreateGroup] = useState(false)
+  const [myProfile, setMyProfile] = useState(null)
 
-  // 初始化消息服务
+  // 加载用户资料
   useEffect(() => {
-    if (provider && signer) {
-      const service = new MessageStorageService(provider, signer)
-      setMessageService(service)
+    if (account) {
+      const profile = UserProfileService.getProfile(account)
+      setMyProfile({
+        username: UserProfileService.getDisplayName(account),
+        avatar: UserProfileService.getDisplayAvatar(account),
+        bio: profile?.bio || ''
+      })
     }
-  }, [provider, signer])
+  }, [account])
 
   // 加载对话列表
-  const loadConversations = useCallback(async () => {
-    if (!messageService || !account) return
+  useEffect(() => {
+    loadConversations()
+    
+    // 每5秒刷新一次
+    const interval = setInterval(loadConversations, 5000)
+    return () => clearInterval(interval)
+  }, [account])
 
+  const loadConversations = () => {
     try {
-      setLoading(true)
+      const conversationsKey = 'dchat_conversations'
+      const stored = localStorage.getItem(conversationsKey)
+      const convs = stored ? JSON.parse(stored) : []
       
-      // 获取用户的所有消息
-      const result = await messageService.getUserMessages(account, 0, 100)
-      
-      if (result.success) {
-        // 按对话分组
-        const conversationMap = new Map()
-        
-        result.messages.forEach(msg => {
-          // 确定对话对象
-          const otherParty = msg.sender.toLowerCase() === account.toLowerCase() 
-            ? msg.recipient 
-            : msg.sender
-          
-          if (!conversationMap.has(otherParty)) {
-            conversationMap.set(otherParty, {
-              address: otherParty,
-              messages: []
-            })
-          }
-          
-          conversationMap.get(otherParty).messages.push(msg)
-        })
-        
-        // 转换为数组并排序
-        const convList = Array.from(conversationMap.values()).map(conv => {
-          const lastMsg = conv.messages[conv.messages.length - 1]
-          const unreadCount = conv.messages.filter(
-            msg => !msg.isRead && msg.recipient.toLowerCase() === account.toLowerCase()
-          ).length
-          
-          return {
-            id: conv.address,
-            address: conv.address,
-            name: `${conv.address.slice(0, 6)}...${conv.address.slice(-4)}`,
-            company: 'Web3 User',
-            lastMessage: lastMsg.encryptedContent.slice(0, 50) + (lastMsg.encryptedContent.length > 50 ? '...' : ''),
-            timestamp: formatTimestamp(lastMsg.timestamp),
-            unread: unreadCount,
-            avatar: '👤',
-            lastMessageTime: lastMsg.timestamp
-          }
-        })
-        
-        // 按最后消息时间排序
-        convList.sort((a, b) => b.lastMessageTime - a.lastMessageTime)
-        
-        setConversations(convList)
-      }
+      // 按时间排序
+      const sorted = convs.sort((a, b) => b.timestamp - a.timestamp)
+      setConversations(sorted)
+      setFilteredConversations(sorted)
     } catch (err) {
       console.error('Error loading conversations:', err)
-    } finally {
-      setLoading(false)
     }
-  }, [messageService, account])
+  }
 
-  // 格式化时间戳
-  const formatTimestamp = (timestamp) => {
-    const now = Date.now() / 1000
+  // 搜索过滤
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredConversations(conversations)
+      return
+    }
+
+    const query = searchQuery.toLowerCase()
+    const filtered = conversations.filter(conv =>
+      conv.username.toLowerCase().includes(query) ||
+      conv.address.toLowerCase().includes(query) ||
+      conv.lastMessage.toLowerCase().includes(query)
+    )
+    setFilteredConversations(filtered)
+  }, [searchQuery, conversations])
+
+  // 创建新对话
+  const handleNewChat = () => {
+    if (!newChatAddress.trim()) {
+      showError('Error', 'Please enter a wallet address')
+      return
+    }
+
+    // 验证地址格式
+    if (!/^0x[a-fA-F0-9]{40}$/.test(newChatAddress)) {
+      showError('Error', 'Invalid Ethereum address')
+      return
+    }
+
+    // 检查是否是自己的地址
+    if (newChatAddress.toLowerCase() === account.toLowerCase()) {
+      showError('Error', 'Cannot chat with yourself')
+      return
+    }
+
+    // 导航到聊天页面
+    navigate(`/chat/${newChatAddress}`)
+    setShowNewChat(false)
+    setNewChatAddress('')
+  }
+
+  // 格式化时间
+  const formatTime = (timestamp) => {
+    const now = Date.now()
     const diff = now - timestamp
     
-    if (diff < 60) return 'Just now'
-    if (diff < 3600) return `${Math.floor(diff / 60)} min ago`
-    if (diff < 86400) return `${Math.floor(diff / 3600)} hour${Math.floor(diff / 3600) > 1 ? 's' : ''} ago`
-    if (diff < 604800) return `${Math.floor(diff / 86400)} day${Math.floor(diff / 86400) > 1 ? 's' : ''} ago`
+    const minute = 60 * 1000
+    const hour = 60 * minute
+    const day = 24 * hour
     
-    return new Date(timestamp * 1000).toLocaleDateString()
+    if (diff < minute) return 'Just now'
+    if (diff < hour) return `${Math.floor(diff / minute)}m ago`
+    if (diff < day) return `${Math.floor(diff / hour)}h ago`
+    if (diff < 7 * day) return `${Math.floor(diff / day)}d ago`
+    
+    return new Date(timestamp).toLocaleDateString()
   }
 
-  // 初始加载对话
-  useEffect(() => {
-    if (isConnected && messageService) {
-      loadConversations()
-    }
-  }, [isConnected, messageService, loadConversations])
-
-  // 过滤对话
-  const filteredConversations = conversations.filter(chat =>
-    chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    chat.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    chat.company.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
-  // 新建对话
-  const handleNewChat = () => {
-    const address = prompt('Enter recipient wallet address:')
-    if (address && /^0x[a-fA-F0-9]{40}$/.test(address)) {
-      navigate(`/chat/${address}`)
-    } else if (address) {
-      alert('Invalid Ethereum address')
-    }
-  }
-
-  // 如果未连接钱包
-  if (!isConnected) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-white">
-        <Lock className="w-16 h-16 text-gray-400 mb-4" />
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Connect Wallet</h2>
-        <p className="text-gray-600 mb-6">Please connect your wallet to access chats</p>
-        <Button onClick={() => navigate('/login')} className="bg-black hover:bg-gray-800">
-          Connect Wallet
-        </Button>
+  // 渲染对话项
+  const renderConversation = (conv) => (
+    <div
+      key={conv.address}
+      onClick={() => navigate(`/chat/${conv.address}`)}
+      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b"
+    >
+      <div className="relative">
+        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-2xl">
+          {conv.avatar}
+        </div>
+        {conv.unread > 0 && (
+          <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs text-white font-bold">
+            {conv.unread > 9 ? '9+' : conv.unread}
+          </div>
+        )}
       </div>
-    )
-  }
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="font-semibold text-gray-900 truncate">
+            {conv.username}
+          </h3>
+          <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
+            {formatTime(conv.timestamp)}
+          </span>
+        </div>
+        <p className="text-sm text-gray-600 truncate">
+          {conv.lastMessage}
+        </p>
+      </div>
+    </div>
+  )
 
   return (
     <div className="flex flex-col h-screen bg-white">
       {/* Header */}
-      <div className="px-4 pt-12 pb-4 bg-white border-b border-gray-200">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold text-black">Chats</h1>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-10 h-10 rounded-full"
-            onClick={handleNewChat}
-          >
-            <Plus className="w-5 h-5" />
-          </Button>
+      <div className="px-4 py-3 border-b">
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="text-2xl font-bold">Chats</h1>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowQRCode(true)}
+              className="p-2 hover:bg-gray-100 rounded-full"
+              title="My QR Code"
+            >
+              <QrCode className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setShowScan(true)}
+              className="p-2 hover:bg-gray-100 rounded-full"
+              title="Scan QR Code"
+            >
+              <ScanLine className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setShowProfile(true)}
+              className="p-2 hover:bg-gray-100 rounded-full"
+              title="Edit Profile"
+            >
+              <User className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Search Box */}
+        {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search by address or name"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all"
+            placeholder="Search conversations..."
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
           />
-        </div>
-        
-        {/* Account Info */}
-        <div className="mt-3 px-3 py-2 bg-gray-50 rounded-lg">
-          <div className="flex items-center gap-2 text-xs text-gray-600">
-            <Lock className="w-3 h-3 text-green-500" />
-            <span className="font-mono">{account?.slice(0, 6)}...{account?.slice(-4)}</span>
-          </div>
         </div>
       </div>
 
-      {/* Chat List */}
-      <div className="flex-1 overflow-y-auto">
-        {loading ? (
-          <div className="flex items-center justify-center h-full">
-            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+      {/* My Profile Card */}
+      <div className="px-4 py-3 bg-gradient-to-r from-black to-gray-800 text-white">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center text-2xl">
+            {myProfile?.avatar || '👤'}
           </div>
-        ) : filteredConversations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-400 px-4">
-            <Lock className="w-12 h-12 mb-2" />
-            <p className="text-center mb-1">No conversations yet</p>
-            <p className="text-sm text-center mb-4">Start a new secure conversation</p>
-            <Button 
-              onClick={handleNewChat}
-              className="bg-black hover:bg-gray-800"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              New Chat
-            </Button>
+          <div className="flex-1">
+            <h3 className="font-semibold">{myProfile?.username || 'Loading...'}</h3>
+            <p className="text-sm opacity-80">
+              {myProfile?.bio || 'No bio yet'}
+            </p>
+          </div>
+          <button
+            onClick={() => setShowProfile(true)}
+            className="px-3 py-1 bg-white bg-opacity-20 rounded-lg text-sm hover:bg-opacity-30"
+          >
+            Edit
+          </button>
+        </div>
+      </div>
+
+      {/* Conversations List */}
+      <div className="flex-1 overflow-y-auto">
+        {filteredConversations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center px-4">
+            <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center text-4xl mb-4">
+              💬
+            </div>
+            <h3 className="font-semibold text-lg mb-2">No conversations yet</h3>
+            <p className="text-gray-500 text-sm mb-4">
+              {searchQuery
+                ? 'No results found'
+                : 'Start a new conversation or scan a QR code'}
+            </p>
+            {!searchQuery && (
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => setShowNewChat(true)}
+                  className="bg-black hover:bg-gray-800 text-white"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Chat
+                </Button>
+                <Button
+                  onClick={() => setShowScan(true)}
+                  variant="outline"
+                >
+                  <ScanLine className="w-4 h-4 mr-2" />
+                  Scan QR
+                </Button>
+              </div>
+            )}
           </div>
         ) : (
-          filteredConversations.map((chat) => (
-            <div
-              key={chat.id}
-              onClick={() => navigate(`/chat/${chat.address}`)}
-              className="flex items-center px-4 py-4 hover:bg-gray-50 active:bg-gray-100 cursor-pointer transition-colors border-b border-gray-100"
-            >
-              {/* Avatar */}
-              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-xl mr-3 flex-shrink-0">
-                {chat.avatar}
-              </div>
-
-              {/* Chat Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-medium text-black truncate">{chat.name}</h3>
-                    <Lock className="w-3 h-3 text-green-500" title="Encrypted" />
-                  </div>
-                  <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
-                    {chat.timestamp}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-600 truncate pr-2">
-                    {chat.lastMessage}
-                  </p>
-                  {chat.unread > 0 && (
-                    <span className="flex-shrink-0 min-w-[20px] h-5 px-2 bg-black text-white text-xs rounded-full flex items-center justify-center">
-                      {chat.unread}
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-gray-400 mt-1 font-mono">
-                  {chat.address.slice(0, 10)}...{chat.address.slice(-8)}
-                </p>
-              </div>
-            </div>
-          ))
+          filteredConversations.map(renderConversation)
         )}
       </div>
 
-      {/* Footer Info */}
-      <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-        <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
-          <Lock className="w-3 h-3" />
-          <span>All messages are encrypted and stored on blockchain</span>
-        </div>
+      {/* Action Buttons */}
+      <div className="p-4 border-t space-y-2">
+        <Button
+          onClick={() => setShowNewChat(true)}
+          className="w-full bg-black hover:bg-gray-800 text-white"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          New Chat
+        </Button>
+        <Button
+          onClick={() => setShowCreateGroup(true)}
+          variant="outline"
+          className="w-full"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Create Group
+        </Button>
       </div>
+
+      {/* Dialogs */}
+      <QRCodeDialog
+        isOpen={showQRCode}
+        onClose={() => setShowQRCode(false)}
+        address={account}
+      />
+      
+      <ScanQRDialog
+        isOpen={showScan}
+        onClose={() => setShowScan(false)}
+      />
+      
+      <EditProfileDialog
+        isOpen={showProfile}
+        onClose={() => {
+          setShowProfile(false)
+          // 重新加载资料
+          const profile = UserProfileService.getProfile(account)
+          setMyProfile({
+            username: UserProfileService.getDisplayName(account),
+            avatar: UserProfileService.getDisplayAvatar(account),
+            bio: profile?.bio || ''
+          })
+        }}
+        address={account}
+      />
+      
+      <CreateGroupDialog
+        isOpen={showCreateGroup}
+        onClose={() => setShowCreateGroup(false)}
+      />
+
+      {/* New Chat Dialog */}
+      {showNewChat && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6">
+            <h2 className="text-xl font-semibold mb-4">New Chat</h2>
+            <input
+              type="text"
+              value={newChatAddress}
+              onChange={(e) => setNewChatAddress(e.target.value)}
+              placeholder="Enter wallet address (0x...)"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black mb-4"
+            />
+            <div className="flex gap-3">
+              <Button
+                onClick={() => {
+                  setShowNewChat(false)
+                  setNewChatAddress('')
+                }}
+                variant="outline"
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleNewChat}
+                className="flex-1 bg-black hover:bg-gray-800 text-white"
+              >
+                Start Chat
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

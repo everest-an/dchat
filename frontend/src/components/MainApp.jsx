@@ -10,12 +10,13 @@ import OpportunityMatching from './OpportunityMatching'
 import SubscriptionManager from './SubscriptionManager'
 import PaymentManager from './PaymentManager'
 import NotificationCenter from './NotificationCenter'
+import GroupChat from './GroupChat'
 
 const MainApp = ({ user, onLogout }) => {
   const location = useLocation()
   
-  // 判断是否显示底部导航栏（聊天室页面不显示）
-  const showBottomNav = !location.pathname.startsWith('/chat/')
+  // 判断是否显示底部导航栏（聊天室和群组页面不显示）
+  const showBottomNav = !location.pathname.startsWith('/chat/') && !location.pathname.startsWith('/group/')
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -32,6 +33,7 @@ const MainApp = ({ user, onLogout }) => {
         <Routes>
           <Route path="/" element={<ChatList />} />
           <Route path="/chat/:id" element={<ChatRoom />} />
+          <Route path="/group/:id" element={<GroupChat />} />
           <Route path="/moments" element={<Moments />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/portfolio" element={<Portfolio />} />
