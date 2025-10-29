@@ -31,7 +31,7 @@ export const Web3Provider = ({ children }) => {
     if (!provider || !address) return '0'
     try {
       const balance = await provider.getBalance(address)
-      return ethers.formatEther(balance)
+      return ethers.utils.formatEther(balance)
     } catch (err) {
       console.error('Error getting balance:', err)
       return '0'
@@ -59,7 +59,7 @@ export const Web3Provider = ({ children }) => {
       }
 
       // 创建 provider 和 signer
-      const web3Provider = new ethers.BrowserProvider(window.ethereum)
+      const web3Provider = new ethers.providers.Web3Provider(window.ethereum)
       const web3Signer = await web3Provider.getSigner()
       const network = await web3Provider.getNetwork()
 
@@ -190,7 +190,7 @@ export const Web3Provider = ({ children }) => {
   // 创建只读 provider (用于未连接钱包时读取数据)
   useEffect(() => {
     if (!provider) {
-      const readOnlyProvider = new ethers.JsonRpcProvider(RPC_URLS[DEFAULT_NETWORK])
+      const readOnlyProvider = new ethers.providers.JsonRpcProvider(RPC_URLS[DEFAULT_NETWORK])
       setProvider(readOnlyProvider)
     }
   }, [provider])
