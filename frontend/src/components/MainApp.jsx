@@ -12,6 +12,7 @@ import PaymentManager from './PaymentManager'
 import NotificationCenter from './NotificationCenter'
 import GroupChat from './GroupChat'
 import SubscriptionPage from './SubscriptionPage'
+import EncryptionSettings from './EncryptionSettings'
 
 const MainApp = ({ user, onLogout }) => {
   const location = useLocation()
@@ -43,6 +44,7 @@ const MainApp = ({ user, onLogout }) => {
           <Route path="/payments" element={<PaymentManager />} />
           <Route path="/profile" element={<Profile user={user} onLogout={onLogout} />} />
           <Route path="/subscription" element={<SubscriptionPage />} />
+          <Route path="/encryption" element={<EncryptionSettings />} />
         </Routes>
       </div>
 
