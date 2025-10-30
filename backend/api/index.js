@@ -1,3 +1,4 @@
+// Updated: Fixed 500 error with better error handling
 const express = require('express');
 const cors = require('cors');
 
