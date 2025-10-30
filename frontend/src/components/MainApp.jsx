@@ -22,6 +22,16 @@ const MainApp = ({ user, onLogout }) => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Demo Mode 指示器 */}
+      {user?.demoMode && (
+        <div className="bg-gray-100 px-4 py-1 flex items-center justify-center border-b border-gray-200">
+          <button className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1">
+            <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+            Demo Mode
+          </button>
+        </div>
+      )}
+
       {/* 顶部通知栏 */}
       {showBottomNav && (
         <div className="flex items-center justify-between px-4 py-2 border-b bg-white">

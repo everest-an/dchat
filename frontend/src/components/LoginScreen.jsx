@@ -39,6 +39,7 @@ const LoginScreen = ({ onLogin }) => {
           email: `${walletAddress.slice(2, 8)}@dchat.web3`,
           loginMethod: 'web3',
           web3Enabled: true,
+          demoMode: false,
           createdAt: new Date().toISOString()
         }
         
@@ -50,6 +51,43 @@ const LoginScreen = ({ onLogin }) => {
     } catch (error) {
       console.error('Wallet login error:', error)
       setError(error.message || 'Failed to connect wallet')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // Demo 钱包登录（用于测试）
+  const handleDemoWalletLogin = async () => {
+    try {
+      setError('')
+      setIsSubmitting(true)
+      
+      // 生成一个模拟的钱包地址
+      const demoWalletAddress = '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb'
+      
+      // 生成认证令牌
+      const authToken = `demo_web3_${demoWalletAddress}_${Date.now()}`
+      localStorage.setItem('authToken', authToken)
+      
+      // 创建用户数据
+      const userData = {
+        walletAddress: demoWalletAddress,
+        username: `DemoUser_${demoWalletAddress.slice(2, 8)}`,
+        email: `${demoWalletAddress.slice(2, 8)}@dchat.demo`,
+        loginMethod: 'demo_web3',
+        web3Enabled: false,
+        demoMode: true,
+        createdAt: new Date().toISOString()
+      }
+      
+      // 模拟连接延迟
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // 登录成功
+      onLogin(userData)
+    } catch (error) {
+      console.error('Demo wallet login error:', error)
+      setError(error.message || 'Failed to login with demo wallet')
     } finally {
       setIsSubmitting(false)
     }
@@ -76,6 +114,7 @@ const LoginScreen = ({ onLogin }) => {
         username: email.split('@')[0],
         loginMethod: 'email',
         web3Enabled: false,
+        demoMode: true,
         createdAt: new Date().toISOString()
       }
       
@@ -110,6 +149,7 @@ const LoginScreen = ({ onLogin }) => {
         username: `User_${phone.slice(-4)}`,
         loginMethod: 'phone',
         web3Enabled: false,
+        demoMode: true,
         createdAt: new Date().toISOString()
       }
       
@@ -138,10 +178,11 @@ const LoginScreen = ({ onLogin }) => {
       
       // 创建用户数据
       const userData = {
-        alipayId,
-        username: `Alipay_${alipayId.slice(-4)}`,
+        alipayId: 'demo_alipay_user',
+        username: 'Alipay User',
         loginMethod: 'alipay',
         web3Enabled: false,
+        demoMode: true,
         createdAt: new Date().toISOString()
       }
       
@@ -318,23 +359,60 @@ const LoginScreen = ({ onLogin }) => {
             </div>
           )}
 
-          <Button
-            onClick={handleConnectWallet}
-            disabled={isConnecting || isSubmitting}
-            className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-xl text-base font-medium flex items-center justify-center gap-3 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {(isConnecting || isSubmitting) ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Connecting...
-              </>
-            ) : (
-              <>
-                <Wallet className="w-5 h-5" />
-                Connect MetaMask
-              </>
-            )}
-          </Button>
+          {isMetaMaskInstalled() ? (
+            <Button
+              onClick={handleConnectWallet}
+              disabled={isConnecting || isSubmitting}
+              className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-xl text-base font-medium flex items-center justify-center gap-3 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {(isConnecting || isSubmitting) ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Connecting...
+                </>
+              ) : (
+                <>
+                  <Wallet className="w-5 h-5" />
+                  Connect MetaMask
+                </>
+              )}
+            </Button>
+          ) : (
+            <div className="space-y-4">
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                <p className="text-sm text-yellow-800 mb-3">
+                  MetaMask is not installed. Please install MetaMask to use wallet login.
+                </p>
+                <a 
+                  href="https://metamask.io/download/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-block w-full"
+                >
+                  <Button className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white rounded-xl">
+                    Install MetaMask
+                  </Button>
+                </a>
+              </div>
+              
+              <div className="relative py-2">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-white text-gray-500">Or try demo mode</span>
+                </div>
+              </div>
+
+              <Button
+                onClick={handleDemoWalletLogin}
+                variant="outline"
+                className="w-full h-12 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 text-gray-700 rounded-xl text-base font-medium"
+              >
+                Continue with Demo Wallet
+              </Button>
+            </div>
+          )}
 
           <div className="mt-6 p-4 bg-blue-50 rounded-xl">
             <h4 className="font-medium text-blue-900 mb-2">What is MetaMask?</h4>
