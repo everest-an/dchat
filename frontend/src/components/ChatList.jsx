@@ -10,10 +10,13 @@ import ScanQRDialog from './ScanQRDialog'
 import EditProfileDialog from './dialogs/EditProfileDialog'
 import CreateGroupDialog from './dialogs/CreateGroupDialog'
 
-const ChatList = () => {
+const ChatList = ({ user }) => {
   const navigate = useNavigate()
   const { account, disconnect } = useWeb3()
   const { success, error: showError } = useToast()
+  
+  // 使用Web3 account或user.walletAddress
+  const userAddress = account || user?.walletAddress
   
   const [conversations, setConversations] = useState([])
   const [filteredConversations, setFilteredConversations] = useState([])
@@ -28,11 +31,11 @@ const ChatList = () => {
 
   // 加载用户资料
   const loadMyProfile = () => {
-    if (account) {
-      const profile = UserProfileService.getProfile(account)
+    if (userAddress) {
+      const profile = UserProfileService.getProfile(userAddress)
       setMyProfile({
-        username: UserProfileService.getDisplayName(account),
-        avatar: UserProfileService.getDisplayAvatar(account),
+        username: UserProfileService.getDisplayName(userAddress),
+        avatar: UserProfileService.getDisplayAvatar(userAddress),
         bio: profile?.bio || ''
       })
     }
@@ -43,14 +46,14 @@ const ChatList = () => {
     
     // 监听个人资料更新事件
     const handleProfileUpdate = (e) => {
-      if (e.detail.address.toLowerCase() === account?.toLowerCase()) {
+      if (e.detail.address.toLowerCase() === userAddress?.toLowerCase()) {
         loadMyProfile()
       }
     }
     
     window.addEventListener('profileUpdated', handleProfileUpdate)
     return () => window.removeEventListener('profileUpdated', handleProfileUpdate)
-  }, [account])
+  }, [userAddress])
 
   // 加载对话列表
   useEffect(() => {
@@ -59,7 +62,7 @@ const ChatList = () => {
     // 每5秒刷新一次
     const interval = setInterval(loadConversations, 5000)
     return () => clearInterval(interval)
-  }, [account])
+  }, [userAddress])
 
   const loadConversations = () => {
     try {
@@ -106,7 +109,7 @@ const ChatList = () => {
     }
 
     // 检查是否是自己的地址
-    if (newChatAddress.toLowerCase() === account.toLowerCase()) {
+    if (newChatAddress.toLowerCase() === userAddress.toLowerCase()) {
       showError('Error', 'Cannot chat with yourself')
       return
     }
@@ -292,7 +295,7 @@ const ChatList = () => {
       <QRCodeDialog
         isOpen={showQRCode}
         onClose={() => setShowQRCode(false)}
-        address={account}
+        address={userAddress}
       />
       
       <ScanQRDialog
@@ -305,14 +308,9 @@ const ChatList = () => {
         onClose={() => {
           setShowProfile(false)
           // 重新加载资料
-          const profile = UserProfileService.getProfile(account)
-          setMyProfile({
-            username: UserProfileService.getDisplayName(account),
-            avatar: UserProfileService.getDisplayAvatar(account),
-            bio: profile?.bio || ''
-          })
+          loadMyProfile()
         }}
-        address={account}
+        address={userAddress}
       />
       
       <CreateGroupDialog

@@ -43,7 +43,7 @@ const MainApp = ({ user, onLogout }) => {
       {/* 主要内容区域 */}
       <div className="flex-1 overflow-hidden">
         <Routes>
-          <Route path="/" element={<ChatList />} />
+          <Route path="/" element={<ChatList user={user} />} />
           <Route path="/chat/:id" element={<ChatRoom />} />
           <Route path="/group/:id" element={<GroupChat />} />
           <Route path="/moments" element={<Moments />} />
