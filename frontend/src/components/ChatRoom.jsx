@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Send, Paperclip, Image, FileText, Loader2, MoreVertical, Phone, Video } from 'lucide-react'
+import { ArrowLeft, Send, Paperclip, Image, FileText, Loader2, MoreVertical, Phone, Video, DollarSign } from 'lucide-react'
 import { Button } from './ui/button'
 import { useWeb3 } from '../contexts/Web3Context'
 import { useToast } from '../contexts/ToastContext'
@@ -10,6 +10,7 @@ import { ipfsService } from '../services/IPFSService'
 import { encryptMessage, decryptMessage } from '../utils/encryption'
 import { subscriptionService } from '../services/SubscriptionService'
 import UpgradeDialog from './dialogs/UpgradeDialog'
+import PaymentDialog from './dialogs/PaymentDialog'
 
 const ChatRoom = () => {
   const navigate = useNavigate()
@@ -28,6 +29,7 @@ const ChatRoom = () => {
   const [showMenu, setShowMenu] = useState(false)
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
   const [upgradeMessage, setUpgradeMessage] = useState({ title: '', description: '' })
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false)
   
   const messagesEndRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -278,6 +280,55 @@ const ChatRoom = () => {
   const renderMessage = (msg) => {
     const isMe = msg.sender === 'me'
 
+    if (msg.type === 'payment') {
+      return (
+        <div
+          key={msg.id}
+          className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-4`}
+        >
+          {!isMe && (
+            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-lg mr-2 flex-shrink-0">
+              {recipientProfile?.avatar || '👤'}
+            </div>
+          )}
+          <div className={`max-w-[70%] ${isMe ? 'order-2' : 'order-1'}`}>
+            <div
+              className={`rounded-2xl px-4 py-3 border-2 ${
+                isMe
+                  ? 'bg-green-50 border-green-200 text-green-900'
+                  : 'bg-blue-50 border-blue-200 text-blue-900'
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <DollarSign className="w-5 h-5" />
+                <span className="font-semibold">{isMe ? 'Payment Sent' : 'Payment Received'}</span>
+              </div>
+              <p className="text-sm">{msg.text}</p>
+              {msg.escrowId && (
+                <p className="text-xs mt-1 opacity-70">Escrow ID: {msg.escrowId}</p>
+              )}
+              <div className="mt-2 flex items-center gap-2">
+                <span className={`text-xs px-2 py-1 rounded-full ${
+                  msg.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                  msg.status === 'released' ? 'bg-green-100 text-green-800' :
+                  msg.status === 'refunded' ? 'bg-red-100 text-red-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {msg.status || 'pending'}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 mt-1 px-2">
+              <span className="text-xs text-gray-500">{msg.timestamp}</span>
+              {isMe && msg.isRead && (
+                <span className="text-xs text-blue-500">✓✓</span>
+              )}
+            </div>
+          </div>
+        </div>
+      )
+    }
+
     if (msg.type === 'text') {
       return (
         <div
@@ -468,8 +519,16 @@ const ChatRoom = () => {
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
             className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-50"
+            title="Attach file"
           >
             <Paperclip className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setShowPaymentDialog(true)}
+            className="p-2 hover:bg-gray-100 rounded-full"
+            title="Send payment"
+          >
+            <DollarSign className="w-5 h-5" />
           </button>
           <input
             ref={fileInputRef}
@@ -507,6 +566,38 @@ const ChatRoom = () => {
         onClose={() => setShowUpgradeDialog(false)}
         title={upgradeMessage.title}
         description={upgradeMessage.description}
+      />
+
+      {/* Payment Dialog */}
+      <PaymentDialog
+        open={showPaymentDialog}
+        onClose={() => setShowPaymentDialog(false)}
+        onSuccess={(paymentData) => {
+          setShowPaymentDialog(false)
+          success('Payment Created', 'Payment escrow created successfully')
+          // Optionally send a payment message in chat
+          const paymentMessage = {
+            id: Date.now().toString(),
+            text: `Sent ${paymentData.amount} ETH - ${paymentData.description}`,
+            sender: 'me',
+            timestamp: new Date().toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit'
+            }),
+            isRead: false,
+            type: 'payment',
+            amount: paymentData.amount,
+            escrowId: paymentData.escrowId,
+            status: 'pending'
+          }
+          const updatedMessages = [...messages, paymentMessage]
+          setMessages(updatedMessages)
+          const storageKey = `dchat_messages_${account}_${recipientAddress}`
+          localStorage.setItem(storageKey, JSON.stringify(updatedMessages))
+        }}
+        recipientAddress={recipientAddress}
+        userAddress={account}
+        isDemoMode={!isConnected}
       />
     </div>
   )
