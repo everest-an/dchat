@@ -48,10 +48,10 @@ const MainApp = ({ user, onLogout }) => {
           <Route path="/group/:id" element={<GroupChat />} />
           <Route path="/moments" element={<Moments />} />
           <Route path="/projects" element={<Projects />} />
-          <Route path="/portfolio" element={<Portfolio />} />
-          <Route path="/matching" element={<OpportunityMatching />} />
-          <Route path="/subscriptions" element={<SubscriptionManager />} />
-          <Route path="/payments" element={<PaymentManager />} />
+          <Route path="/portfolio" element={<Portfolio user={user} />} />
+          <Route path="/matching" element={<OpportunityMatching user={user} />} />
+          <Route path="/subscriptions" element={<SubscriptionManager user={user} />} />
+          <Route path="/payments" element={<PaymentManager user={user} />} />
           <Route path="/profile" element={<Profile user={user} onLogout={onLogout} />} />
           <Route path="/subscription" element={<SubscriptionPage />} />
           <Route path="/encryption" element={<EncryptionSettings />} />

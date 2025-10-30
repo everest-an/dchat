@@ -27,8 +27,12 @@ import CredentialCard from './cards/CredentialCard'
  * Portfolio 页面组件
  * 显示和管理用户的动态作品集
  */
-export default function Portfolio() {
+export default function Portfolio({ user }) {
   const { account, provider, signer, isConnected } = useWeb3()
+  
+  // 使用Web3 account或user.walletAddress
+  const userAddress = account || user?.walletAddress
+  const isDemoMode = !isConnected && !!user?.walletAddress
   const [portfolio, setPortfolio] = useState(null)
   const [projects, setProjects] = useState([])
   const [currentProjects, setCurrentProjects] = useState([])
@@ -46,14 +50,36 @@ export default function Portfolio() {
 
   // 加载作品集数据
   const loadPortfolio = async () => {
-    if (!account) return
+    if (!userAddress) return
+    
+    // Demo模式：使用localStorage
+    if (isDemoMode) {
+      try {
+        setLoading(true)
+        const savedPortfolio = localStorage.getItem(`portfolio_${userAddress}`)
+        if (savedPortfolio) {
+          const data = JSON.parse(savedPortfolio)
+          setPortfolio(data.portfolio || null)
+          setProjects(data.projects || [])
+          setCurrentProjects(data.currentProjects || [])
+          setCredentials(data.credentials || [])
+          setAvailability(data.availability || null)
+        }
+      } catch (err) {
+        console.error('Error loading portfolio from localStorage:', err)
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+      return
+    }
 
     try {
       setLoading(true)
       setError(null)
 
       // 检查作品集是否存在
-      const existsResult = await portfolioService.portfolioExists(account)
+      const existsResult = await portfolioService.portfolioExists(userAddress)
       
       if (!existsResult.success || !existsResult.data) {
         setPortfolio(null)
@@ -62,31 +88,31 @@ export default function Portfolio() {
       }
 
       // 加载作品集
-      const portfolioResult = await portfolioService.getPortfolio(account)
+      const portfolioResult = await portfolioService.getPortfolio(userAddress)
       if (portfolioResult.success) {
         setPortfolio(portfolioResult.portfolio)
       }
 
       // 加载项目
-      const projectsResult = await portfolioService.getUserProjects(account)
+      const projectsResult = await portfolioService.getUserProjects(userAddress)
       if (projectsResult.success) {
         setProjects(projectsResult.projects)
       }
 
       // 加载当前项目
-      const currentResult = await portfolioService.getCurrentProjects(account)
+      const currentResult = await portfolioService.getCurrentProjects(userAddress)
       if (currentResult.success) {
         setCurrentProjects(currentResult.projects)
       }
 
       // 加载可用性
-      const availabilityResult = await portfolioService.getAvailability(account)
+      const availabilityResult = await portfolioService.getAvailability(userAddress)
       if (availabilityResult.success) {
         setAvailability(availabilityResult.availability)
       }
 
       // 加载凭证
-      const credentialsResult = await portfolioService.getUserCredentials(account)
+      const credentialsResult = await portfolioService.getUserCredentials(userAddress)
       if (credentialsResult.success) {
         setCredentials(credentialsResult.credentials)
       }
@@ -100,10 +126,10 @@ export default function Portfolio() {
   }
 
   useEffect(() => {
-    if (isConnected && account) {
+    if (userAddress) {
       loadPortfolio()
     }
-  }, [isConnected, account])
+  }, [userAddress, isDemoMode])
 
   // 创建作品集成功回调
   const handlePortfolioCreated = () => {
@@ -155,14 +181,14 @@ export default function Portfolio() {
     }
   }
 
-  if (!isConnected) {
+  if (!userAddress) {
     return (
       <div className="flex items-center justify-center h-full">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>请先连接钱包</CardTitle>
+            <CardTitle>请先登录</CardTitle>
             <CardDescription>
-              您需要连接 Web3 钱包才能查看和管理作品集
+              您需要登录才能查看和管理作品集
             </CardDescription>
           </CardHeader>
         </Card>
@@ -253,6 +279,8 @@ export default function Portfolio() {
           open={showCreatePortfolio}
           onClose={() => setShowCreatePortfolio(false)}
           onSuccess={handlePortfolioCreated}
+          userAddress={userAddress}
+          isDemoMode={isDemoMode}
         />
       </div>
     )
@@ -261,6 +289,22 @@ export default function Portfolio() {
   // 显示作品集
   return (
     <div className="h-full overflow-auto p-4 space-y-6">
+      {/* Demo模式提示 */}
+      {isDemoMode && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader className="pb-3">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
+              <div>
+                <CardTitle className="text-base text-blue-900">Demo模式</CardTitle>
+                <CardDescription className="text-blue-700 mt-1">
+                  您当前使用的是Demo模式，数据仅保存在本地。连接Web3钱包可获得链上存储和更多功能。
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+      )}
       {/* 作品集头部 */}
       <Card>
         <CardHeader>

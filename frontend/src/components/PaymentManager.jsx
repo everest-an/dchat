@@ -26,8 +26,12 @@ import PaymentDialog from './dialogs/PaymentDialog'
  * 支付管理页面组件
  * 管理托管支付
  */
-export default function PaymentManager() {
+export default function PaymentManager({ user }) {
   const { account, provider, signer, isConnected } = useWeb3()
+  
+  // 使用Web3 account或user.walletAddress
+  const userAddress = account || user?.walletAddress
+  const isDemoMode = !isConnected && !!user?.walletAddress
   const [escrows, setEscrows] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -38,13 +42,30 @@ export default function PaymentManager() {
 
   // 加载托管数据
   const loadEscrows = async () => {
-    if (!account) return
+    if (!userAddress) return
+    
+    // Demo模式：使用localStorage
+    if (isDemoMode) {
+      try {
+        setLoading(true)
+        const savedEscrows = localStorage.getItem(`escrows_${userAddress}`)
+        if (savedEscrows) {
+          setEscrows(JSON.parse(savedEscrows))
+        }
+      } catch (err) {
+        console.error('Error loading escrows from localStorage:', err)
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+      return
+    }
 
     try {
       setLoading(true)
       setError(null)
 
-      const result = await paymentService.getUserEscrows(account)
+      const result = await paymentService.getUserEscrows(userAddress)
       if (result.success) {
         setEscrows(result.escrows || [])
       }
@@ -57,10 +78,10 @@ export default function PaymentManager() {
   }
 
   useEffect(() => {
-    if (isConnected && account) {
+    if (userAddress) {
       loadEscrows()
     }
-  }, [isConnected, account])
+  }, [userAddress, isDemoMode])
 
   // 释放托管
   const handleRelease = async (escrowId) => {
@@ -161,17 +182,17 @@ export default function PaymentManager() {
   }
 
   // 过滤托管
-  const sentEscrows = escrows.filter(e => e.payer === account)
-  const receivedEscrows = escrows.filter(e => e.recipient === account)
+  const sentEscrows = escrows.filter(e => e.payer === userAddress)
+  const receivedEscrows = escrows.filter(e => e.recipient === userAddress)
 
-  if (!isConnected) {
+  if (!userAddress) {
     return (
       <div className="flex items-center justify-center h-full">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>请先连接钱包</CardTitle>
+            <CardTitle>请先登录</CardTitle>
             <CardDescription>
-              您需要连接 Web3 钱包才能使用支付功能
+              您需要登录才能使用支付功能
             </CardDescription>
           </CardHeader>
         </Card>

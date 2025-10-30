@@ -26,8 +26,12 @@ import SubscribeButton from './SubscribeButton'
  * 机会匹配页面组件
  * 显示和管理技能匹配的机会
  */
-export default function OpportunityMatching() {
+export default function OpportunityMatching({ user }) {
   const { account, provider, signer, isConnected } = useWeb3()
+  
+  // 使用Web3 account或user.walletAddress
+  const userAddress = account || user?.walletAddress
+  const isDemoMode = !isConnected && !!user?.walletAddress
   const [matches, setMatches] = useState([])
   const [matchedProfiles, setMatchedProfiles] = useState({})
   const [loading, setLoading] = useState(true)
@@ -39,14 +43,31 @@ export default function OpportunityMatching() {
 
   // 加载匹配数据
   const loadMatches = async () => {
-    if (!account) return
+    if (!userAddress) return
+    
+    // Demo模式：使用localStorage
+    if (isDemoMode) {
+      try {
+        setLoading(true)
+        const savedMatches = localStorage.getItem(`matches_${userAddress}`)
+        if (savedMatches) {
+          setMatches(JSON.parse(savedMatches))
+        }
+      } catch (err) {
+        console.error('Error loading matches from localStorage:', err)
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+      return
+    }
 
     try {
       setLoading(true)
       setError(null)
 
       // 获取匹配的机会
-      const matchesResult = await portfolioService.getMatchedOpportunities(account)
+      const matchesResult = await portfolioService.getMatchedOpportunities(userAddress)
       
       if (matchesResult.success && matchesResult.data) {
         const matchData = matchesResult.data
@@ -76,10 +97,10 @@ export default function OpportunityMatching() {
   }
 
   useEffect(() => {
-    if (isConnected && account) {
+    if (userAddress) {
       loadMatches()
     }
-  }, [isConnected, account])
+  }, [userAddress, isDemoMode])
 
   // 创建匹配成功回调
   const handleMatchCreated = () => {
@@ -103,14 +124,14 @@ export default function OpportunityMatching() {
     return '低匹配'
   }
 
-  if (!isConnected) {
+  if (!userAddress) {
     return (
       <div className="flex items-center justify-center h-full">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>请先连接钱包</CardTitle>
+            <CardTitle>请先登录</CardTitle>
             <CardDescription>
-              您需要连接 Web3 钱包才能使用机会匹配功能
+              您需要登录才能使用机会匹配功能
             </CardDescription>
           </CardHeader>
         </Card>
