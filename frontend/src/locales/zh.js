@@ -174,6 +174,32 @@ export default {
     leaveConfirmDesc: '您将不再收到该群组的消息。稍后可以被重新邀请。'
   },
 
+  // 在线状态
+  presence: {
+    online: '在线',
+    away: '离开',
+    busy: '忙碌',
+    offline: '离线',
+    lastSeen: '最后在线 {time}',
+    justNow: '刚刚',
+    minutesAgo: '{count} 分钟前',
+    hoursAgo: '{count} 小时前',
+    daysAgo: '{count} 天前',
+    setStatus: '设置状态',
+    customStatus: '自定义状态',
+    setCustomStatus: '设置自定义状态',
+    clearStatus: '清除状态',
+    hideStatus: '隐藏我的状态',
+    showStatus: '显示我的状态',
+    emoji: '表情',
+    message: '消息',
+    messagePlaceholder: '你的状态是什么？',
+    duration: '持续时间',
+    noDuration: '无持续时间',
+    save: '保存',
+    cancel: '取消'
+  },
+
   // Avatar
   avatar: {
     upload: '上传头像',

@@ -9,6 +9,8 @@ import QRCodeDialog from './QRCodeDialog'
 import ScanQRDialog from './ScanQRDialog'
 import EditProfileDialog from './dialogs/EditProfileDialog'
 import CreateGroupDialog from './dialogs/CreateGroupDialog'
+import StatusBadge from './StatusBadge'
+import presenceService from '../services/PresenceService'
 
 const ChatList = ({ user }) => {
   const navigate = useNavigate()
@@ -40,6 +42,16 @@ const ChatList = ({ user }) => {
       })
     }
   }
+
+  // Initialize presence tracking
+  useEffect(() => {
+    if (userAddress) {
+      presenceService.initialize(userAddress)
+    }
+    return () => {
+      presenceService.cleanup()
+    }
+  }, [userAddress])
 
   useEffect(() => {
     loadMyProfile()
@@ -147,6 +159,10 @@ const ChatList = ({ user }) => {
       <div className="relative">
         <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-2xl">
           {conv.avatar}
+        </div>
+        {/* Online status badge */}
+        <div className="absolute bottom-0 right-0">
+          <StatusBadge userId={conv.address} size="sm" />
         </div>
         {conv.unread > 0 && (
           <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs text-white font-bold">

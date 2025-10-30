@@ -174,6 +174,32 @@ export default {
     leaveConfirmDesc: 'You will no longer receive messages from this group. You can be re-invited later.'
   },
 
+  // Presence
+  presence: {
+    online: 'Online',
+    away: 'Away',
+    busy: 'Busy',
+    offline: 'Offline',
+    lastSeen: 'Last seen {time}',
+    justNow: 'Just now',
+    minutesAgo: '{count} minutes ago',
+    hoursAgo: '{count} hours ago',
+    daysAgo: '{count} days ago',
+    setStatus: 'Set status',
+    customStatus: 'Custom status',
+    setCustomStatus: 'Set custom status',
+    clearStatus: 'Clear status',
+    hideStatus: 'Hide my status',
+    showStatus: 'Show my status',
+    emoji: 'Emoji',
+    message: 'Message',
+    messagePlaceholder: 'What\'s your status?',
+    duration: 'Duration',
+    noDuration: 'No duration',
+    save: 'Save',
+    cancel: 'Cancel'
+  },
+
   // Avatar
   avatar: {
     upload: 'Upload Avatar',
