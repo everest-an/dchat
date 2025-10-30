@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { Camera, Upload, X, Loader2, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ipfsService } from '../services/ipfsService'
+import ipfsService from '../services/ipfsService'
 import { useLanguage } from '../contexts/LanguageContext'
 
 /**
