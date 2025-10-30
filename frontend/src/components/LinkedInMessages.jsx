@@ -118,13 +118,13 @@ const LinkedInMessages = ({ isLinkedInConnected }) => {
         </Button>
       </div>
 
-      {/* Demo Notice */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+      {/* Production Notice */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <div className="flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <p className="text-xs text-yellow-800">
-              <strong>Demo Mode:</strong> Showing sample messages. Full LinkedIn messaging requires LinkedIn Partner API approval.
+            <p className="text-xs text-blue-800">
+              <strong>Note:</strong> Full LinkedIn messaging integration requires LinkedIn Partner API approval. Currently showing sample data.
             </p>
           </div>
         </div>

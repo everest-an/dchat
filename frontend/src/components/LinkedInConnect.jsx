@@ -7,7 +7,7 @@ const LinkedInConnect = ({ onConnect, isConnected }) => {
   const [error, setError] = useState(null)
 
   // LinkedIn OAuth configuration
-  const LINKEDIN_CLIENT_ID = import.meta.env.VITE_LINKEDIN_CLIENT_ID || 'demo_client_id'
+  const LINKEDIN_CLIENT_ID = import.meta.env.VITE_LINKEDIN_CLIENT_ID
   const REDIRECT_URI = import.meta.env.VITE_LINKEDIN_REDIRECT_URI || window.location.origin + '/linkedin/callback'
   const LINKEDIN_SCOPE = 'openid profile email'
 
@@ -15,36 +15,24 @@ const LinkedInConnect = ({ onConnect, isConnected }) => {
     setIsConnecting(true)
     setError(null)
 
-    // For demo purposes, simulate LinkedIn connection
-    // In production, this would redirect to LinkedIn OAuth
-    if (LINKEDIN_CLIENT_ID === 'demo_client_id') {
-      // Demo mode - simulate connection
-      setTimeout(() => {
-        const mockLinkedInData = {
-          id: 'linkedin_demo_user',
-          name: 'Alex Chen',
-          email: 'alex.chen@example.com',
-          headline: 'Senior Product Manager at Tech Innovations Inc.',
-          profileUrl: 'https://linkedin.com/in/alexchen',
-          pictureUrl: null
-        }
-        onConnect(mockLinkedInData)
-        setIsConnecting(false)
-      }, 1500)
-    } else {
-      // Real LinkedIn OAuth flow
-      const state = Math.random().toString(36).substring(7)
-      localStorage.setItem('linkedin_oauth_state', state)
-
-      const authUrl = `https://www.linkedin.com/oauth/v2/authorization?` +
-        `response_type=code&` +
-        `client_id=${LINKEDIN_CLIENT_ID}&` +
-        `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
-        `state=${state}&` +
-        `scope=${encodeURIComponent(LINKEDIN_SCOPE)}`
-
-      window.location.href = authUrl
+    if (!LINKEDIN_CLIENT_ID) {
+      setError('LinkedIn integration is not configured. Please contact support.')
+      setIsConnecting(false)
+      return
     }
+
+    // Real LinkedIn OAuth flow
+    const state = Math.random().toString(36).substring(7)
+    localStorage.setItem('linkedin_oauth_state', state)
+
+    const authUrl = `https://www.linkedin.com/oauth/v2/authorization?` +
+      `response_type=code&` +
+      `client_id=${LINKEDIN_CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
+      `state=${state}&` +
+      `scope=${encodeURIComponent(LINKEDIN_SCOPE)}`
+
+    window.location.href = authUrl
   }
 
   const handleDisconnect = () => {

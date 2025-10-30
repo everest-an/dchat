@@ -148,9 +148,9 @@ const Profile = ({ user, onLogout }) => {
                 />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-black">{userProfile?.name || user?.name || 'Alex Chen'}</h2>
-                <p className="text-gray-600">{userProfile?.company || user?.company || 'Tech Innovations Inc.'}</p>
-                <p className="text-sm text-gray-500">{userProfile?.position || user?.position || 'Senior Product Manager'}</p>
+                <h2 className="text-xl font-bold text-black">{userProfile?.name || user?.name || user?.email || `User ${user?.walletAddress?.substring(0, 6)}`}</h2>
+                <p className="text-gray-600">{userProfile?.company || user?.company || ''}</p>
+                <p className="text-sm text-gray-500">{userProfile?.position || user?.position || ''}</p>
               </div>
             </div>
             <Button variant="ghost" size="icon" title={t('profile.edit')}>

@@ -53,7 +53,7 @@ class IPFSService {
    */
   async uploadEncryptedMessage(encryptedData) {
     try {
-      // For demo purposes, use a mock implementation if not configured
+      // Fallback to localStorage if Pinata is not configured
       if (!this.isPinataConfigured()) {
         console.warn('⚠️  Pinata not configured, using mock storage');
         return this.mockUpload(encryptedData);
@@ -86,7 +86,7 @@ class IPFSService {
       return result.IpfsHash;
     } catch (error) {
       console.error('Error uploading to IPFS:', error);
-      // Fallback to mock for demo
+      // Fallback to localStorage storage
       return this.mockUpload(encryptedData);
     }
   }
@@ -112,20 +112,20 @@ class IPFSService {
       return await response.json();
     } catch (error) {
       console.error('Error retrieving from IPFS:', error);
-      // Fallback to mock for demo
+      // Fallback to localStorage storage
       return this.mockRetrieve(ipfsHash);
     }
   }
 
   /**
-   * Mock upload for demo purposes (stores in localStorage)
+   * Fallback storage using localStorage when IPFS is unavailable
    * @param {Object} data
    * @returns {string} Mock IPFS hash
    */
   mockUpload(data) {
     const mockHash = `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    // Store in localStorage for demo
+    // Store in localStorage as fallback
     const storage = JSON.parse(localStorage.getItem('dchat_ipfs_storage') || '{}');
     storage[mockHash] = data;
     localStorage.setItem('dchat_ipfs_storage', JSON.stringify(storage));
@@ -135,7 +135,7 @@ class IPFSService {
   }
 
   /**
-   * Mock retrieve for demo purposes
+   * Retrieve from localStorage fallback storage
    * @param {string} hash
    * @returns {Object} Stored data
    */

@@ -5,7 +5,7 @@
 
 import { ethers } from 'ethers';
 
-// Contract ABIs (simplified for demo)
+// Contract ABIs using ethers.js human-readable format
 const MESSAGE_STORAGE_ABI = [
   "function storeMessage(address _receiver, bytes32 _contentHash, string memory _ipfsHash) external returns (uint256)",
   "function getUserMessageIds(address _user) external view returns (uint256[])",
