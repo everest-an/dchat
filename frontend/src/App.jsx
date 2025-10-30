@@ -19,8 +19,33 @@ function App() {
 
   // fromlocalStoragerestoreloginstate - useAuthService
   useEffect(() => {
-    // TODO: Translate '尝试恢复会话'
-    const restoredUser = authService.restoreSession()
+    // Try to restore session from AuthService
+    let restoredUser = authService.restoreSession()
+    
+    // If no AuthService session, check for old localStorage format and migrate
+    if (!restoredUser) {
+      const oldUser = localStorage.getItem('user')
+      const oldToken = localStorage.getItem('authToken')
+      
+      if (oldUser && oldToken) {
+        try {
+          const userData = JSON.parse(oldUser)
+          console.log('🔄 Migrating old session to AuthService format')
+          
+          // Save to new format
+          authService.saveSession(userData, undefined, true)
+          
+          // Clean up old format
+          localStorage.removeItem('user')
+          localStorage.removeItem('authToken')
+          
+          restoredUser = userData
+          console.log('✅ Old session migrated successfully')
+        } catch (error) {
+          console.error('❌ Failed to migrate old session:', error)
+        }
+      }
+    }
     
     if (restoredUser) {
       console.log('✅ Session restored successfully')
@@ -41,7 +66,7 @@ function App() {
     setIsAuthenticated(true)
     setUser(userData)
     
-    // useAuthServicesavesession（default30TODO: Translate '天'）
+    // Use AuthService to save session (default 30 days)
     authService.saveSession(userData, undefined, rememberMe)
     
     console.log('✅ User logged in successfully', {
