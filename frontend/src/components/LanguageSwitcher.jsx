@@ -9,11 +9,13 @@ import {
 import { useLanguage } from '../contexts/LanguageContext'
 
 const LanguageSwitcher = () => {
+  const { t } = useLanguage()
+
   const { language, switchLanguage } = useLanguage()
 
   const languages = [
     { code: 'en', name: 'English', flag: '🇺🇸' },
-    { code: 'zh', name: '中文', flag: '🇨🇳' }
+    { code: 'zh', name: {t('chinese_language')}, flag: '🇨🇳' }
   ]
 
   const currentLanguage = languages.find(lang => lang.code === language)

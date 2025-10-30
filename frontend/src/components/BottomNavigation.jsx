@@ -1,7 +1,11 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { MessageCircle, Briefcase, Target, Wallet, User } from 'lucide-react'
+import { useLanguage } from '../contexts/LanguageContext'
+
 
 const BottomNavigation = () => {
+  const { t } = useLanguage()
+
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -76,7 +80,7 @@ const BottomNavigation = () => {
         })}
       </div>
       
-      {/* iOSTODO: Translate '风格的'home indicator */}
+      {/* iOSTODO: Translate {t('style_of')}home indicator */}
       <div className="flex justify-center pt-2">
         <div className="w-32 h-1 bg-black rounded-full opacity-30"></div>
       </div>

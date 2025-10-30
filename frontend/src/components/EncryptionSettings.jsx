@@ -5,8 +5,12 @@ import { useToast } from '../contexts/ToastContext'
 import { advancedEncryptionService } from '../services/AdvancedEncryptionService'
 import { subscriptionService } from '../services/SubscriptionService'
 import UpgradeDialog from './dialogs/UpgradeDialog'
+import { useLanguage } from '../contexts/LanguageContext'
+
 
 const EncryptionSettings = () => {
+  const { t } = useLanguage()
+
   const { account } = useWeb3()
   const { success, error: showError, info } = useToast()
   
@@ -20,7 +24,7 @@ const EncryptionSettings = () => {
   const [loading, setLoading] = useState(false)
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
 
-  // TODO: Translate '检查订阅状态'
+  // TODO: Translate {t('check_subscription_status')}
   const userPlan = subscriptionService.getUserPlan(account)
   const hasAdvancedEncryption = userPlan === 'pro' || userPlan === 'enterprise'
 
@@ -41,7 +45,7 @@ const EncryptionSettings = () => {
   }
 
   const handleEnableEncryption = async () => {
-    // TODO: Translate '检查订阅'
+    // TODO: Translate {t('check_subscription')}
     if (!hasAdvancedEncryption) {
       setShowUpgradeDialog(true)
       return
@@ -80,7 +84,7 @@ const EncryptionSettings = () => {
     try {
       const backup = await advancedEncryptionService.exportKeys(account, backupPassword)
       
-      // TODO: Translate '下载备份文件'
+      // TODO: Translate {t('download_backup_file')}
       const blob = new Blob([backup], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')

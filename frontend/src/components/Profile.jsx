@@ -16,7 +16,7 @@ const Profile = ({ user, onLogout }) => {
   const [userProfile, setUserProfile] = useState(null)
   const [avatarData, setAvatarData] = useState(null)
 
-  // TODO: Translate '加载用户资料'
+  // Load user profile
   useEffect(() => {
     if (user?.walletAddress) {
       const profile = UserProfileService.getProfile(user.walletAddress)
@@ -29,7 +29,7 @@ const Profile = ({ user, onLogout }) => {
     }
   }, [user?.walletAddress])
 
-  // TODO: Translate '处理头像更新'
+  // Handle avatar update
   const handleAvatarUpdate = async (avatarInfo) => {
     if (!user?.walletAddress) return
     
@@ -39,14 +39,14 @@ const Profile = ({ user, onLogout }) => {
     const success = UserProfileService.updateAvatar(user.walletAddress, avatarInfo)
     
     if (success) {
-      // TODO: Translate '更新本地状态'
+      // Update local state
       setAvatarData({
         type: 'ipfs',
         url: avatarInfo.url,
         ipfsHash: avatarInfo.ipfsHash
       })
       
-      // TODO: Translate '添加到历史记录'
+      // Add to history
       UserProfileService.addAvatarToHistory(user.walletAddress, avatarInfo)
       
       console.log('✅ Avatar updated successfully')

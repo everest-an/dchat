@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useWeb3 } from '../contexts/Web3Context'
+import { useLanguage } from '../contexts/LanguageContext'
 import { LivingPortfolioService, AvailabilityStatus, ProjectStatus } from '../services/LivingPortfolioService'
 import { Button } from './ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
@@ -28,6 +29,7 @@ import CredentialCard from './cards/CredentialCard'
  * TODO: Translate '显示和管理用户的动态作品集'
  */
 export default function Portfolio({ user }) {
+  const { t } = useLanguage()
   const { account, provider, signer, isConnected } = useWeb3()
   
   // useWeb3 accountTODO: Translate '或'user.walletAddress
@@ -164,9 +166,9 @@ export default function Portfolio({ user }) {
       <div className="flex items-center justify-center h-full">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>请先登录</CardTitle>
+            <CardTitle>{t('portfolio.pleaseLogin')}</CardTitle>
             <CardDescription>
-              您需要登录才能查看和管理作品集
+              {t('portfolio.needLoginToView')}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -179,7 +181,7 @@ export default function Portfolio({ user }) {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" />
-          <p className="text-gray-500">加载作品集...</p>
+          <p className="text-gray-500">{t('portfolio.loadingPortfolio')}</p>
         </div>
       </div>
     )
@@ -192,12 +194,12 @@ export default function Portfolio({ user }) {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-500">
               <AlertCircle className="w-5 h-5" />
-              加载失败
+              {t('portfolio.loadFailed')}
             </CardTitle>
             <CardDescription>{error}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={loadPortfolio}>重试</Button>
+            <Button onClick={loadPortfolio}>{t('portfolio.retry')}</Button>
           </CardContent>
         </Card>
       </div>
@@ -211,9 +213,9 @@ export default function Portfolio({ user }) {
         <Card className="w-full max-w-2xl">
           <CardHeader className="text-center">
             <Briefcase className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-            <CardTitle>创建您的动态作品集</CardTitle>
+            <CardTitle>{t('portfolio.createYourPortfolio')}</CardTitle>
             <CardDescription>
-              展示您的技能、项目和可用性,让机会自动找到您
+              {t('portfolio.showcaseSkills')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -221,23 +223,23 @@ export default function Portfolio({ user }) {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center p-4 border rounded-lg">
                   <TrendingUp className="w-8 h-8 mx-auto mb-2 text-blue-500" />
-                  <h3 className="font-semibold mb-1">自动展示</h3>
+                  <h3 className="font-semibold mb-1">{t('portfolio.autoDisplay')}</h3>
                   <p className="text-sm text-gray-500">
-                    实时更新项目进度和可用性
+                    {t('portfolio.autoDisplayDesc')}
                   </p>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
                   <Award className="w-8 h-8 mx-auto mb-2 text-green-500" />
-                  <h3 className="font-semibold mb-1">链上凭证</h3>
+                  <h3 className="font-semibold mb-1">{t('portfolio.onChainCredentials')}</h3>
                   <p className="text-sm text-gray-500">
-                    获得可验证的成就证明
+                    {t('portfolio.onChainCredentialsDesc')}
                   </p>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
                   <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-purple-500" />
-                  <h3 className="font-semibold mb-1">智能匹配</h3>
+                  <h3 className="font-semibold mb-1">{t('portfolio.smartMatching')}</h3>
                   <p className="text-sm text-gray-500">
-                    自动匹配合适的机会
+                    {t('portfolio.smartMatchingDesc')}
                   </p>
                 </div>
               </div>
@@ -247,7 +249,7 @@ export default function Portfolio({ user }) {
                 size="lg"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                创建作品集
+                {t('portfolio.createPortfolio')}
               </Button>
             </div>
           </CardContent>
@@ -276,28 +278,28 @@ export default function Portfolio({ user }) {
               <div className="flex items-center gap-4 mt-4">
                 <Badge variant="outline" className="text-base">
                   <Clock className="w-4 h-4 mr-1" />
-                  {portfolio.hourlyRate} ETH/小时
+                  {portfolio.hourlyRate} {t('portfolio.ethPerHour')}
                 </Badge>
                 <Badge variant="outline" className="text-base">
                   <Award className="w-4 h-4 mr-1" />
-                  信誉分数: {portfolio.reputationScore}
+                  {t('portfolio.reputationScore')}: {portfolio.reputationScore}
                 </Badge>
                 <Badge variant="outline" className="text-base">
                   <Briefcase className="w-4 h-4 mr-1" />
-                  {portfolio.completedProjects}/{portfolio.totalProjects} 项目完成
+                  {portfolio.completedProjects}/{portfolio.totalProjects} {t('portfolio.projectsCompleted')}
                 </Badge>
               </div>
             </div>
             <Button variant="outline" size="sm">
               <Edit className="w-4 h-4 mr-2" />
-              编辑
+              {t('common.edit')}
             </Button>
           </div>
         </CardHeader>
         <CardContent>
           {/* TODO: Translate '技能标签' */}
           <div className="space-y-2">
-            <h3 className="font-semibold">技能</h3>
+            <h3 className="font-semibold">{t('portfolio.skills')}</h3>
             <div className="flex flex-wrap gap-2">
               {portfolio.skills.map((skill, index) => (
                 <Badge key={index} variant="secondary">
@@ -311,13 +313,13 @@ export default function Portfolio({ user }) {
           {availability && (
             <div className="mt-4 p-4 border rounded-lg">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold">当前状态</h3>
+                <h3 className="font-semibold">{t('portfolio.currentStatus')}</h3>
                 <Button 
                   variant="outline" 
                   size="sm"
                   onClick={() => setShowUpdateAvailability(true)}
                 >
-                  更新状态
+                  {t('portfolio.updateAvailability')}
                 </Button>
               </div>
               <div className="flex items-center gap-2">
@@ -327,7 +329,7 @@ export default function Portfolio({ user }) {
                 </span>
                 {availability.hoursPerWeek > 0 && (
                   <span className="text-gray-500">
-                    - 每周 {availability.hoursPerWeek} 小时
+                    - {availability.hoursPerWeek} {t('portfolio.hoursPerWeek')}
                   </span>
                 )}
               </div>
@@ -342,25 +344,25 @@ export default function Portfolio({ user }) {
       {/* TODO: Translate '标签页' */}
       <Tabs defaultValue="current" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="current">当前项目</TabsTrigger>
-          <TabsTrigger value="all">所有项目</TabsTrigger>
-          <TabsTrigger value="credentials">凭证</TabsTrigger>
+          <TabsTrigger value="current">{t('portfolio.currentProjects')}</TabsTrigger>
+          <TabsTrigger value="all">{t('portfolio.allProjects')}</TabsTrigger>
+          <TabsTrigger value="credentials">{t('portfolio.credentials')}</TabsTrigger>
         </TabsList>
 
         {/* TODO: Translate '当前项目' */}
         <TabsContent value="current" className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">当前项目</h2>
+            <h2 className="text-xl font-semibold">{t('portfolio.currentProjects')}</h2>
             <Button onClick={() => setShowAddProject(true)}>
               <Plus className="w-4 h-4 mr-2" />
-              添加项目
+              {t('portfolio.addProject')}
             </Button>
           </div>
           
           {currentProjects.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center text-gray-500">
-                暂无进行中的项目
+                {t('portfolio.noCurrentProjects')}
               </CardContent>
             </Card>
           ) : (
@@ -374,12 +376,12 @@ export default function Portfolio({ user }) {
 
         {/* TODO: Translate '所有项目' */}
         <TabsContent value="all" className="space-y-4">
-          <h2 className="text-xl font-semibold">所有项目</h2>
+          <h2 className="text-xl font-semibold">{t('portfolio.allProjects')}</h2>
           
           {projects.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center text-gray-500">
-                暂无项目
+                {t('portfolio.noProjects')}
               </CardContent>
             </Card>
           ) : (
@@ -393,12 +395,12 @@ export default function Portfolio({ user }) {
 
         {/* TODO: Translate '凭证' */}
         <TabsContent value="credentials" className="space-y-4">
-          <h2 className="text-xl font-semibold">已验证凭证</h2>
+          <h2 className="text-xl font-semibold">{t('portfolio.earnedCredentials')}</h2>
           
           {credentials.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center text-gray-500">
-                暂无凭证
+                {t('portfolio.noCredentials')}
               </CardContent>
             </Card>
           ) : (

@@ -11,13 +11,17 @@ import EditProfileDialog from './dialogs/EditProfileDialog'
 import CreateGroupDialog from './dialogs/CreateGroupDialog'
 import StatusBadge from './StatusBadge'
 import presenceService from '../services/PresenceService'
+import { useLanguage } from '../contexts/LanguageContext'
+
 
 const ChatList = ({ user }) => {
+  const { t } = useLanguage()
+
   const navigate = useNavigate()
   const { account, disconnect } = useWeb3()
   const { success, error: showError } = useToast()
   
-  // useWeb3 accountTODO: Translate '或'user.walletAddress
+  // useWeb3 accountTODO: Translate {t('or_option')}user.walletAddress
   const userAddress = account || user?.walletAddress
   
   const [conversations, setConversations] = useState([])
@@ -31,7 +35,7 @@ const ChatList = ({ user }) => {
   const [showCreateGroup, setShowCreateGroup] = useState(false)
   const [myProfile, setMyProfile] = useState(null)
 
-  // TODO: Translate '加载用户资料'
+  // TODO: Translate {t('load_user_profile')}
   const loadMyProfile = () => {
     if (userAddress) {
       const profile = UserProfileService.getProfile(userAddress)
@@ -56,7 +60,7 @@ const ChatList = ({ user }) => {
   useEffect(() => {
     loadMyProfile()
     
-    // TODO: Translate '监听个人资料更新事件'
+    // TODO: Translate {t('listen_profile_update_event')}
     const handleProfileUpdate = (e) => {
       if (e.detail.address.toLowerCase() === userAddress?.toLowerCase()) {
         loadMyProfile()
@@ -67,11 +71,11 @@ const ChatList = ({ user }) => {
     return () => window.removeEventListener('profileUpdated', handleProfileUpdate)
   }, [userAddress])
 
-  // TODO: Translate '加载对话列表'
+  // TODO: Translate {t('load_chat_list')}
   useEffect(() => {
     loadConversations()
     
-    // TODO: Translate '每'5TODO: Translate '秒刷新一次'
+    // TODO: Translate {t('per_message')}5TODO: Translate {t('refresh_every_second')}
     const interval = setInterval(loadConversations, 5000)
     return () => clearInterval(interval)
   }, [userAddress])
@@ -82,7 +86,7 @@ const ChatList = ({ user }) => {
       const stored = localStorage.getItem(conversationsKey)
       const convs = stored ? JSON.parse(stored) : []
       
-      // TODO: Translate '按时间排序'
+      // TODO: Translate {t('sort_by_time')}
       const sorted = convs.sort((a, b) => b.timestamp - a.timestamp)
       setConversations(sorted)
       setFilteredConversations(sorted)
@@ -91,7 +95,7 @@ const ChatList = ({ user }) => {
     }
   }
 
-  // TODO: Translate '搜索过滤'
+  // TODO: Translate {t('search_filter')}
   useEffect(() => {
     if (!searchQuery.trim()) {
       setFilteredConversations(conversations)
@@ -107,32 +111,32 @@ const ChatList = ({ user }) => {
     setFilteredConversations(filtered)
   }, [searchQuery, conversations])
 
-  // TODO: Translate '创建新对话'
+  // TODO: Translate {t('create_new_chat')}
   const handleNewChat = () => {
     if (!newChatAddress.trim()) {
       showError('Error', 'Please enter a wallet address')
       return
     }
 
-    // TODO: Translate '验证地址格式'
+    // TODO: Translate {t('validate_address_format')}
     if (!/^0x[a-fA-F0-9]{40}$/.test(newChatAddress)) {
       showError('Error', 'Invalid Ethereum address')
       return
     }
 
-    // TODO: Translate '检查是否是自己的地址'
+    // TODO: Translate {t('check_own_address')}
     if (newChatAddress.toLowerCase() === userAddress.toLowerCase()) {
       showError('Error', 'Cannot chat with yourself')
       return
     }
 
-    // TODO: Translate '导航到聊天页面'
+    // TODO: Translate {t('navigate_to_chat_page')}
     navigate(`/chat/${newChatAddress}`)
     setShowNewChat(false)
     setNewChatAddress('')
   }
 
-  // TODO: Translate '格式化时间'
+  // TODO: Translate {t('format_time')}
   const formatTime = (timestamp) => {
     const now = Date.now()
     const diff = now - timestamp
@@ -149,7 +153,7 @@ const ChatList = ({ user }) => {
     return new Date(timestamp).toLocaleDateString()
   }
 
-  // TODO: Translate '渲染对话项'
+  // TODO: Translate {t('render_chat_item')}
   const renderConversation = (conv) => (
     <div
       key={conv.address}
@@ -331,7 +335,7 @@ const ChatList = ({ user }) => {
         isOpen={showProfile}
         onClose={() => {
           setShowProfile(false)
-          // TODO: Translate '重新加载资料'
+          // TODO: Translate {t('reload_profile_data')}
           loadMyProfile()
         }}
         address={userAddress}

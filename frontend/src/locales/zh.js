@@ -220,6 +220,39 @@ export default {
     done: '完成'
   },
   
+  // Portfolio
+  portfolio: {
+    pleaseLogin: '请先登录',
+    needLoginToView: '您需要登录才能查看和管理作品集',
+    loadingPortfolio: '加载作品集...',
+    loadFailed: '加载失败',
+    retry: '重试',
+    createYourPortfolio: '创建您的动态作品集',
+    showcaseSkills: '展示您的技能、项目和可用性，让机会自动找到您',
+    autoDisplay: '自动展示',
+    autoDisplayDesc: '实时更新项目进度和可用性',
+    onChainCredentials: '链上凭证',
+    onChainCredentialsDesc: '获得可验证的成就证明',
+    smartMatching: '智能匹配',
+    smartMatchingDesc: '自动匹配合适的机会',
+    createPortfolio: '创建作品集',
+    hoursPerWeek: '小时/周',
+    projectsCompleted: '项目完成',
+    ethPerHour: 'ETH/小时',
+    reputationScore: '信誉分数',
+    skills: '技能',
+    currentStatus: '当前状态',
+    updateAvailability: '更新状态',
+    currentProjects: '当前项目',
+    allProjects: '所有项目',
+    credentials: '凭证',
+    addProject: '添加项目',
+    noCurrentProjects: '暂无进行中的项目',
+    noProjects: '暂无项目',
+    earnedCredentials: '已验证凭证',
+    noCredentials: '暂无凭证'
+  },
+
   // Common
   common: {
     save: '保存',

@@ -220,6 +220,39 @@ export default {
     done: 'Done'
   },
   
+  // Portfolio
+  portfolio: {
+    pleaseLogin: 'Please log in first',
+    needLoginToView: 'You need to log in to view and manage your portfolio',
+    loadingPortfolio: 'Loading portfolio...',
+    loadFailed: 'Failed to load',
+    retry: 'Retry',
+    createYourPortfolio: 'Create Your Dynamic Portfolio',
+    showcaseSkills: 'Showcase your skills, projects and availability, let opportunities find you automatically',
+    autoDisplay: 'Auto Display',
+    autoDisplayDesc: 'Real-time updates on project progress and availability',
+    onChainCredentials: 'On-chain Credentials',
+    onChainCredentialsDesc: 'Get verifiable proof of achievements',
+    smartMatching: 'Smart Matching',
+    smartMatchingDesc: 'Automatically match suitable opportunities',
+    createPortfolio: 'Create Portfolio',
+    hoursPerWeek: 'hours/week',
+    projectsCompleted: 'projects completed',
+    ethPerHour: 'ETH/hour',
+    reputationScore: 'Reputation Score',
+    skills: 'Skills',
+    currentStatus: 'Current Status',
+    updateAvailability: 'Update Status',
+    currentProjects: 'Current Projects',
+    allProjects: 'All Projects',
+    credentials: 'Credentials',
+    addProject: 'Add Project',
+    noCurrentProjects: 'No ongoing projects',
+    noProjects: 'No projects yet',
+    earnedCredentials: 'Verified Credentials',
+    noCredentials: 'No credentials yet'
+  },
+
   // Common
   common: {
     save: 'Save',

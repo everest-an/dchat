@@ -8,8 +8,12 @@ import { UserProfileService } from '../services/UserProfileService'
 import GroupService from '../services/GroupService'
 import GroupMessageService from '../services/GroupMessageService'
 import ipfsService from '../services/ipfsService'
+import { useLanguage } from '../contexts/LanguageContext'
+
 
 const GroupChat = () => {
+  const { t } = useLanguage()
+
   const navigate = useNavigate()
   const { id: groupId } = useParams()
   const { account } = useWeb3()
@@ -28,7 +32,7 @@ const GroupChat = () => {
   const messagesEndRef = useRef(null)
   const fileInputRef = useRef(null)
 
-  // TODO: Translate '加载群组信息'
+  // TODO: Translate {t('load_group_info')}
   useEffect(() => {
     if (groupId) {
       loadGroupInfo()
@@ -65,12 +69,12 @@ const GroupChat = () => {
     }
   }
 
-  // TODO: Translate '自动滚动'
+  // TODO: Translate {t('auto_scroll')}
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // TODO: Translate '发送消息'
+  // TODO: Translate {t('send_message')}
   const handleSendMessage = async () => {
     if (!message.trim() || sending) return
 
@@ -79,14 +83,14 @@ const GroupChat = () => {
     setSending(true)
 
     try {
-      // use GroupMessageService TODO: Translate '发送消息'
+      // use GroupMessageService TODO: Translate {t('send_message')}
       const newMessage = await GroupMessageService.sendMessage(
         groupId,
         account,
         messageText
       )
 
-      // TODO: Translate '更新本地消息列表'
+      // TODO: Translate {t('update_local_message_list')}
       setMessages([...messages, newMessage])
 
       success('Sent!', 'Message sent to group')
@@ -98,7 +102,7 @@ const GroupChat = () => {
     }
   }
 
-  // TODO: Translate '添加成员'
+  // TODO: Translate {t('add_member')}
   const handleAddMember = () => {
     if (!newMemberAddress.trim()) {
       showError('Error', 'Please enter a wallet address')
@@ -126,7 +130,7 @@ const GroupChat = () => {
     const updatedMembers = [...members, newMember]
     setMembers(updatedMembers)
 
-    // TODO: Translate '更新群组信息'
+    // TODO: Translate {t('update_group_info')}
     const groupsKey = 'dchat_groups'
     const stored = localStorage.getItem(groupsKey)
     const groups = stored ? JSON.parse(stored) : []
@@ -144,7 +148,7 @@ const GroupChat = () => {
     success('Added!', `${newMember.username} added to group`)
   }
 
-  // TODO: Translate '渲染消息'
+  // TODO: Translate {t('render_message')}
   const renderMessage = (msg) => {
     const isMe = msg.sender.toLowerCase() === account.toLowerCase()
 

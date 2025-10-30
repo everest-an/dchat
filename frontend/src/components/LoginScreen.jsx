@@ -2,8 +2,12 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Wallet, MessageCircle, Lock, Shield, AlertCircle, Mail, Phone, ArrowLeft, Loader2 } from 'lucide-react'
 import { useWeb3 } from '../contexts/Web3Context'
+import { useLanguage } from '../contexts/LanguageContext'
+
 
 const LoginScreen = ({ onLogin }) => {
+  const { t } = useLanguage()
+
   const [loginMethod, setLoginMethod] = useState('select')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
@@ -18,21 +22,21 @@ const LoginScreen = ({ onLogin }) => {
     connectWallet 
   } = useWeb3()
 
-  // Web3 TODO: Translate '钱包登录'
+  // Web3 TODO: Translate {t('wallet_login')}
   const handleConnectWallet = async () => {
     try {
       setError('')
       setIsSubmitting(true)
       
-      // TODO: Translate '连接钱包并获取账户地址'
+      // TODO: Translate {t('connect_wallet_get_address')}
       const walletAddress = await connectWallet()
       
       if (walletAddress) {
-        // TODO: Translate '生成认证令牌'
+        // TODO: Translate {t('generate_auth_token')}
         const authToken = `web3_${walletAddress}_${Date.now()}`
         localStorage.setItem('authToken', authToken)
         
-        // TODO: Translate '创建用户数据'
+        // TODO: Translate {t('create_user_data')}
         const userData = {
           walletAddress: walletAddress,
           username: `User_${walletAddress.slice(2, 8)}`,
@@ -42,7 +46,7 @@ const LoginScreen = ({ onLogin }) => {
           createdAt: new Date().toISOString()
         }
         
-        // TODO: Translate '登录成功'
+        // TODO: Translate {t('login_success')}
         onLogin(userData)
       } else {
         throw new Error('Failed to connect wallet. Please try again.')
@@ -55,7 +59,7 @@ const LoginScreen = ({ onLogin }) => {
     }
   }
 
-  // TODO: Translate '邮箱登录'(TODO: Translate '简化版' - TODO: Translate '无需后端')
+  // TODO: Translate {t('email_login')}(TODO: Translate {t('simplified_version')} - TODO: Translate {t('no_backend_required')})
   const handleEmailLogin = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -66,13 +70,13 @@ const LoginScreen = ({ onLogin }) => {
         throw new Error('Please enter a valid email address')
       }
 
-      // TODO: Translate '生成确定性的模拟钱包地址'（TODO: Translate '基于'email）
+      // TODO: Translate {t('generate_deterministic_wallet_address')}（TODO: Translate {t('based_on')}email）
       const hash = email.split('').reduce((acc, char) => {
         return ((acc << 5) - acc) + char.charCodeAt(0)
       }, 0)
       const mockAddress = '0x' + Math.abs(hash).toString(16).padStart(40, '0').slice(0, 40)
       
-      // TODO: Translate '创建用户数据'
+      // TODO: Translate {t('create_user_data')}
       const userData = {
         email,
         username: email.split('@')[0],
@@ -82,7 +86,7 @@ const LoginScreen = ({ onLogin }) => {
         createdAt: new Date().toISOString()
       }
       
-      // TODO: Translate '登录成功'
+      // TODO: Translate {t('login_success')}
       onLogin(userData)
     } catch (error) {
       console.error('Email login error:', error)
@@ -92,7 +96,7 @@ const LoginScreen = ({ onLogin }) => {
     }
   }
 
-  // TODO: Translate '手机登录'(TODO: Translate '简化版' - TODO: Translate '无需后端')
+  // TODO: Translate {t('phone_login')}(TODO: Translate {t('simplified_version')} - TODO: Translate {t('no_backend_required')})
   const handlePhoneLogin = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -103,13 +107,13 @@ const LoginScreen = ({ onLogin }) => {
         throw new Error('Please enter a valid phone number')
       }
 
-      // TODO: Translate '生成确定性的模拟钱包地址'（TODO: Translate '基于'phone）
+      // TODO: Translate {t('generate_deterministic_wallet_address')}（TODO: Translate {t('based_on')}phone）
       const hash = phone.split('').reduce((acc, char) => {
         return ((acc << 5) - acc) + char.charCodeAt(0)
       }, 0)
       const mockAddress = '0x' + Math.abs(hash).toString(16).padStart(40, '0').slice(0, 40)
       
-      // TODO: Translate '创建用户数据'
+      // TODO: Translate {t('create_user_data')}
       const userData = {
         phone,
         username: `User_${phone.slice(-4)}`,
@@ -119,7 +123,7 @@ const LoginScreen = ({ onLogin }) => {
         createdAt: new Date().toISOString()
       }
       
-      // TODO: Translate '登录成功'
+      // TODO: Translate {t('login_success')}
       onLogin(userData)
     } catch (error) {
       console.error('Phone login error:', error)
@@ -129,22 +133,22 @@ const LoginScreen = ({ onLogin }) => {
     }
   }
 
-  // Alipay login(TODO: Translate '简化版' - TODO: Translate '无需后端')
+  // Alipay login(TODO: Translate {t('simplified_version')} - TODO: Translate {t('no_backend_required')})
   const handleAlipayLogin = async () => {
     setIsSubmitting(true)
     setError('')
     
     try {
-      // TODO: Translate '生成模拟' Alipay ID
+      // TODO: Translate {t('generate_simulation')} Alipay ID
       const alipayId = 'alipay_' + Math.random().toString(36).substr(2, 9)
       
-      // TODO: Translate '生成确定性的模拟钱包地址'（TODO: Translate '基于'alipayId）
+      // TODO: Translate {t('generate_deterministic_wallet_address')}（TODO: Translate {t('based_on')}alipayId）
       const hash = alipayId.split('').reduce((acc, char) => {
         return ((acc << 5) - acc) + char.charCodeAt(0)
       }, 0)
       const mockAddress = '0x' + Math.abs(hash).toString(16).padStart(40, '0').slice(0, 40)
       
-      // TODO: Translate '创建用户数据'
+      // TODO: Translate {t('create_user_data')}
       const userData = {
         alipayId: alipayId,
         username: 'Alipay User',
@@ -154,7 +158,7 @@ const LoginScreen = ({ onLogin }) => {
         createdAt: new Date().toISOString()
       }
       
-      // TODO: Translate '登录成功'
+      // TODO: Translate {t('login_success')}
       onLogin(userData)
     } catch (error) {
       console.error('Alipay login error:', error)
@@ -171,7 +175,7 @@ const LoginScreen = ({ onLogin }) => {
     setError('')
   }
 
-  // TODO: Translate '登录方式选择界面'
+  // TODO: Translate {t('login_method_selection_screen')}
   if (loginMethod === 'select') {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
@@ -282,7 +286,7 @@ const LoginScreen = ({ onLogin }) => {
     )
   }
 
-  // Web3 TODO: Translate '钱包登录界面'
+  // Web3 TODO: Translate {t('wallet_login_screen')}
   if (loginMethod === 'wallet') {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
@@ -379,7 +383,7 @@ const LoginScreen = ({ onLogin }) => {
     )
   }
 
-  // TODO: Translate '邮箱登录界面'
+  // TODO: Translate {t('email_login_screen')}
   if (loginMethod === 'email') {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
@@ -453,7 +457,7 @@ const LoginScreen = ({ onLogin }) => {
     )
   }
 
-  // TODO: Translate '手机登录界面'
+  // TODO: Translate {t('mobile_login_screen')}
   if (loginMethod === 'phone') {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
@@ -527,7 +531,7 @@ const LoginScreen = ({ onLogin }) => {
     )
   }
 
-  // Alipay TODO: Translate '登录界面'
+  // Alipay TODO: Translate {t('login_screen')}
   if (loginMethod === 'alipay') {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">

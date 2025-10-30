@@ -1,8 +1,12 @@
 import { useState } from 'react'
 import { Plus, MessageCircle, Heart, Share, MoreHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useLanguage } from '../contexts/LanguageContext'
+
 
 const Moments = () => {
+  const { t } = useLanguage()
+
   const [posts, setPosts] = useState([
     {
       id: 1,
@@ -63,10 +67,10 @@ const Moments = () => {
 
   const getTypeLabel = (type) => {
     switch (type) {
-      case 'project_update': return '项目更新'
-      case 'industry_insights': return '行业洞察'
-      case 'networking': return '商务合作'
-      default: return '动态'
+      case 'project_update': return {t('project_update')}
+      case 'industry_insights': return {t('industry_insights')}
+      case 'networking': return {t('business_cooperation')}
+      default: return {t('moments_dynamic')}
     }
   }
 
@@ -81,10 +85,10 @@ const Moments = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* TODO: Translate '头部' */}
+      {/* TODO: Translate {t('header_section')} */}
       <div className="bg-white px-4 pt-12 pb-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-black">商务动态</h1>
+          <h1 className="text-2xl font-bold text-black">{t("business_updates")}</h1>
           <Button
             variant="ghost"
             size="icon"
@@ -95,7 +99,7 @@ const Moments = () => {
         </div>
       </div>
 
-      {/* TODO: Translate '动态列表' */}
+      {/* TODO: Translate {t('dynamic_list')} */}
       <div className="pb-20">
         {posts.map((post) => (
           <div key={post.id} className="bg-white mb-2 px-4 py-4">
@@ -128,7 +132,7 @@ const Moments = () => {
             <div className="mb-4">
               <p className="text-gray-800 leading-relaxed mb-3">{post.content}</p>
               
-              {/* TODO: Translate '图表或媒体内容' */}
+              {/* TODO: Translate {t('chart_or_media_content')} */}
               {post.chart && (
                 <div className="bg-gray-50 rounded-lg p-4 flex items-center justify-center">
                   <div className="text-4xl">{post.chart}</div>
@@ -136,7 +140,7 @@ const Moments = () => {
               )}
             </div>
 
-            {/* TODO: Translate '互动按钮' */}
+            {/* TODO: Translate {t('interactive_button')} */}
             <div className="flex items-center justify-between pt-3 border-t border-gray-100">
               <div className="flex items-center gap-6">
                 <button
@@ -156,7 +160,7 @@ const Moments = () => {
                 
                 <button className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-500 transition-colors">
                   <Share className="w-4 h-4" />
-                  <span>分享</span>
+                  <span>{t("share_moment")}</span>
                 </button>
               </div>
             </div>

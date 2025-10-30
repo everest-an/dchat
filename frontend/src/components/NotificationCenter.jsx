@@ -12,23 +12,27 @@ import { ScrollArea } from './ui/scroll-area'
 import { Separator } from './ui/separator'
 import { Bell, Check, User, Briefcase, TrendingUp, Award } from 'lucide-react'
 import { formatAddress } from '../config/web3'
+import { useLanguage } from '../contexts/LanguageContext'
+
 
 /**
- * TODO: Translate '通知中心组件'
- * TODO: Translate '显示来自订阅用户的更新通知'
+ * TODO: Translate {t('notification_center_component')}
+ * TODO: Translate {t('show_subscriber_update_notifications')}
  */
 export default function NotificationCenter() {
+  const { t } = useLanguage()
+
   const { account, provider, signer, isConnected } = useWeb3()
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [open, setOpen] = useState(false)
 
-  // TODO: Translate '初始化服务'
+  // TODO: Translate {t('init_service')}
   const portfolioService = new LivingPortfolioService(provider, signer)
 
-  // TODO: Translate '加载通知'
+  // TODO: Translate {t('load_notification')}
   const loadNotifications = () => {
-    // from localStorage TODO: Translate '加载通知'
+    // from localStorage TODO: Translate {t('load_notification')}
     const stored = localStorage.getItem(`notifications_${account}`)
     if (stored) {
       const parsed = JSON.parse(stored)
@@ -38,7 +42,7 @@ export default function NotificationCenter() {
     }
   }
 
-  // TODO: Translate '添加通知'
+  // TODO: Translate {t('add_notification')}
   const addNotification = (notification) => {
     const newNotification = {
       id: Date.now(),
@@ -48,7 +52,7 @@ export default function NotificationCenter() {
     }
 
     setNotifications(prev => {
-      const updated = [newNotification, ...prev].slice(0, 50) // TODO: Translate '只保留最新'50TODO: Translate '条'
+      const updated = [newNotification, ...prev].slice(0, 50) // TODO: Translate {t('keep_latest_only')}50TODO: Translate {t('item_count')}
       localStorage.setItem(`notifications_${account}`, JSON.stringify(updated))
       return updated
     })
@@ -56,7 +60,7 @@ export default function NotificationCenter() {
     setUnreadCount(prev => prev + 1)
   }
 
-  // TODO: Translate '标记为已读'
+  // TODO: Translate {t('mark_as_read')}
   const markAsRead = (id) => {
     setNotifications(prev => {
       const updated = prev.map(n => 
@@ -68,7 +72,7 @@ export default function NotificationCenter() {
     setUnreadCount(prev => Math.max(0, prev - 1))
   }
 
-  // TODO: Translate '标记全部已读'
+  // TODO: Translate {t('mark_all_read')}
   const markAllAsRead = () => {
     setNotifications(prev => {
       const updated = prev.map(n => ({ ...n, read: true }))
@@ -78,40 +82,40 @@ export default function NotificationCenter() {
     setUnreadCount(0)
   }
 
-  // TODO: Translate '监听事件'
+  // TODO: Translate {t('listen_event')}
   useEffect(() => {
     if (!isConnected || !account) return
 
     loadNotifications()
 
-    // TODO: Translate '监听可用性更新事件'
+    // TODO: Translate {t('listen_availability_update_event')}
     const handleAvailabilityUpdated = (data) => {
       addNotification({
         type: 'availability',
-        title: '可用性更新',
+        title: {t('availability_update')},
         message: `${formatAddress(data.owner)} 更新了可用性状态`,
         address: data.owner,
         icon: TrendingUp
       })
     }
 
-    // TODO: Translate '监听新项目事件'
+    // TODO: Translate {t('listen_new_project_event')}
     const handleProjectAdded = (data) => {
       addNotification({
         type: 'project',
-        title: '新项目',
+        title: {t('new_project')},
         message: `${formatAddress(data.owner)} 添加了新项目: ${data.title}`,
         address: data.owner,
         icon: Briefcase
       })
     }
 
-    // TODO: Translate '监听订阅事件'
+    // TODO: Translate {t('listen_subscription_event')}
     const handleSubscribed = (data) => {
       if (data.target === account) {
         addNotification({
           type: 'subscribe',
-          title: '新订阅者',
+          title: {t('new_subscriber')},
           message: `${formatAddress(data.subscriber)} 订阅了您的更新`,
           address: data.subscriber,
           icon: User
@@ -119,12 +123,12 @@ export default function NotificationCenter() {
       }
     }
 
-    // TODO: Translate '监听凭证发行事件'
+    // TODO: Translate {t('listen_credential_issuance_event')}
     const handleCredentialIssued = (data) => {
       if (data.recipient === account) {
         addNotification({
           type: 'credential',
-          title: '新凭证',
+          title: {t('new_credential')},
           message: `您获得了新凭证: ${data.title}`,
           address: data.issuer,
           icon: Award
@@ -138,7 +142,7 @@ export default function NotificationCenter() {
     portfolioService.onCredentialIssued(handleCredentialIssued)
 
     return () => {
-      // TODO: Translate '清理事件监听'
+      // TODO: Translate {t('clear_event_listener')}
       portfolioService.off('AvailabilityUpdated', handleAvailabilityUpdated)
       portfolioService.off('ProjectAdded', handleProjectAdded)
       portfolioService.off('Subscribed', handleSubscribed)
@@ -157,7 +161,7 @@ export default function NotificationCenter() {
     const hours = Math.floor(diff / 3600000)
     const days = Math.floor(diff / 86400000)
 
-    if (minutes < 1) return '刚刚'
+    if (minutes < 1) return {t('just_now')}
     if (minutes < 60) return `${minutes}分钟前`
     if (hours < 24) return `${hours}小时前`
     if (days < 7) return `${days}天前`
@@ -181,7 +185,7 @@ export default function NotificationCenter() {
       </PopoverTrigger>
       <PopoverContent className="w-96 p-0" align="end">
         <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="font-semibold">通知</h3>
+          <h3 className="font-semibold">{t("notification")}</h3>
           {unreadCount > 0 && (
             <Button
               variant="ghost"
@@ -198,7 +202,7 @@ export default function NotificationCenter() {
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-gray-500">
               <Bell className="w-12 h-12 mb-2 opacity-50" />
-              <p>暂无通知</p>
+              <p>{t("no_notification")}</p>
             </div>
           ) : (
             <div className="divide-y">

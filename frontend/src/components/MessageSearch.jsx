@@ -2,8 +2,12 @@ import { useState } from 'react'
 import { Search, Calendar, User, X } from 'lucide-react'
 import { Button } from './ui/button'
 import { useWeb3 } from '../contexts/Web3Context'
+import { useLanguage } from '../contexts/LanguageContext'
+
 
 const MessageSearch = ({ recipientAddress, onClose, onMessageClick }) => {
+  const { t } = useLanguage()
+
   const { account } = useWeb3()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
@@ -20,7 +24,7 @@ const MessageSearch = ({ recipientAddress, onClose, onMessageClick }) => {
 
     let filtered = messages
 
-    // TODO: Translate '文本搜索'
+    // TODO: Translate {t('text_search')}
     if (query.trim()) {
       const lowerQuery = query.toLowerCase()
       filtered = filtered.filter(m => 
@@ -28,12 +32,12 @@ const MessageSearch = ({ recipientAddress, onClose, onMessageClick }) => {
       )
     }
 
-    // TODO: Translate '发送者筛选'
+    // TODO: Translate {t('sender_filter')}
     if (filters.sender !== 'all') {
       filtered = filtered.filter(m => m.sender === filters.sender)
     }
 
-    // TODO: Translate '日期筛选'
+    // TODO: Translate {t('date_filter')}
     if (filters.dateFrom) {
       const fromDate = new Date(filters.dateFrom)
       filtered = filtered.filter(m => {
