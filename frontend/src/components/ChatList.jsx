@@ -217,8 +217,16 @@ const ChatList = ({ user }) => {
       {/* My Profile Card */}
       <div className="px-4 py-3 bg-gradient-to-r from-black to-gray-800 text-white">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center text-2xl">
-            {myProfile?.avatar || '👤'}
+          <div className="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center text-2xl overflow-hidden">
+            {myProfile?.avatar?.type === 'ipfs' && myProfile?.avatar?.url ? (
+              <img 
+                src={myProfile.avatar.url} 
+                alt="Avatar" 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span>{myProfile?.avatar?.emoji || myProfile?.avatar || '👤'}</span>
+            )}
           </div>
           <div className="flex-1">
             <h3 className="font-semibold">{myProfile?.username || 'Loading...'}</h3>

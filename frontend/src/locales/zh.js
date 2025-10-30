@@ -105,6 +105,26 @@ export default {
     viewAll: '查看所有消息'
   },
   
+  // Avatar
+  avatar: {
+    upload: '上传头像',
+    uploadTitle: '上传头像',
+    uploading: '正在上传到IPFS...',
+    uploadSuccess: '头像上传成功',
+    uploadError: '头像上传失败',
+    preview: '预览',
+    changeAvatar: '更换头像',
+    removeAvatar: '移除头像',
+    selectFile: '选择图片',
+    dropHere: '拖放图片到这里',
+    maxSize: '最大: 5MB',
+    allowedTypes: '支持: JPEG, PNG, GIF, WebP',
+    fileTooLarge: '文件大小不能超过5MB',
+    invalidType: '仅支持JPEG、PNG、GIF和WebP格式的图片',
+    ipfsInfo: '您的头像将存储在IPFS（去中心化存储）并关联到您的个人资料。',
+    done: '完成'
+  },
+  
   // Common
   common: {
     save: '保存',
@@ -115,7 +135,10 @@ export default {
     loading: '加载中...',
     error: '错误',
     success: '成功',
-    back: '返回'
+    back: '返回',
+    upload: '上传',
+    uploading: '上传中...',
+    close: '关闭'
   }
 }
 

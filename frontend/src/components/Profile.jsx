@@ -1,16 +1,59 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Settings, Edit, Linkedin, Wallet, Shield, Bell, HelpCircle, LogOut, ChevronRight, Github, FileText, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import LinkedInConnect from './LinkedInConnect'
 import LinkedInMessages from './LinkedInMessages'
 import LanguageSwitcher from './LanguageSwitcher'
+import AvatarUpload from './AvatarUpload'
 import { useLanguage } from '../contexts/LanguageContext'
+import { UserProfileService } from '../services/UserProfileService'
 
 const Profile = ({ user, onLogout }) => {
   const { t } = useLanguage()
   const [showWalletAddress, setShowWalletAddress] = useState(false)
   const [linkedInData, setLinkedInData] = useState(null)
   const [showLinkedInMessages, setShowLinkedInMessages] = useState(false)
+  const [userProfile, setUserProfile] = useState(null)
+  const [avatarData, setAvatarData] = useState(null)
+
+  // 加载用户资料
+  useEffect(() => {
+    if (user?.walletAddress) {
+      const profile = UserProfileService.getProfile(user.walletAddress)
+      setUserProfile(profile)
+      
+      const avatar = UserProfileService.getDisplayAvatar(user.walletAddress)
+      setAvatarData(avatar)
+      
+      console.log('📋 Loaded user profile:', { profile, avatar })
+    }
+  }, [user?.walletAddress])
+
+  // 处理头像更新
+  const handleAvatarUpdate = async (avatarInfo) => {
+    if (!user?.walletAddress) return
+    
+    console.log('🖼️ Updating avatar:', avatarInfo)
+    
+    // 保存到UserProfileService
+    const success = UserProfileService.updateAvatar(user.walletAddress, avatarInfo)
+    
+    if (success) {
+      // 更新本地状态
+      setAvatarData({
+        type: 'ipfs',
+        url: avatarInfo.url,
+        ipfsHash: avatarInfo.ipfsHash
+      })
+      
+      // 添加到历史记录
+      UserProfileService.addAvatarToHistory(user.walletAddress, avatarInfo)
+      
+      console.log('✅ Avatar updated successfully')
+    } else {
+      console.error('❌ Failed to update avatar')
+    }
+  }
 
   const menuItems = [
     {
@@ -96,13 +139,18 @@ const Profile = ({ user, onLogout }) => {
           {/* Basic Info */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
-              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-2xl mr-4">
-                👨‍💼
+              {/* Avatar with Upload */}
+              <div className="mr-4">
+                <AvatarUpload
+                  currentAvatar={avatarData}
+                  onAvatarUpdate={handleAvatarUpdate}
+                  userAddress={user?.walletAddress}
+                />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-black">{user?.name || 'Alex Chen'}</h2>
-                <p className="text-gray-600">{user?.company || 'Tech Innovations Inc.'}</p>
-                <p className="text-sm text-gray-500">{user?.position || 'Senior Product Manager'}</p>
+                <h2 className="text-xl font-bold text-black">{userProfile?.name || user?.name || 'Alex Chen'}</h2>
+                <p className="text-gray-600">{userProfile?.company || user?.company || 'Tech Innovations Inc.'}</p>
+                <p className="text-sm text-gray-500">{userProfile?.position || user?.position || 'Senior Product Manager'}</p>
               </div>
             </div>
             <Button variant="ghost" size="icon" title={t('profile.edit')}>

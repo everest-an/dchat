@@ -105,6 +105,26 @@ export default {
     viewAll: 'View All Messages'
   },
   
+  // Avatar
+  avatar: {
+    upload: 'Upload Avatar',
+    uploadTitle: 'Upload Avatar',
+    uploading: 'Uploading to IPFS...',
+    uploadSuccess: 'Avatar uploaded successfully',
+    uploadError: 'Failed to upload avatar',
+    preview: 'Preview',
+    changeAvatar: 'Change Avatar',
+    removeAvatar: 'Remove Avatar',
+    selectFile: 'Select Image',
+    dropHere: 'Drop image here',
+    maxSize: 'Max size: 5MB',
+    allowedTypes: 'Supported: JPEG, PNG, GIF, WebP',
+    fileTooLarge: 'File size must be less than 5MB',
+    invalidType: 'Only JPEG, PNG, GIF and WebP images are supported',
+    ipfsInfo: 'Your avatar will be stored on IPFS (decentralized storage) and linked to your profile.',
+    done: 'Done'
+  },
+  
   // Common
   common: {
     save: 'Save',
@@ -115,7 +135,10 @@ export default {
     loading: 'Loading...',
     error: 'Error',
     success: 'Success',
-    back: 'Back'
+    back: 'Back',
+    upload: 'Upload',
+    uploading: 'Uploading...',
+    close: 'Close'
   }
 }
 
