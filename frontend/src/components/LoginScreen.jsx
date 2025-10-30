@@ -108,10 +108,17 @@ const LoginScreen = ({ onLogin }) => {
       const authToken = `email_${email}_${Date.now()}`
       localStorage.setItem('authToken', authToken)
       
+      // 生成确定性的模拟钱包地址（基于email）
+      const hash = email.split('').reduce((acc, char) => {
+        return ((acc << 5) - acc) + char.charCodeAt(0)
+      }, 0)
+      const mockAddress = '0x' + Math.abs(hash).toString(16).padStart(40, '0').slice(0, 40)
+      
       // 创建用户数据
       const userData = {
         email,
         username: email.split('@')[0],
+        walletAddress: mockAddress,
         loginMethod: 'email',
         web3Enabled: false,
         demoMode: true,
@@ -143,10 +150,17 @@ const LoginScreen = ({ onLogin }) => {
       const authToken = `phone_${phone}_${Date.now()}`
       localStorage.setItem('authToken', authToken)
       
+      // 生成确定性的模拟钱包地址（基于phone）
+      const hash = phone.split('').reduce((acc, char) => {
+        return ((acc << 5) - acc) + char.charCodeAt(0)
+      }, 0)
+      const mockAddress = '0x' + Math.abs(hash).toString(16).padStart(40, '0').slice(0, 40)
+      
       // 创建用户数据
       const userData = {
         phone,
         username: `User_${phone.slice(-4)}`,
+        walletAddress: mockAddress,
         loginMethod: 'phone',
         web3Enabled: false,
         demoMode: true,
@@ -176,10 +190,17 @@ const LoginScreen = ({ onLogin }) => {
       const authToken = `alipay_${alipayId}_${Date.now()}`
       localStorage.setItem('authToken', authToken)
       
+      // 生成确定性的模拟钱包地址（基于alipayId）
+      const hash = alipayId.split('').reduce((acc, char) => {
+        return ((acc << 5) - acc) + char.charCodeAt(0)
+      }, 0)
+      const mockAddress = '0x' + Math.abs(hash).toString(16).padStart(40, '0').slice(0, 40)
+      
       // 创建用户数据
       const userData = {
         alipayId: 'demo_alipay_user',
         username: 'Alipay User',
+        walletAddress: mockAddress,
         loginMethod: 'alipay',
         web3Enabled: false,
         demoMode: true,
