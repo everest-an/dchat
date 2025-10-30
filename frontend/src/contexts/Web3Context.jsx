@@ -42,7 +42,7 @@ export const Web3Provider = ({ children }) => {
   const connectWallet = async () => {
     if (!isMetaMaskInstalled()) {
       setError('请安装 MetaMask 钱包')
-      return false
+      return null
     }
 
     setIsConnecting(true)
@@ -76,11 +76,11 @@ export const Web3Provider = ({ children }) => {
       localStorage.setItem('walletConnected', 'true')
       localStorage.setItem('walletAddress', accounts[0])
 
-      return true
+      return accounts[0]
     } catch (err) {
       console.error('连接钱包失败:', err)
       setError(err.message || '连接钱包失败')
-      return false
+      return null
     } finally {
       setIsConnecting(false)
     }
@@ -175,17 +175,16 @@ export const Web3Provider = ({ children }) => {
     }
   }, [account, getBalance])
 
-  // 自动重连
-  useEffect(() => {
-    const autoConnect = async () => {
-      const wasConnected = localStorage.getItem('walletConnected')
-      if (wasConnected === 'true' && isMetaMaskInstalled()) {
-        await connectWallet()
-      }
-    }
-
-    autoConnect()
-  }, [])
+  // 自动重连 - 已移除以避免干扰登录流程
+  // useEffect(() => {
+  //   const autoConnect = async () => {
+  //     const wasConnected = localStorage.getItem('walletConnected')
+  //     if (wasConnected === 'true' && isMetaMaskInstalled()) {
+  //       await connectWallet()
+  //     }
+  //   }
+  //   autoConnect()
+  // }, [])
 
   // 创建只读 provider (用于未连接钱包时读取数据)
   useEffect(() => {

@@ -24,19 +24,19 @@ const LoginScreen = ({ onLogin }) => {
       setError('')
       setIsSubmitting(true)
       
-      // 连接钱包
-      const success = await connectWallet()
+      // 连接钱包并获取账户地址
+      const walletAddress = await connectWallet()
       
-      if (success && account) {
+      if (walletAddress) {
         // 生成认证令牌
-        const authToken = `web3_${account}_${Date.now()}`
+        const authToken = `web3_${walletAddress}_${Date.now()}`
         localStorage.setItem('authToken', authToken)
         
         // 创建用户数据
         const userData = {
-          walletAddress: account,
-          username: `User_${account.slice(2, 8)}`,
-          email: `${account.slice(2, 8)}@dchat.web3`,
+          walletAddress: walletAddress,
+          username: `User_${walletAddress.slice(2, 8)}`,
+          email: `${walletAddress.slice(2, 8)}@dchat.web3`,
           loginMethod: 'web3',
           web3Enabled: true,
           createdAt: new Date().toISOString()
@@ -44,6 +44,8 @@ const LoginScreen = ({ onLogin }) => {
         
         // 登录成功
         onLogin(userData)
+      } else {
+        throw new Error('Failed to connect wallet. Please try again.')
       }
     } catch (error) {
       console.error('Wallet login error:', error)
