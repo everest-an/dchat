@@ -1,18 +1,22 @@
 import { useState, useEffect } from 'react'
 import { X, User, Mail, Briefcase, FileText } from 'lucide-react'
 import { Button } from '../ui/button'
+import AvatarUpload from '../AvatarUpload'
 import { UserProfileService } from '../../services/UserProfileService'
 import { useToast } from '../../contexts/ToastContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const EditProfileDialog = ({ isOpen, onClose, address, onSave }) => {
+  const { t } = useLanguage()
   const { success, error } = useToast()
   const [profile, setProfile] = useState({
     username: '',
     bio: '',
-    avatar: '👤',
+    avatar: null,
     company: '',
     email: ''
   })
+  const [avatarData, setAvatarData] = useState(null)
 
   const avatarOptions = ['👤', '😊', '🎨', '💼', '🚀', '🌟', '🎯', '💡', '🔥', '⚡', 
                          '👨‍💻', '👩‍💻', '🧑‍💼', '👨‍🎨', '👩‍🎨', '🦸', '🦹', '🧙']
@@ -22,27 +26,73 @@ const EditProfileDialog = ({ isOpen, onClose, address, onSave }) => {
       const existing = UserProfileService.getProfile(address)
       if (existing) {
         setProfile(existing)
+        setAvatarData(UserProfileService.getDisplayAvatar(address))
       } else {
+        const defaultAvatar = UserProfileService.getDefaultAvatar(address)
         setProfile({
           username: UserProfileService.getDefaultUsername(address),
           bio: '',
-          avatar: UserProfileService.getDefaultAvatar(address),
+          avatar: {
+            type: 'emoji',
+            emoji: defaultAvatar
+          },
           company: '',
           email: ''
+        })
+        setAvatarData({
+          type: 'emoji',
+          emoji: defaultAvatar
         })
       }
     }
   }, [isOpen, address])
 
+  /**
+   * 处理Avatar上传
+   */
+  const handleAvatarUpdate = async (avatarInfo) => {
+    console.log('🖼️ Avatar updated in dialog:', avatarInfo)
+    
+    // 更新本地状态
+    const newAvatar = {
+      type: 'ipfs',
+      ipfsHash: avatarInfo.ipfsHash,
+      url: avatarInfo.url,
+      fileName: avatarInfo.fileName,
+      fileSize: avatarInfo.fileSize,
+      uploadedAt: avatarInfo.uploadedAt
+    }
+    
+    setProfile({ ...profile, avatar: newAvatar })
+    setAvatarData(newAvatar)
+    
+    // 立即保存到UserProfileService
+    UserProfileService.updateAvatar(address, avatarInfo)
+    
+    success(t('avatar.uploadSuccess'), t('avatar.uploadSuccess'))
+  }
+
+  /**
+   * 选择Emoji头像
+   */
+  const handleEmojiSelect = (emoji) => {
+    const newAvatar = {
+      type: 'emoji',
+      emoji: emoji
+    }
+    setProfile({ ...profile, avatar: newAvatar })
+    setAvatarData(newAvatar)
+  }
+
   const handleSave = () => {
     if (!profile.username.trim()) {
-      error('Error', 'Username is required')
+      error(t('common.error'), 'Username is required')
       return
     }
 
     const saved = UserProfileService.saveProfile(address, profile)
     if (saved) {
-      success('Success', 'Profile updated successfully')
+      success(t('common.success'), 'Profile updated successfully')
       // 触发父组件刷新
       if (onSave) {
         onSave(profile)
@@ -51,7 +101,7 @@ const EditProfileDialog = ({ isOpen, onClose, address, onSave }) => {
       window.dispatchEvent(new CustomEvent('profileUpdated', { detail: { address, profile } }))
       onClose()
     } else {
-      error('Error', 'Failed to save profile')
+      error(t('common.error'), 'Failed to save profile')
     }
   }
 
@@ -62,7 +112,7 @@ const EditProfileDialog = ({ isOpen, onClose, address, onSave }) => {
       <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Edit Profile</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{t('profile.edit')}</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -73,25 +123,37 @@ const EditProfileDialog = ({ isOpen, onClose, address, onSave }) => {
 
         {/* Content */}
         <div className="p-6 space-y-6">
-          {/* Avatar Selection */}
+          {/* Avatar Upload with IPFS */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              Avatar
+              {t('avatar.upload')}
             </label>
-            <div className="grid grid-cols-6 gap-2">
-              {avatarOptions.map((emoji) => (
-                <button
-                  key={emoji}
-                  onClick={() => setProfile({ ...profile, avatar: emoji })}
-                  className={`w-12 h-12 text-2xl rounded-lg border-2 transition-all ${
-                    profile.avatar === emoji
-                      ? 'border-black bg-gray-100'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  {emoji}
-                </button>
-              ))}
+            <div className="flex items-center justify-center mb-4">
+              <AvatarUpload
+                currentAvatar={avatarData}
+                onAvatarUpdate={handleAvatarUpdate}
+                userAddress={address}
+              />
+            </div>
+            
+            {/* Emoji Avatar Options */}
+            <div className="mt-4">
+              <p className="text-xs text-gray-500 mb-2">Or choose an emoji avatar:</p>
+              <div className="grid grid-cols-6 gap-2">
+                {avatarOptions.map((emoji) => (
+                  <button
+                    key={emoji}
+                    onClick={() => handleEmojiSelect(emoji)}
+                    className={`w-12 h-12 text-2xl rounded-lg border-2 transition-all ${
+                      avatarData?.type === 'emoji' && avatarData?.emoji === emoji
+                        ? 'border-black bg-gray-100'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -164,9 +226,9 @@ const EditProfileDialog = ({ isOpen, onClose, address, onSave }) => {
           {/* Wallet Address (Read-only) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Wallet Address
+              {t('profile.walletAddress')}
             </label>
-            <div className="px-4 py-3 bg-gray-50 rounded-lg font-mono text-sm text-gray-600">
+            <div className="px-4 py-3 bg-gray-50 rounded-lg font-mono text-sm text-gray-600 break-all">
               {address}
             </div>
           </div>
@@ -177,15 +239,15 @@ const EditProfileDialog = ({ isOpen, onClose, address, onSave }) => {
           <Button
             onClick={onClose}
             variant="outline"
-            className="flex-1"
+            className="flex-1 border-gray-300 hover:bg-gray-50"
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             onClick={handleSave}
             className="flex-1 bg-black hover:bg-gray-800 text-white"
           >
-            Save Profile
+            {t('common.save')} {t('profile.title')}
           </Button>
         </div>
       </div>
