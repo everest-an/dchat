@@ -39,7 +39,6 @@ const LoginScreen = ({ onLogin }) => {
           email: `${walletAddress.slice(2, 8)}@dchat.web3`,
           loginMethod: 'web3',
           web3Enabled: true,
-          demoMode: false,
           createdAt: new Date().toISOString()
         }
         
@@ -56,43 +55,6 @@ const LoginScreen = ({ onLogin }) => {
     }
   }
 
-  // Demo TODO: Translate '钱包登录'（TODO: Translate '用于测试'）
-  const handleDemoWalletLogin = async () => {
-    try {
-      setError('')
-      setIsSubmitting(true)
-      
-      // TODO: Translate '生成一个模拟的钱包地址'
-      const demoWalletAddress = '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb'
-      
-      // TODO: Translate '生成认证令牌'
-      const authToken = `demo_web3_${demoWalletAddress}_${Date.now()}`
-      localStorage.setItem('authToken', authToken)
-      
-      // TODO: Translate '创建用户数据'
-      const userData = {
-        walletAddress: demoWalletAddress,
-        username: `DemoUser_${demoWalletAddress.slice(2, 8)}`,
-        email: `${demoWalletAddress.slice(2, 8)}@dchat.demo`,
-        loginMethod: 'demo_web3',
-        web3Enabled: false,
-        demoMode: true,
-        createdAt: new Date().toISOString()
-      }
-      
-      // TODO: Translate '模拟连接延迟'
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // TODO: Translate '登录成功'
-      onLogin(userData)
-    } catch (error) {
-      console.error('Demo wallet login error:', error)
-      setError(error.message || 'Failed to login with demo wallet')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
   // TODO: Translate '邮箱登录'(TODO: Translate '简化版' - TODO: Translate '无需后端')
   const handleEmailLogin = async (e) => {
     e.preventDefault()
@@ -104,10 +66,6 @@ const LoginScreen = ({ onLogin }) => {
         throw new Error('Please enter a valid email address')
       }
 
-      // TODO: Translate '生成认证令牌'
-      const authToken = `email_${email}_${Date.now()}`
-      localStorage.setItem('authToken', authToken)
-      
       // TODO: Translate '生成确定性的模拟钱包地址'（TODO: Translate '基于'email）
       const hash = email.split('').reduce((acc, char) => {
         return ((acc << 5) - acc) + char.charCodeAt(0)
@@ -121,7 +79,6 @@ const LoginScreen = ({ onLogin }) => {
         walletAddress: mockAddress,
         loginMethod: 'email',
         web3Enabled: false,
-        demoMode: true,
         createdAt: new Date().toISOString()
       }
       
@@ -146,10 +103,6 @@ const LoginScreen = ({ onLogin }) => {
         throw new Error('Please enter a valid phone number')
       }
 
-      // TODO: Translate '生成认证令牌'
-      const authToken = `phone_${phone}_${Date.now()}`
-      localStorage.setItem('authToken', authToken)
-      
       // TODO: Translate '生成确定性的模拟钱包地址'（TODO: Translate '基于'phone）
       const hash = phone.split('').reduce((acc, char) => {
         return ((acc << 5) - acc) + char.charCodeAt(0)
@@ -163,7 +116,6 @@ const LoginScreen = ({ onLogin }) => {
         walletAddress: mockAddress,
         loginMethod: 'phone',
         web3Enabled: false,
-        demoMode: true,
         createdAt: new Date().toISOString()
       }
       
@@ -186,10 +138,6 @@ const LoginScreen = ({ onLogin }) => {
       // TODO: Translate '生成模拟' Alipay ID
       const alipayId = 'alipay_' + Math.random().toString(36).substr(2, 9)
       
-      // TODO: Translate '生成认证令牌'
-      const authToken = `alipay_${alipayId}_${Date.now()}`
-      localStorage.setItem('authToken', authToken)
-      
       // TODO: Translate '生成确定性的模拟钱包地址'（TODO: Translate '基于'alipayId）
       const hash = alipayId.split('').reduce((acc, char) => {
         return ((acc << 5) - acc) + char.charCodeAt(0)
@@ -198,12 +146,11 @@ const LoginScreen = ({ onLogin }) => {
       
       // TODO: Translate '创建用户数据'
       const userData = {
-        alipayId: 'demo_alipay_user',
+        alipayId: alipayId,
         username: 'Alipay User',
         walletAddress: mockAddress,
         loginMethod: 'alipay',
         web3Enabled: false,
-        demoMode: true,
         createdAt: new Date().toISOString()
       }
       
@@ -416,22 +363,7 @@ const LoginScreen = ({ onLogin }) => {
                 </a>
               </div>
               
-              <div className="relative py-2">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500">Or try demo mode</span>
-                </div>
-              </div>
 
-              <Button
-                onClick={handleDemoWalletLogin}
-                variant="outline"
-                className="w-full h-12 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 text-gray-700 rounded-xl text-base font-medium"
-              >
-                Continue with Demo Wallet
-              </Button>
             </div>
           )}
 
@@ -514,7 +446,6 @@ const LoginScreen = ({ onLogin }) => {
           <div className="mt-6 p-4 bg-blue-50 rounded-xl">
             <p className="text-sm text-blue-800">
               A secure wallet will be automatically created for you.
-              No verification code needed for demo.
             </p>
           </div>
         </div>
@@ -589,7 +520,6 @@ const LoginScreen = ({ onLogin }) => {
           <div className="mt-6 p-4 bg-blue-50 rounded-xl">
             <p className="text-sm text-blue-800">
               A secure wallet will be automatically created for you.
-              No verification code needed for demo.
             </p>
           </div>
         </div>
@@ -654,7 +584,6 @@ const LoginScreen = ({ onLogin }) => {
 
           <div className="mt-6 p-4 bg-blue-50 rounded-xl">
             <p className="text-sm text-blue-800">
-              This is a demo version. In production, you'll be redirected to Alipay for authentication.
             </p>
           </div>
         </div>

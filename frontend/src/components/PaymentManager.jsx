@@ -31,7 +31,6 @@ export default function PaymentManager({ user }) {
   
   // useWeb3 accountTODO: Translate '或'user.walletAddress
   const userAddress = account || user?.walletAddress
-  const isDemoMode = !isConnected && !!user?.walletAddress
   const [escrows, setEscrows] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -44,23 +43,6 @@ export default function PaymentManager({ user }) {
   const loadEscrows = async () => {
     if (!userAddress) return
     
-    // DemoTODO: Translate '模式'：uselocalStorage
-    if (isDemoMode) {
-      try {
-        setLoading(true)
-        const savedEscrows = localStorage.getItem(`escrows_${userAddress}`)
-        if (savedEscrows) {
-          setEscrows(JSON.parse(savedEscrows))
-        }
-      } catch (err) {
-        console.error('Error loading escrows from localStorage:', err)
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
-      return
-    }
-
     try {
       setLoading(true)
       setError(null)
@@ -81,7 +63,7 @@ export default function PaymentManager({ user }) {
     if (userAddress) {
       loadEscrows()
     }
-  }, [userAddress, isDemoMode])
+  }, [userAddress])
 
   // TODO: Translate '释放托管'
   const handleRelease = async (escrowId) => {

@@ -32,7 +32,7 @@ export default function Portfolio({ user }) {
   
   // useWeb3 accountTODO: Translate '或'user.walletAddress
   const userAddress = account || user?.walletAddress
-  const isDemoMode = !isConnected && !!user?.walletAddress
+  // All data comes from blockchain - no demo mode
   const [portfolio, setPortfolio] = useState(null)
   const [projects, setProjects] = useState([])
   const [currentProjects, setCurrentProjects] = useState([])
@@ -52,28 +52,6 @@ export default function Portfolio({ user }) {
   const loadPortfolio = async () => {
     if (!userAddress) return
     
-    // DemoTODO: Translate '模式'：uselocalStorage
-    if (isDemoMode) {
-      try {
-        setLoading(true)
-        const savedPortfolio = localStorage.getItem(`portfolio_${userAddress}`)
-        if (savedPortfolio) {
-          const data = JSON.parse(savedPortfolio)
-          setPortfolio(data.portfolio || null)
-          setProjects(data.projects || [])
-          setCurrentProjects(data.currentProjects || [])
-          setCredentials(data.credentials || [])
-          setAvailability(data.availability || null)
-        }
-      } catch (err) {
-        console.error('Error loading portfolio from localStorage:', err)
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
-      return
-    }
-
     try {
       setLoading(true)
       setError(null)
@@ -129,7 +107,7 @@ export default function Portfolio({ user }) {
     if (userAddress) {
       loadPortfolio()
     }
-  }, [userAddress, isDemoMode])
+  }, [userAddress])
 
   // TODO: Translate '创建作品集成功回调'
   const handlePortfolioCreated = () => {
@@ -280,7 +258,6 @@ export default function Portfolio({ user }) {
           onClose={() => setShowCreatePortfolio(false)}
           onSuccess={handlePortfolioCreated}
           userAddress={userAddress}
-          isDemoMode={isDemoMode}
         />
       </div>
     )
@@ -289,22 +266,6 @@ export default function Portfolio({ user }) {
   // TODO: Translate '显示作品集'
   return (
     <div className="h-full overflow-auto p-4 space-y-6">
-      {/* DemoTODO: Translate '模式提示' */}
-      {isDemoMode && (
-        <Card className="border-blue-200 bg-blue-50">
-          <CardHeader className="pb-3">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
-              <div>
-                <CardTitle className="text-base text-blue-900">Demo模式</CardTitle>
-                <CardDescription className="text-blue-700 mt-1">
-                  您当前使用的是Demo模式，数据仅保存在本地。连接Web3钱包可获得链上存储和更多功能。
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
-      )}
       {/* TODO: Translate '作品集头部' */}
       <Card>
         <CardHeader>

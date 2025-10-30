@@ -597,7 +597,6 @@ const ChatRoom = () => {
         }}
         recipientAddress={recipientAddress}
         userAddress={account}
-        isDemoMode={!isConnected}
       />
     </div>
   )

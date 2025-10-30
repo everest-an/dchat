@@ -31,7 +31,6 @@ export default function OpportunityMatching({ user }) {
   
   // useWeb3 accountTODO: Translate '或'user.walletAddress
   const userAddress = account || user?.walletAddress
-  const isDemoMode = !isConnected && !!user?.walletAddress
   const [matches, setMatches] = useState([])
   const [matchedProfiles, setMatchedProfiles] = useState({})
   const [loading, setLoading] = useState(true)
@@ -45,23 +44,6 @@ export default function OpportunityMatching({ user }) {
   const loadMatches = async () => {
     if (!userAddress) return
     
-    // DemoTODO: Translate '模式'：uselocalStorage
-    if (isDemoMode) {
-      try {
-        setLoading(true)
-        const savedMatches = localStorage.getItem(`matches_${userAddress}`)
-        if (savedMatches) {
-          setMatches(JSON.parse(savedMatches))
-        }
-      } catch (err) {
-        console.error('Error loading matches from localStorage:', err)
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
-      return
-    }
-
     try {
       setLoading(true)
       setError(null)
@@ -100,7 +82,7 @@ export default function OpportunityMatching({ user }) {
     if (userAddress) {
       loadMatches()
     }
-  }, [userAddress, isDemoMode])
+  }, [userAddress])
 
   // TODO: Translate '创建匹配成功回调'
   const handleMatchCreated = () => {

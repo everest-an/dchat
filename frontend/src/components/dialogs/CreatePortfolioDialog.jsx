@@ -20,7 +20,7 @@ import { Loader2, X, Plus, AlertCircle, CheckCircle2 } from 'lucide-react'
 /**
  * TODO: Translate '创建作品集对话框'
  */
-export default function CreatePortfolioDialog({ open, onClose, onSuccess, userAddress, isDemoMode }) {
+export default function CreatePortfolioDialog({ open, onClose, onSuccess, userAddress }) {
   const { provider, signer } = useWeb3()
   const [formData, setFormData] = useState({
     title: '',
@@ -45,50 +45,24 @@ export default function CreatePortfolioDialog({ open, onClose, onSuccess, userAd
       setLoading(true)
       setError(null)
 
-      // DemoTODO: Translate '模式'：savetolocalStorage
-      if (isDemoMode) {
-        const portfolioData = {
-          portfolio: {
-            title: formData.title,
-            bio: formData.bio,
-            skills: formData.skills,
-            hourlyRate: formData.hourlyRate,
-            reputationScore: 0,
-            totalProjects: 0,
-            completedProjects: 0,
-            createdAt: Date.now()
-          },
-          projects: [],
-          currentProjects: [],
-          credentials: [],
-          availability: null
-        }
-        localStorage.setItem(`portfolio_${userAddress}`, JSON.stringify(portfolioData))
+      // Save to blockchain via Web3
+      const portfolioService = new LivingPortfolioService(provider, signer)
+      
+      const result = await portfolioService.createPortfolio(
+        formData.title,
+        formData.bio,
+        formData.skills,
+        formData.hourlyRate
+      )
+
+      if (result.success) {
         setSuccess(true)
         setTimeout(() => {
           onSuccess()
           handleClose()
-        }, 1000)
+        }, 2000)
       } else {
-        // Web3TODO: Translate '模式'：TODO: Translate '保存到区块链'
-        const portfolioService = new LivingPortfolioService(provider, signer)
-        
-        const result = await portfolioService.createPortfolio(
-          formData.title,
-          formData.bio,
-          formData.skills,
-          formData.hourlyRate
-        )
-
-        if (result.success) {
-          setSuccess(true)
-          setTimeout(() => {
-            onSuccess()
-            handleClose()
-          }, 2000)
-        } else {
-          setError(result.error || '创建作品集失败')
-        }
+        setError(result.error || '创建作品集失败')
       }
     } catch (err) {
       console.error('Error creating portfolio:', err)
