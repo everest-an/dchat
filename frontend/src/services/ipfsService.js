@@ -6,10 +6,44 @@
 class IPFSService {
   constructor() {
     // Pinata API configuration
-    this.pinataApiKey = process.env.REACT_APP_PINATA_API_KEY || '';
-    this.pinataSecretKey = process.env.REACT_APP_PINATA_SECRET_KEY || '';
-    this.pinataGateway = 'https://gateway.pinata.cloud/ipfs/';
+    // Support both JWT and API Key authentication
+    this.pinataJWT = import.meta.env.VITE_PINATA_JWT || '';
+    this.pinataApiKey = import.meta.env.VITE_PINATA_API_KEY || '';
+    this.pinataSecretKey = import.meta.env.VITE_PINATA_SECRET_KEY || '';
+    this.pinataGateway = import.meta.env.VITE_PINATA_GATEWAY || 'https://green-jittery-gecko-888.mypinata.cloud/ipfs/';
     this.pinataApiUrl = 'https://api.pinata.cloud';
+    
+    console.log('🔧 Pinata Configuration:', {
+      hasJWT: !!this.pinataJWT,
+      hasApiKey: !!this.pinataApiKey,
+      gateway: this.pinataGateway
+    });
+  }
+
+  /**
+   * Get authorization headers for Pinata API
+   * @returns {Object} Headers object
+   */
+  getAuthHeaders() {
+    if (this.pinataJWT) {
+      return {
+        'Authorization': `Bearer ${this.pinataJWT}`,
+      };
+    } else if (this.pinataApiKey && this.pinataSecretKey) {
+      return {
+        'pinata_api_key': this.pinataApiKey,
+        'pinata_secret_api_key': this.pinataSecretKey,
+      };
+    }
+    return {};
+  }
+
+  /**
+   * Check if Pinata is configured
+   * @returns {boolean}
+   */
+  isPinataConfigured() {
+    return !!(this.pinataJWT || (this.pinataApiKey && this.pinataSecretKey));
   }
 
   /**
@@ -19,9 +53,9 @@ class IPFSService {
    */
   async uploadEncryptedMessage(encryptedData) {
     try {
-      // For demo purposes, use a mock implementation
-      // In production, this would upload to Pinata
-      if (!this.pinataApiKey) {
+      // For demo purposes, use a mock implementation if not configured
+      if (!this.isPinataConfigured()) {
+        console.warn('⚠️  Pinata not configured, using mock storage');
         return this.mockUpload(encryptedData);
       }
 
@@ -36,17 +70,19 @@ class IPFSService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'pinata_api_key': this.pinataApiKey,
-          'pinata_secret_api_key': this.pinataSecretKey,
+          ...this.getAuthHeaders(),
         },
         body: data,
       });
 
       if (!response.ok) {
-        throw new Error('Failed to upload to IPFS');
+        const errorText = await response.text();
+        console.error('Pinata API Error:', errorText);
+        throw new Error(`Failed to upload to IPFS: ${response.status}`);
       }
 
       const result = await response.json();
+      console.log('✅ Uploaded to IPFS:', result.IpfsHash);
       return result.IpfsHash;
     } catch (error) {
       console.error('Error uploading to IPFS:', error);
@@ -122,7 +158,8 @@ class IPFSService {
    */
   async uploadFile(file) {
     try {
-      if (!this.pinataApiKey) {
+      if (!this.isPinataConfigured()) {
+        console.warn('⚠️  Pinata not configured, using mock file storage');
         // Mock file upload
         return `mock_file_${Date.now()}_${file.name}`;
       }
@@ -138,17 +175,19 @@ class IPFSService {
       const response = await fetch(`${this.pinataApiUrl}/pinning/pinFileToIPFS`, {
         method: 'POST',
         headers: {
-          'pinata_api_key': this.pinataApiKey,
-          'pinata_secret_api_key': this.pinataSecretKey,
+          ...this.getAuthHeaders(),
         },
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Failed to upload file to IPFS');
+        const errorText = await response.text();
+        console.error('Pinata File Upload Error:', errorText);
+        throw new Error(`Failed to upload file to IPFS: ${response.status}`);
       }
 
       const result = await response.json();
+      console.log('✅ File uploaded to IPFS:', result.IpfsHash);
       return result.IpfsHash;
     } catch (error) {
       console.error('Error uploading file to IPFS:', error);
@@ -175,7 +214,7 @@ class IPFSService {
    */
   async pinHash(ipfsHash) {
     try {
-      if (!this.pinataApiKey) {
+      if (!this.isPinataConfigured()) {
         return true; // Mock success
       }
 
@@ -187,8 +226,7 @@ class IPFSService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'pinata_api_key': this.pinataApiKey,
-          'pinata_secret_api_key': this.pinataSecretKey,
+          ...this.getAuthHeaders(),
         },
         body: data,
       });
@@ -202,4 +240,3 @@ class IPFSService {
 }
 
 export default new IPFSService();
-
