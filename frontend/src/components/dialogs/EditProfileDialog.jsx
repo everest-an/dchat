@@ -48,12 +48,12 @@ const EditProfileDialog = ({ isOpen, onClose, address, onSave }) => {
   }, [isOpen, address])
 
   /**
-   * 处理Avatar上传
+   * TODO: Translate '处理'AvatarTODO: Translate '上传'
    */
   const handleAvatarUpdate = async (avatarInfo) => {
     console.log('🖼️ Avatar updated in dialog:', avatarInfo)
     
-    // 更新本地状态
+    // TODO: Translate '更新本地状态'
     const newAvatar = {
       type: 'ipfs',
       ipfsHash: avatarInfo.ipfsHash,
@@ -66,14 +66,14 @@ const EditProfileDialog = ({ isOpen, onClose, address, onSave }) => {
     setProfile({ ...profile, avatar: newAvatar })
     setAvatarData(newAvatar)
     
-    // 立即保存到UserProfileService
+    // TODO: Translate '立即保存到'UserProfileService
     UserProfileService.updateAvatar(address, avatarInfo)
     
     success(t('avatar.uploadSuccess'), t('avatar.uploadSuccess'))
   }
 
   /**
-   * 选择Emoji头像
+   * TODO: Translate '选择'EmojiTODO: Translate '头像'
    */
   const handleEmojiSelect = (emoji) => {
     const newAvatar = {
@@ -93,11 +93,11 @@ const EditProfileDialog = ({ isOpen, onClose, address, onSave }) => {
     const saved = UserProfileService.saveProfile(address, profile)
     if (saved) {
       success(t('common.success'), 'Profile updated successfully')
-      // 触发父组件刷新
+      // TODO: Translate '触发父组件刷新'
       if (onSave) {
         onSave(profile)
       }
-      // 触发全局事件以刷新所有组件
+      // TODO: Translate '触发全局事件以刷新所有组件'
       window.dispatchEvent(new CustomEvent('profileUpdated', { detail: { address, profile } }))
       onClose()
     } else {

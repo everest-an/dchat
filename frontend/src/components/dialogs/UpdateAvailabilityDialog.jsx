@@ -18,7 +18,7 @@ import { Alert, AlertDescription } from '../ui/alert'
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
 
 /**
- * 更新可用性对话框
+ * TODO: Translate '更新可用性对话框'
  */
 export default function UpdateAvailabilityDialog({ open, onClose, onSuccess, currentAvailability }) {
   const { provider, signer } = useWeb3()
@@ -33,7 +33,7 @@ export default function UpdateAvailabilityDialog({ open, onClose, onSuccess, cur
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
 
-  // 初始化表单数据
+  // TODO: Translate '初始化表单数据'
   useEffect(() => {
     if (currentAvailability) {
       const fromDate = currentAvailability.availableFrom 
@@ -73,7 +73,7 @@ export default function UpdateAvailabilityDialog({ open, onClose, onSuccess, cur
       
       const availableUntil = formData.availableUntil
         ? Math.floor(new Date(formData.availableUntil).getTime() / 1000)
-        : Math.floor(Date.now() / 1000) + 365 * 24 * 60 * 60 // 默认1年后
+        : Math.floor(Date.now() / 1000) + 365 * 24 * 60 * 60 // default1TODO: Translate '年后'
       
       const result = await portfolioService.updateAvailability(
         formData.status,
@@ -141,7 +141,7 @@ export default function UpdateAvailabilityDialog({ open, onClose, onSuccess, cur
               </Alert>
             )}
 
-            {/* 状态选择 */}
+            {/* TODO: Translate '状态选择' */}
             <div className="space-y-3">
               <Label>当前状态 *</Label>
               <RadioGroup
@@ -163,7 +163,7 @@ export default function UpdateAvailabilityDialog({ open, onClose, onSuccess, cur
               </RadioGroup>
             </div>
 
-            {/* 可用时间段 */}
+            {/* TODO: Translate '可用时间段' */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="availableFrom">可用开始日期</Label>
@@ -187,7 +187,7 @@ export default function UpdateAvailabilityDialog({ open, onClose, onSuccess, cur
               </div>
             </div>
 
-            {/* 每周可用时间 */}
+            {/* TODO: Translate '每周可用时间' */}
             <div className="space-y-2">
               <Label htmlFor="hoursPerWeek">每周可用时间 (小时) *</Label>
               <Input
@@ -205,7 +205,7 @@ export default function UpdateAvailabilityDialog({ open, onClose, onSuccess, cur
               </p>
             </div>
 
-            {/* 备注 */}
+            {/* TODO: Translate '备注' */}
             <div className="space-y-2">
               <Label htmlFor="notes">备注</Label>
               <Textarea

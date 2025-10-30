@@ -23,13 +23,13 @@ import { formatAddress, getExplorerUrl } from '../config/web3'
 import PaymentDialog from './dialogs/PaymentDialog'
 
 /**
- * 支付管理页面组件
- * 管理托管支付
+ * TODO: Translate '支付管理页面组件'
+ * TODO: Translate '管理托管支付'
  */
 export default function PaymentManager({ user }) {
   const { account, provider, signer, isConnected } = useWeb3()
   
-  // 使用Web3 account或user.walletAddress
+  // useWeb3 accountTODO: Translate '或'user.walletAddress
   const userAddress = account || user?.walletAddress
   const isDemoMode = !isConnected && !!user?.walletAddress
   const [escrows, setEscrows] = useState([])
@@ -40,11 +40,11 @@ export default function PaymentManager({ user }) {
 
   const paymentService = new PaymentEscrowService(provider, signer)
 
-  // 加载托管数据
+  // TODO: Translate '加载托管数据'
   const loadEscrows = async () => {
     if (!userAddress) return
     
-    // Demo模式：使用localStorage
+    // DemoTODO: Translate '模式'：uselocalStorage
     if (isDemoMode) {
       try {
         setLoading(true)
@@ -83,7 +83,7 @@ export default function PaymentManager({ user }) {
     }
   }, [userAddress, isDemoMode])
 
-  // 释放托管
+  // TODO: Translate '释放托管'
   const handleRelease = async (escrowId) => {
     if (!confirm('确认释放托管资金?')) return
 
@@ -100,7 +100,7 @@ export default function PaymentManager({ user }) {
     }
   }
 
-  // 申请退款
+  // TODO: Translate '申请退款'
   const handleRefund = async (escrowId) => {
     if (!confirm('确认申请退款?')) return
 
@@ -117,7 +117,7 @@ export default function PaymentManager({ user }) {
     }
   }
 
-  // 提起争议
+  // TODO: Translate '提起争议'
   const handleDispute = async (escrowId) => {
     const reason = prompt('请输入争议原因:')
     if (!reason) return
@@ -135,7 +135,7 @@ export default function PaymentManager({ user }) {
     }
   }
 
-  // 获取状态文本
+  // TODO: Translate '获取状态文本'
   const getStatusText = (status) => {
     switch (status) {
       case EscrowStatus.PENDING:
@@ -155,7 +155,7 @@ export default function PaymentManager({ user }) {
     }
   }
 
-  // 获取状态颜色
+  // TODO: Translate '获取状态颜色'
   const getStatusColor = (status) => {
     switch (status) {
       case EscrowStatus.PENDING:
@@ -175,13 +175,13 @@ export default function PaymentManager({ user }) {
     }
   }
 
-  // 格式化日期
+  // TODO: Translate '格式化日期'
   const formatDate = (timestamp) => {
     if (!timestamp) return ''
     return new Date(timestamp * 1000).toLocaleString('zh-CN')
   }
 
-  // 过滤托管
+  // TODO: Translate '过滤托管'
   const sentEscrows = escrows.filter(e => e.payer === userAddress)
   const receivedEscrows = escrows.filter(e => e.recipient === userAddress)
 
@@ -213,7 +213,7 @@ export default function PaymentManager({ user }) {
 
   return (
     <div className="h-full overflow-auto p-4 space-y-6">
-      {/* 头部 */}
+      {/* TODO: Translate '头部' */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -237,7 +237,7 @@ export default function PaymentManager({ user }) {
         </Alert>
       )}
 
-      {/* 统计卡片 */}
+      {/* TODO: Translate '统计卡片' */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-3">
@@ -284,7 +284,7 @@ export default function PaymentManager({ user }) {
         </Card>
       </div>
 
-      {/* 标签页 */}
+      {/* TODO: Translate '标签页' */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="sent">
@@ -297,7 +297,7 @@ export default function PaymentManager({ user }) {
           </TabsTrigger>
         </TabsList>
 
-        {/* 发送的支付 */}
+        {/* TODO: Translate '发送的支付' */}
         <TabsContent value="sent" className="space-y-4">
           {sentEscrows.length === 0 ? (
             <Card>
@@ -374,7 +374,7 @@ export default function PaymentManager({ user }) {
           )}
         </TabsContent>
 
-        {/* 收到的支付 */}
+        {/* TODO: Translate '收到的支付' */}
         <TabsContent value="received" className="space-y-4">
           {receivedEscrows.length === 0 ? (
             <Card>
@@ -437,7 +437,7 @@ export default function PaymentManager({ user }) {
         </TabsContent>
       </Tabs>
 
-      {/* 支付对话框 */}
+      {/* TODO: Translate '支付对话框' */}
       <PaymentDialog
         open={showPaymentDialog}
         onClose={() => setShowPaymentDialog(false)}

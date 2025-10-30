@@ -1,12 +1,12 @@
 import { create } from 'ipfs-http-client'
 
 /**
- * IPFS 服务
- * 管理文件上传和检索
+ * IPFS TODO: Translate '服务'
+ * TODO: Translate '管理文件上传和检索'
  */
 export class IPFSService {
   constructor() {
-    // 使用公共 IPFS 网关
+    // TODO: Translate '使用公共' IPFS TODO: Translate '网关'
     this.client = create({
       host: 'ipfs.infura.io',
       port: 5001,
@@ -17,7 +17,7 @@ export class IPFSService {
   }
 
   /**
-   * 上传文件到 IPFS
+   * TODO: Translate '上传文件到' IPFS
    */
   async uploadFile(file, onProgress) {
     try {
@@ -46,7 +46,7 @@ export class IPFSService {
   }
 
   /**
-   * 上传 JSON 数据
+   * TODO: Translate '上传' JSON TODO: Translate '数据'
    */
   async uploadJSON(data) {
     try {
@@ -68,14 +68,14 @@ export class IPFSService {
   }
 
   /**
-   * 获取文件 URL
+   * TODO: Translate '获取文件' URL
    */
   getFileUrl(hash) {
     return `${this.gatewayUrl}${hash}`
   }
 
   /**
-   * 检查文件类型
+   * TODO: Translate '检查文件类型'
    */
   getFileType(filename) {
     const ext = filename.split('.').pop().toLowerCase()
@@ -94,7 +94,7 @@ export class IPFSService {
   }
 
   /**
-   * 格式化文件大小
+   * TODO: Translate '格式化文件大小'
    */
   formatFileSize(bytes) {
     if (bytes === 0) return '0 B'
@@ -107,5 +107,5 @@ export class IPFSService {
   }
 }
 
-// 创建单例
+// TODO: Translate '创建单例'
 export const ipfsService = new IPFSService()

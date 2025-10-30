@@ -2,8 +2,8 @@ import { ContractService } from './ContractService'
 import MessageStorageV2ABI from '../abis/MessageStorageV2.json'
 
 /**
- * 消息存储服务
- * 管理加密消息的链上存储和检索
+ * TODO: Translate '消息存储服务'
+ * TODO: Translate '管理加密消息的链上存储和检索'
  */
 export class MessageStorageService extends ContractService {
   constructor(provider, signer = null) {
@@ -11,7 +11,7 @@ export class MessageStorageService extends ContractService {
   }
 
   /**
-   * 存储消息
+   * TODO: Translate '存储消息'
    */
   async storeMessage(recipient, encryptedContent, ipfsHash = '', metadata = '') {
     return await this.send(
@@ -24,7 +24,7 @@ export class MessageStorageService extends ContractService {
   }
 
   /**
-   * 存储群组消息
+   * TODO: Translate '存储群组消息'
    */
   async storeGroupMessage(
     groupId,
@@ -42,7 +42,7 @@ export class MessageStorageService extends ContractService {
   }
 
   /**
-   * 获取用户消息
+   * TODO: Translate '获取用户消息'
    */
   async getUserMessages(address, offset = 0, limit = 50) {
     const result = await this.call('getUserMessages', address, offset, limit)
@@ -64,7 +64,7 @@ export class MessageStorageService extends ContractService {
   }
 
   /**
-   * 获取对话消息
+   * TODO: Translate '获取对话消息'
    */
   async getConversationMessages(address1, address2, offset = 0, limit = 50) {
     const result = await this.call(
@@ -92,7 +92,7 @@ export class MessageStorageService extends ContractService {
   }
 
   /**
-   * 获取群组消息
+   * TODO: Translate '获取群组消息'
    */
   async getGroupMessages(groupId, offset = 0, limit = 50) {
     const result = await this.call('getGroupMessages', groupId, offset, limit)
@@ -113,28 +113,28 @@ export class MessageStorageService extends ContractService {
   }
 
   /**
-   * 标记消息为已读
+   * TODO: Translate '标记消息为已读'
    */
   async markAsRead(messageId) {
     return await this.send('markAsRead', messageId)
   }
 
   /**
-   * 批量标记消息为已读
+   * TODO: Translate '批量标记消息为已读'
    */
   async markMultipleAsRead(messageIds) {
     return await this.send('markMultipleAsRead', messageIds)
   }
 
   /**
-   * 删除消息
+   * TODO: Translate '删除消息'
    */
   async deleteMessage(messageId) {
     return await this.send('deleteMessage', messageId)
   }
 
   /**
-   * 获取未读消息数量
+   * TODO: Translate '获取未读消息数量'
    */
   async getUnreadCount(address) {
     const result = await this.call('getUnreadCount', address)
@@ -145,7 +145,7 @@ export class MessageStorageService extends ContractService {
   }
 
   /**
-   * 获取对话未读数量
+   * TODO: Translate '获取对话未读数量'
    */
   async getConversationUnreadCount(recipient, sender) {
     const result = await this.call('getConversationUnreadCount', recipient, sender)
@@ -156,28 +156,28 @@ export class MessageStorageService extends ContractService {
   }
 
   /**
-   * 创建群组
+   * TODO: Translate '创建群组'
    */
   async createGroup(name, members) {
     return await this.send('createGroup', name, members)
   }
 
   /**
-   * 添加群组成员
+   * TODO: Translate '添加群组成员'
    */
   async addGroupMember(groupId, member) {
     return await this.send('addGroupMember', groupId, member)
   }
 
   /**
-   * 移除群组成员
+   * TODO: Translate '移除群组成员'
    */
   async removeGroupMember(groupId, member) {
     return await this.send('removeGroupMember', groupId, member)
   }
 
   /**
-   * 获取用户群组
+   * TODO: Translate '获取用户群组'
    */
   async getUserGroups(address) {
     const result = await this.call('getUserGroups', address)
@@ -196,7 +196,7 @@ export class MessageStorageService extends ContractService {
   }
 
   /**
-   * 获取群组信息
+   * TODO: Translate '获取群组信息'
    */
   async getGroupInfo(groupId) {
     const result = await this.call('getGroupInfo', groupId)
@@ -217,10 +217,10 @@ export class MessageStorageService extends ContractService {
     return result
   }
 
-  // ========== 事件监听 ==========
+  // ========== TODO: Translate '事件监听' ==========
 
   /**
-   * 监听消息存储事件
+   * TODO: Translate '监听消息存储事件'
    */
   onMessageStored(callback) {
     this.on('MessageStored', (messageId, sender, recipient, timestamp, event) => {
@@ -235,7 +235,7 @@ export class MessageStorageService extends ContractService {
   }
 
   /**
-   * 监听群组消息事件
+   * TODO: Translate '监听群组消息事件'
    */
   onGroupMessageStored(callback) {
     this.on('GroupMessageStored', (messageId, sender, groupId, timestamp, event) => {
@@ -250,7 +250,7 @@ export class MessageStorageService extends ContractService {
   }
 
   /**
-   * 监听消息已读事件
+   * TODO: Translate '监听消息已读事件'
    */
   onMessageRead(callback) {
     this.on('MessageRead', (messageId, reader, timestamp, event) => {
@@ -264,7 +264,7 @@ export class MessageStorageService extends ContractService {
   }
 
   /**
-   * 监听群组创建事件
+   * TODO: Translate '监听群组创建事件'
    */
   onGroupCreated(callback) {
     this.on('GroupCreated', (groupId, creator, name, timestamp, event) => {
@@ -279,7 +279,7 @@ export class MessageStorageService extends ContractService {
   }
 
   /**
-   * 监听群组成员添加事件
+   * TODO: Translate '监听群组成员添加事件'
    */
   onGroupMemberAdded(callback) {
     this.on('GroupMemberAdded', (groupId, member, timestamp, event) => {

@@ -8,8 +8,8 @@ import { Wallet, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
 import { formatAddress } from '../config/web3'
 
 /**
- * 钱包连接组件
- * 显示钱包连接状态和操作按钮
+ * TODO: Translate '钱包连接组件'
+ * TODO: Translate '显示钱包连接状态和操作按钮'
  */
 export default function WalletConnect({ onConnected }) {
   const {
@@ -38,7 +38,7 @@ export default function WalletConnect({ onConnected }) {
     await switchNetwork('sepolia')
   }
 
-  // 检查是否在正确的网络
+  // TODO: Translate '检查是否在正确的网络'
   const isCorrectNetwork = chainId === '11155111' // Sepolia chainId
 
   if (!isMetaMaskInstalled) {

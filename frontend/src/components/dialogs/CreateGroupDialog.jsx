@@ -76,7 +76,7 @@ const CreateGroupDialog = ({ isOpen, onClose }) => {
     }
 
     try {
-      // 使用 GroupService 创建群组
+      // use GroupService TODO: Translate '创建群组'
       const groupData = {
         name: groupName,
         description: groupDescription,

@@ -17,7 +17,7 @@ const ChatList = ({ user }) => {
   const { account, disconnect } = useWeb3()
   const { success, error: showError } = useToast()
   
-  // 使用Web3 account或user.walletAddress
+  // useWeb3 accountTODO: Translate '或'user.walletAddress
   const userAddress = account || user?.walletAddress
   
   const [conversations, setConversations] = useState([])
@@ -31,7 +31,7 @@ const ChatList = ({ user }) => {
   const [showCreateGroup, setShowCreateGroup] = useState(false)
   const [myProfile, setMyProfile] = useState(null)
 
-  // 加载用户资料
+  // TODO: Translate '加载用户资料'
   const loadMyProfile = () => {
     if (userAddress) {
       const profile = UserProfileService.getProfile(userAddress)
@@ -56,7 +56,7 @@ const ChatList = ({ user }) => {
   useEffect(() => {
     loadMyProfile()
     
-    // 监听个人资料更新事件
+    // TODO: Translate '监听个人资料更新事件'
     const handleProfileUpdate = (e) => {
       if (e.detail.address.toLowerCase() === userAddress?.toLowerCase()) {
         loadMyProfile()
@@ -67,11 +67,11 @@ const ChatList = ({ user }) => {
     return () => window.removeEventListener('profileUpdated', handleProfileUpdate)
   }, [userAddress])
 
-  // 加载对话列表
+  // TODO: Translate '加载对话列表'
   useEffect(() => {
     loadConversations()
     
-    // 每5秒刷新一次
+    // TODO: Translate '每'5TODO: Translate '秒刷新一次'
     const interval = setInterval(loadConversations, 5000)
     return () => clearInterval(interval)
   }, [userAddress])
@@ -82,7 +82,7 @@ const ChatList = ({ user }) => {
       const stored = localStorage.getItem(conversationsKey)
       const convs = stored ? JSON.parse(stored) : []
       
-      // 按时间排序
+      // TODO: Translate '按时间排序'
       const sorted = convs.sort((a, b) => b.timestamp - a.timestamp)
       setConversations(sorted)
       setFilteredConversations(sorted)
@@ -91,7 +91,7 @@ const ChatList = ({ user }) => {
     }
   }
 
-  // 搜索过滤
+  // TODO: Translate '搜索过滤'
   useEffect(() => {
     if (!searchQuery.trim()) {
       setFilteredConversations(conversations)
@@ -107,32 +107,32 @@ const ChatList = ({ user }) => {
     setFilteredConversations(filtered)
   }, [searchQuery, conversations])
 
-  // 创建新对话
+  // TODO: Translate '创建新对话'
   const handleNewChat = () => {
     if (!newChatAddress.trim()) {
       showError('Error', 'Please enter a wallet address')
       return
     }
 
-    // 验证地址格式
+    // TODO: Translate '验证地址格式'
     if (!/^0x[a-fA-F0-9]{40}$/.test(newChatAddress)) {
       showError('Error', 'Invalid Ethereum address')
       return
     }
 
-    // 检查是否是自己的地址
+    // TODO: Translate '检查是否是自己的地址'
     if (newChatAddress.toLowerCase() === userAddress.toLowerCase()) {
       showError('Error', 'Cannot chat with yourself')
       return
     }
 
-    // 导航到聊天页面
+    // TODO: Translate '导航到聊天页面'
     navigate(`/chat/${newChatAddress}`)
     setShowNewChat(false)
     setNewChatAddress('')
   }
 
-  // 格式化时间
+  // TODO: Translate '格式化时间'
   const formatTime = (timestamp) => {
     const now = Date.now()
     const diff = now - timestamp
@@ -149,7 +149,7 @@ const ChatList = ({ user }) => {
     return new Date(timestamp).toLocaleDateString()
   }
 
-  // 渲染对话项
+  // TODO: Translate '渲染对话项'
   const renderConversation = (conv) => (
     <div
       key={conv.address}
@@ -331,7 +331,7 @@ const ChatList = ({ user }) => {
         isOpen={showProfile}
         onClose={() => {
           setShowProfile(false)
-          // 重新加载资料
+          // TODO: Translate '重新加载资料'
           loadMyProfile()
         }}
         address={userAddress}

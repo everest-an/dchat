@@ -5,7 +5,7 @@ import { ProjectStatus } from '../../services/LivingPortfolioService'
 import { Clock, Calendar, TrendingUp } from 'lucide-react'
 
 /**
- * 项目卡片组件
+ * TODO: Translate '项目卡片组件'
  */
 export default function ProjectCard({ project, showAll = false }) {
   const getStatusText = (status) => {
@@ -60,12 +60,12 @@ export default function ProjectCard({ project, showAll = false }) {
         <p className="text-sm text-gray-500 mt-2">{project.description}</p>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* 分类 */}
+        {/* TODO: Translate '分类' */}
         <div>
           <Badge variant="secondary">{project.category}</Badge>
         </div>
 
-        {/* 技术栈 */}
+        {/* TODO: Translate '技术栈' */}
         {project.technologies && project.technologies.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {project.technologies.map((tech, index) => (
@@ -76,7 +76,7 @@ export default function ProjectCard({ project, showAll = false }) {
           </div>
         )}
 
-        {/* 进度 */}
+        {/* TODO: Translate '进度' */}
         {project.status === ProjectStatus.IN_PROGRESS && (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
@@ -87,7 +87,7 @@ export default function ProjectCard({ project, showAll = false }) {
           </div>
         )}
 
-        {/* 工时信息 */}
+        {/* TODO: Translate '工时信息' */}
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-gray-400" />
@@ -107,7 +107,7 @@ export default function ProjectCard({ project, showAll = false }) {
           )}
         </div>
 
-        {/* 日期信息 */}
+        {/* TODO: Translate '日期信息' */}
         {showAll && (
           <div className="flex items-center gap-4 text-sm text-gray-500 pt-2 border-t">
             <div className="flex items-center gap-1">
@@ -123,7 +123,7 @@ export default function ProjectCard({ project, showAll = false }) {
           </div>
         )}
 
-        {/* 完成备注 */}
+        {/* TODO: Translate '完成备注' */}
         {project.completionNotes && showAll && (
           <div className="pt-2 border-t">
             <p className="text-sm text-gray-500">完成备注:</p>

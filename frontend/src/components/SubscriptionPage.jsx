@@ -24,7 +24,7 @@ const SubscriptionPage = () => {
   }
 
   const handleUpgrade = (plan) => {
-    // 模拟升级流程
+    // TODO: Translate '模拟升级流程'
     subscriptionService.setUserPlan(account, plan)
     loadSubscriptionInfo()
     success('Success!', `Upgraded to ${plan} plan`)

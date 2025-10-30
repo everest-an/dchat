@@ -28,7 +28,7 @@ const GroupChat = () => {
   const messagesEndRef = useRef(null)
   const fileInputRef = useRef(null)
 
-  // 加载群组信息
+  // TODO: Translate '加载群组信息'
   useEffect(() => {
     if (groupId) {
       loadGroupInfo()
@@ -65,12 +65,12 @@ const GroupChat = () => {
     }
   }
 
-  // 自动滚动
+  // TODO: Translate '自动滚动'
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // 发送消息
+  // TODO: Translate '发送消息'
   const handleSendMessage = async () => {
     if (!message.trim() || sending) return
 
@@ -79,14 +79,14 @@ const GroupChat = () => {
     setSending(true)
 
     try {
-      // 使用 GroupMessageService 发送消息
+      // use GroupMessageService TODO: Translate '发送消息'
       const newMessage = await GroupMessageService.sendMessage(
         groupId,
         account,
         messageText
       )
 
-      // 更新本地消息列表
+      // TODO: Translate '更新本地消息列表'
       setMessages([...messages, newMessage])
 
       success('Sent!', 'Message sent to group')
@@ -98,7 +98,7 @@ const GroupChat = () => {
     }
   }
 
-  // 添加成员
+  // TODO: Translate '添加成员'
   const handleAddMember = () => {
     if (!newMemberAddress.trim()) {
       showError('Error', 'Please enter a wallet address')
@@ -126,7 +126,7 @@ const GroupChat = () => {
     const updatedMembers = [...members, newMember]
     setMembers(updatedMembers)
 
-    // 更新群组信息
+    // TODO: Translate '更新群组信息'
     const groupsKey = 'dchat_groups'
     const stored = localStorage.getItem(groupsKey)
     const groups = stored ? JSON.parse(stored) : []
@@ -144,7 +144,7 @@ const GroupChat = () => {
     success('Added!', `${newMember.username} added to group`)
   }
 
-  // 渲染消息
+  // TODO: Translate '渲染消息'
   const renderMessage = (msg) => {
     const isMe = msg.sender.toLowerCase() === account.toLowerCase()
 

@@ -16,8 +16,8 @@ import { Alert, AlertDescription } from './ui/alert'
 import { Bell, BellOff, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
 
 /**
- * 订阅按钮组件
- * 用于订阅/取消订阅用户
+ * TODO: Translate '订阅按钮组件'
+ * TODO: Translate '用于订阅'/TODO: Translate '取消订阅用户'
  */
 export default function SubscribeButton({ targetAddress, variant = 'default', size = 'default' }) {
   const { account, provider, signer, isConnected } = useWeb3()
@@ -35,7 +35,7 @@ export default function SubscribeButton({ targetAddress, variant = 'default', si
 
   const portfolioService = new LivingPortfolioService(provider, signer)
 
-  // 检查订阅状态
+  // TODO: Translate '检查订阅状态'
   const checkSubscription = async () => {
     if (!account || !targetAddress || account === targetAddress) {
       setChecking(false)
@@ -60,7 +60,7 @@ export default function SubscribeButton({ targetAddress, variant = 'default', si
     }
   }, [isConnected, account, targetAddress])
 
-  // 订阅
+  // TODO: Translate '订阅'
   const handleSubscribe = async () => {
     try {
       setLoading(true)
@@ -91,7 +91,7 @@ export default function SubscribeButton({ targetAddress, variant = 'default', si
     }
   }
 
-  // 取消订阅
+  // TODO: Translate '取消订阅'
   const handleUnsubscribe = async () => {
     try {
       setLoading(true)
@@ -114,7 +114,7 @@ export default function SubscribeButton({ targetAddress, variant = 'default', si
     }
   }
 
-  // 不显示按钮的情况
+  // TODO: Translate '不显示按钮的情况'
   if (!isConnected || !targetAddress || account === targetAddress || checking) {
     return null
   }

@@ -14,8 +14,8 @@ import { Bell, Check, User, Briefcase, TrendingUp, Award } from 'lucide-react'
 import { formatAddress } from '../config/web3'
 
 /**
- * 通知中心组件
- * 显示来自订阅用户的更新通知
+ * TODO: Translate '通知中心组件'
+ * TODO: Translate '显示来自订阅用户的更新通知'
  */
 export default function NotificationCenter() {
   const { account, provider, signer, isConnected } = useWeb3()
@@ -23,12 +23,12 @@ export default function NotificationCenter() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [open, setOpen] = useState(false)
 
-  // 初始化服务
+  // TODO: Translate '初始化服务'
   const portfolioService = new LivingPortfolioService(provider, signer)
 
-  // 加载通知
+  // TODO: Translate '加载通知'
   const loadNotifications = () => {
-    // 从 localStorage 加载通知
+    // from localStorage TODO: Translate '加载通知'
     const stored = localStorage.getItem(`notifications_${account}`)
     if (stored) {
       const parsed = JSON.parse(stored)
@@ -38,7 +38,7 @@ export default function NotificationCenter() {
     }
   }
 
-  // 添加通知
+  // TODO: Translate '添加通知'
   const addNotification = (notification) => {
     const newNotification = {
       id: Date.now(),
@@ -48,7 +48,7 @@ export default function NotificationCenter() {
     }
 
     setNotifications(prev => {
-      const updated = [newNotification, ...prev].slice(0, 50) // 只保留最新50条
+      const updated = [newNotification, ...prev].slice(0, 50) // TODO: Translate '只保留最新'50TODO: Translate '条'
       localStorage.setItem(`notifications_${account}`, JSON.stringify(updated))
       return updated
     })
@@ -56,7 +56,7 @@ export default function NotificationCenter() {
     setUnreadCount(prev => prev + 1)
   }
 
-  // 标记为已读
+  // TODO: Translate '标记为已读'
   const markAsRead = (id) => {
     setNotifications(prev => {
       const updated = prev.map(n => 
@@ -68,7 +68,7 @@ export default function NotificationCenter() {
     setUnreadCount(prev => Math.max(0, prev - 1))
   }
 
-  // 标记全部已读
+  // TODO: Translate '标记全部已读'
   const markAllAsRead = () => {
     setNotifications(prev => {
       const updated = prev.map(n => ({ ...n, read: true }))
@@ -78,13 +78,13 @@ export default function NotificationCenter() {
     setUnreadCount(0)
   }
 
-  // 监听事件
+  // TODO: Translate '监听事件'
   useEffect(() => {
     if (!isConnected || !account) return
 
     loadNotifications()
 
-    // 监听可用性更新事件
+    // TODO: Translate '监听可用性更新事件'
     const handleAvailabilityUpdated = (data) => {
       addNotification({
         type: 'availability',
@@ -95,7 +95,7 @@ export default function NotificationCenter() {
       })
     }
 
-    // 监听新项目事件
+    // TODO: Translate '监听新项目事件'
     const handleProjectAdded = (data) => {
       addNotification({
         type: 'project',
@@ -106,7 +106,7 @@ export default function NotificationCenter() {
       })
     }
 
-    // 监听订阅事件
+    // TODO: Translate '监听订阅事件'
     const handleSubscribed = (data) => {
       if (data.target === account) {
         addNotification({
@@ -119,7 +119,7 @@ export default function NotificationCenter() {
       }
     }
 
-    // 监听凭证发行事件
+    // TODO: Translate '监听凭证发行事件'
     const handleCredentialIssued = (data) => {
       if (data.recipient === account) {
         addNotification({
@@ -138,7 +138,7 @@ export default function NotificationCenter() {
     portfolioService.onCredentialIssued(handleCredentialIssued)
 
     return () => {
-      // 清理事件监听
+      // TODO: Translate '清理事件监听'
       portfolioService.off('AvailabilityUpdated', handleAvailabilityUpdated)
       portfolioService.off('ProjectAdded', handleProjectAdded)
       portfolioService.off('Subscribed', handleSubscribed)

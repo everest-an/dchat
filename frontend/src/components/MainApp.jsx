@@ -17,12 +17,12 @@ import EncryptionSettings from './EncryptionSettings'
 const MainApp = ({ user, onLogout }) => {
   const location = useLocation()
   
-  // 判断是否显示底部导航栏（聊天室和群组页面不显示）
+  // Check whether to show bottom navigation（Not shown on chat room and group pages）
   const showBottomNav = !location.pathname.startsWith('/chat/') && !location.pathname.startsWith('/group/')
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Demo Mode 指示器 */}
+      {/* Demo Mode TODO: Translate '指示器' */}
       {user?.demoMode && (
         <div className="bg-gray-100 px-4 py-1 flex items-center justify-center border-b border-gray-200">
           <button className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1">
@@ -32,7 +32,7 @@ const MainApp = ({ user, onLogout }) => {
         </div>
       )}
 
-      {/* 顶部通知栏 */}
+      {/* Top notification bar */}
       {showBottomNav && (
         <div className="flex items-center justify-between px-4 py-2 border-b bg-white">
           <h1 className="text-lg font-semibold">DChat</h1>
@@ -40,7 +40,7 @@ const MainApp = ({ user, onLogout }) => {
         </div>
       )}
 
-      {/* 主要内容区域 */}
+      {/* Main content area */}
       <div className="flex-1 overflow-hidden">
         <Routes>
           <Route path="/" element={<ChatList user={user} />} />
@@ -58,7 +58,7 @@ const MainApp = ({ user, onLogout }) => {
         </Routes>
       </div>
 
-      {/* 底部导航栏 */}
+      {/* Bottom navigation bar */}
       {showBottomNav && <BottomNavigation />}
     </div>
   )

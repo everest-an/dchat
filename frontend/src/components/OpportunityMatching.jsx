@@ -23,13 +23,13 @@ import CreateMatchDialog from './dialogs/CreateMatchDialog'
 import SubscribeButton from './SubscribeButton'
 
 /**
- * 机会匹配页面组件
- * 显示和管理技能匹配的机会
+ * TODO: Translate '机会匹配页面组件'
+ * TODO: Translate '显示和管理技能匹配的机会'
  */
 export default function OpportunityMatching({ user }) {
   const { account, provider, signer, isConnected } = useWeb3()
   
-  // 使用Web3 account或user.walletAddress
+  // useWeb3 accountTODO: Translate '或'user.walletAddress
   const userAddress = account || user?.walletAddress
   const isDemoMode = !isConnected && !!user?.walletAddress
   const [matches, setMatches] = useState([])
@@ -41,11 +41,11 @@ export default function OpportunityMatching({ user }) {
   const portfolioService = new LivingPortfolioService(provider, signer)
   const identityService = new UserIdentityService(provider, signer)
 
-  // 加载匹配数据
+  // TODO: Translate '加载匹配数据'
   const loadMatches = async () => {
     if (!userAddress) return
     
-    // Demo模式：使用localStorage
+    // DemoTODO: Translate '模式'：uselocalStorage
     if (isDemoMode) {
       try {
         setLoading(true)
@@ -66,14 +66,14 @@ export default function OpportunityMatching({ user }) {
       setLoading(true)
       setError(null)
 
-      // 获取匹配的机会
+      // TODO: Translate '获取匹配的机会'
       const matchesResult = await portfolioService.getMatchedOpportunities(userAddress)
       
       if (matchesResult.success && matchesResult.data) {
         const matchData = matchesResult.data
         setMatches(matchData)
 
-        // 加载匹配用户的资料
+        // TODO: Translate '加载匹配用户的资料'
         const profiles = {}
         for (const match of matchData) {
           try {
@@ -102,13 +102,13 @@ export default function OpportunityMatching({ user }) {
     }
   }, [userAddress, isDemoMode])
 
-  // 创建匹配成功回调
+  // TODO: Translate '创建匹配成功回调'
   const handleMatchCreated = () => {
     setShowCreateMatch(false)
     loadMatches()
   }
 
-  // 获取匹配分数颜色
+  // TODO: Translate '获取匹配分数颜色'
   const getMatchScoreColor = (score) => {
     if (score >= 80) return 'text-green-600'
     if (score >= 60) return 'text-blue-600'
@@ -116,7 +116,7 @@ export default function OpportunityMatching({ user }) {
     return 'text-gray-600'
   }
 
-  // 获取匹配分数等级
+  // TODO: Translate '获取匹配分数等级'
   const getMatchScoreLabel = (score) => {
     if (score >= 80) return '高度匹配'
     if (score >= 60) return '良好匹配'
@@ -152,7 +152,7 @@ export default function OpportunityMatching({ user }) {
 
   return (
     <div className="h-full overflow-auto p-4 space-y-6">
-      {/* 头部 */}
+      {/* TODO: Translate '头部' */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -176,7 +176,7 @@ export default function OpportunityMatching({ user }) {
         </Alert>
       )}
 
-      {/* 统计卡片 */}
+      {/* TODO: Translate '统计卡片' */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-3">
@@ -227,7 +227,7 @@ export default function OpportunityMatching({ user }) {
         </Card>
       </div>
 
-      {/* 匹配列表 */}
+      {/* TODO: Translate '匹配列表' */}
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">匹配结果</h2>
 
@@ -256,14 +256,14 @@ export default function OpportunityMatching({ user }) {
                 <Card key={index}>
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
-                      {/* 头像 */}
+                      {/* TODO: Translate '头像' */}
                       <Avatar className="w-16 h-16">
                         <AvatarFallback className="text-lg">
                           {matchAddress.slice(2, 4).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
 
-                      {/* 信息 */}
+                      {/* information */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-4">
                           <div>
@@ -278,7 +278,7 @@ export default function OpportunityMatching({ user }) {
                             )}
                           </div>
 
-                          {/* 匹配分数 */}
+                          {/* TODO: Translate '匹配分数' */}
                           <div className="text-right">
                             <div className={`text-3xl font-bold ${getMatchScoreColor(match.matchScore)}`}>
                               {match.matchScore}%
@@ -289,12 +289,12 @@ export default function OpportunityMatching({ user }) {
                           </div>
                         </div>
 
-                        {/* 进度条 */}
+                        {/* TODO: Translate '进度条' */}
                         <div className="mt-4">
                           <Progress value={match.matchScore} className="h-2" />
                         </div>
 
-                        {/* 角色标签 */}
+                        {/* TODO: Translate '角色标签' */}
                         <div className="flex items-center gap-2 mt-4">
                           <Badge variant={isSeeker ? 'default' : 'secondary'}>
                             {isSeeker ? '您在寻找专家' : '专家匹配'}
@@ -311,7 +311,7 @@ export default function OpportunityMatching({ user }) {
                           )}
                         </div>
 
-                        {/* 操作按钮 */}
+                        {/* TODO: Translate '操作按钮' */}
                         <div className="flex items-center gap-2 mt-4">
                           <Button size="sm">
                             <MessageCircle className="w-4 h-4 mr-2" />
@@ -336,7 +336,7 @@ export default function OpportunityMatching({ user }) {
         )}
       </div>
 
-      {/* 创建匹配对话框 */}
+      {/* TODO: Translate '创建匹配对话框' */}
       <CreateMatchDialog
         open={showCreateMatch}
         onClose={() => setShowCreateMatch(false)}

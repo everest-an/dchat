@@ -2,8 +2,8 @@ import { ContractService } from './ContractService'
 import PaymentEscrowABI from '../abis/PaymentEscrow.json'
 
 /**
- * 支付托管服务
- * 管理加密货币支付和托管功能
+ * TODO: Translate '支付托管服务'
+ * TODO: Translate '管理加密货币支付和托管功能'
  */
 export class PaymentEscrowService extends ContractService {
   constructor(provider, signer = null) {
@@ -11,7 +11,7 @@ export class PaymentEscrowService extends ContractService {
   }
 
   /**
-   * 创建托管
+   * TODO: Translate '创建托管'
    */
   async createEscrow(recipient, amount, timeoutDuration, description = '') {
     const amountWei = ContractService.parseEther(amount)
@@ -21,35 +21,35 @@ export class PaymentEscrowService extends ContractService {
   }
 
   /**
-   * 释放托管
+   * TODO: Translate '释放托管'
    */
   async releaseEscrow(escrowId) {
     return await this.send('releaseEscrow', escrowId)
   }
 
   /**
-   * 退款
+   * TODO: Translate '退款'
    */
   async refund(escrowId) {
     return await this.send('refund', escrowId)
   }
 
   /**
-   * 提起争议
+   * TODO: Translate '提起争议'
    */
   async raiseDispute(escrowId, reason) {
     return await this.send('raiseDispute', escrowId, reason)
   }
 
   /**
-   * 解决争议
+   * TODO: Translate '解决争议'
    */
   async resolveDispute(escrowId, releaseToRecipient) {
     return await this.send('resolveDispute', escrowId, releaseToRecipient)
   }
 
   /**
-   * 获取托管信息
+   * TODO: Translate '获取托管信息'
    */
   async getEscrow(escrowId) {
     const result = await this.call('getEscrow', escrowId)
@@ -75,7 +75,7 @@ export class PaymentEscrowService extends ContractService {
   }
 
   /**
-   * 获取用户托管列表
+   * TODO: Translate '获取用户托管列表'
    */
   async getUserEscrows(address) {
     const result = await this.call('getUserEscrows', address)
@@ -97,28 +97,28 @@ export class PaymentEscrowService extends ContractService {
   }
 
   /**
-   * 获取作为付款方的托管
+   * TODO: Translate '获取作为付款方的托管'
    */
   async getPayerEscrows(address) {
     return await this.call('getPayerEscrows', address)
   }
 
   /**
-   * 获取作为收款方的托管
+   * TODO: Translate '获取作为收款方的托管'
    */
   async getRecipientEscrows(address) {
     return await this.call('getRecipientEscrows', address)
   }
 
   /**
-   * 检查托管是否超时
+   * TODO: Translate '检查托管是否超时'
    */
   async isEscrowTimedOut(escrowId) {
     return await this.call('isEscrowTimedOut', escrowId)
   }
 
   /**
-   * 获取托管状态
+   * TODO: Translate '获取托管状态'
    */
   async getEscrowStatus(escrowId) {
     const result = await this.call('getEscrowStatus', escrowId)
@@ -128,10 +128,10 @@ export class PaymentEscrowService extends ContractService {
     return result
   }
 
-  // ========== 事件监听 ==========
+  // ========== TODO: Translate '事件监听' ==========
 
   /**
-   * 监听托管创建事件
+   * TODO: Translate '监听托管创建事件'
    */
   onEscrowCreated(callback) {
     this.on('EscrowCreated', (escrowId, payer, recipient, amount, event) => {
@@ -146,7 +146,7 @@ export class PaymentEscrowService extends ContractService {
   }
 
   /**
-   * 监听托管释放事件
+   * TODO: Translate '监听托管释放事件'
    */
   onEscrowReleased(callback) {
     this.on('EscrowReleased', (escrowId, recipient, amount, event) => {
@@ -160,7 +160,7 @@ export class PaymentEscrowService extends ContractService {
   }
 
   /**
-   * 监听退款事件
+   * TODO: Translate '监听退款事件'
    */
   onRefunded(callback) {
     this.on('Refunded', (escrowId, payer, amount, event) => {
@@ -174,7 +174,7 @@ export class PaymentEscrowService extends ContractService {
   }
 
   /**
-   * 监听争议提起事件
+   * TODO: Translate '监听争议提起事件'
    */
   onDisputeRaised(callback) {
     this.on('DisputeRaised', (escrowId, raisedBy, reason, event) => {
@@ -188,7 +188,7 @@ export class PaymentEscrowService extends ContractService {
   }
 
   /**
-   * 监听争议解决事件
+   * TODO: Translate '监听争议解决事件'
    */
   onDisputeResolved(callback) {
     this.on('DisputeResolved', (escrowId, resolvedBy, releaseToRecipient, event) => {
@@ -202,7 +202,7 @@ export class PaymentEscrowService extends ContractService {
   }
 }
 
-// 托管状态枚举
+// TODO: Translate '托管状态枚举'
 export const EscrowStatus = {
   PENDING: 0,
   RELEASED: 1,

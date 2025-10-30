@@ -2,18 +2,18 @@ import { ContractService } from './ContractService'
 import LivingPortfolioABI from '../abis/LivingPortfolio.json'
 
 /**
- * Living Portfolio 服务
- * 管理动态作品集、项目、可用性等功能
+ * Living Portfolio TODO: Translate '服务'
+ * TODO: Translate '管理动态作品集'、TODO: Translate '项目'、TODO: Translate '可用性等功能'
  */
 export class LivingPortfolioService extends ContractService {
   constructor(provider, signer = null) {
     super('LivingPortfolio', LivingPortfolioABI.abi, provider, signer)
   }
 
-  // ========== 作品集管理 ==========
+  // ========== TODO: Translate '作品集管理' ==========
 
   /**
-   * 创建作品集
+   * TODO: Translate '创建作品集'
    */
   async createPortfolio(title, bio, skills, hourlyRate) {
     const hourlyRateWei = ContractService.parseEther(hourlyRate)
@@ -21,7 +21,7 @@ export class LivingPortfolioService extends ContractService {
   }
 
   /**
-   * 更新作品集
+   * TODO: Translate '更新作品集'
    */
   async updatePortfolio(title, bio, skills, hourlyRate) {
     const hourlyRateWei = ContractService.parseEther(hourlyRate)
@@ -29,7 +29,7 @@ export class LivingPortfolioService extends ContractService {
   }
 
   /**
-   * 获取作品集
+   * TODO: Translate '获取作品集'
    */
   async getPortfolio(address) {
     const result = await this.call('getPortfolio', address)
@@ -56,16 +56,16 @@ export class LivingPortfolioService extends ContractService {
   }
 
   /**
-   * 检查作品集是否存在
+   * TODO: Translate '检查作品集是否存在'
    */
   async portfolioExists(address) {
     return await this.call('portfolioExists', address)
   }
 
-  // ========== 项目管理 ==========
+  // ========== TODO: Translate '项目管理' ==========
 
   /**
-   * 添加项目
+   * TODO: Translate '添加项目'
    */
   async addProject(
     title,
@@ -89,7 +89,7 @@ export class LivingPortfolioService extends ContractService {
   }
 
   /**
-   * 更新项目进度
+   * TODO: Translate '更新项目进度'
    */
   async updateProjectProgress(projectIndex, status, progress, hoursWorked) {
     return await this.send(
@@ -102,14 +102,14 @@ export class LivingPortfolioService extends ContractService {
   }
 
   /**
-   * 完成项目
+   * TODO: Translate '完成项目'
    */
   async completeProject(projectIndex, completionNotes) {
     return await this.send('completeProject', projectIndex, completionNotes)
   }
 
   /**
-   * 获取用户项目
+   * TODO: Translate '获取用户项目'
    */
   async getUserProjects(address) {
     const result = await this.call('getUserProjects', address)
@@ -134,7 +134,7 @@ export class LivingPortfolioService extends ContractService {
   }
 
   /**
-   * 获取当前项目
+   * TODO: Translate '获取当前项目'
    */
   async getCurrentProjects(address) {
     const result = await this.call('getCurrentProjects', address)
@@ -157,7 +157,7 @@ export class LivingPortfolioService extends ContractService {
   }
 
   /**
-   * 获取公开项目
+   * TODO: Translate '获取公开项目'
    */
   async getPublicProjects(address) {
     const result = await this.call('getPublicProjects', address)
@@ -179,10 +179,10 @@ export class LivingPortfolioService extends ContractService {
     return result
   }
 
-  // ========== 可用性管理 ==========
+  // ========== TODO: Translate '可用性管理' ==========
 
   /**
-   * 更新可用性
+   * TODO: Translate '更新可用性'
    */
   async updateAvailability(
     status,
@@ -202,7 +202,7 @@ export class LivingPortfolioService extends ContractService {
   }
 
   /**
-   * 获取可用性
+   * TODO: Translate '获取可用性'
    */
   async getAvailability(address) {
     const result = await this.call('getAvailability', address)
@@ -223,10 +223,10 @@ export class LivingPortfolioService extends ContractService {
     return result
   }
 
-  // ========== 订阅系统 ==========
+  // ========== TODO: Translate '订阅系统' ==========
 
   /**
-   * 订阅用户
+   * TODO: Translate '订阅用户'
    */
   async subscribe(targetAddress, notifyAvailability, notifyNewProjects, notifySkills) {
     return await this.send(
@@ -239,53 +239,53 @@ export class LivingPortfolioService extends ContractService {
   }
 
   /**
-   * 取消订阅
+   * TODO: Translate '取消订阅'
    */
   async unsubscribe(targetAddress) {
     return await this.send('unsubscribe', targetAddress)
   }
 
   /**
-   * 获取订阅列表
+   * TODO: Translate '获取订阅列表'
    */
   async getSubscriptions(address) {
     return await this.call('getSubscriptions', address)
   }
 
   /**
-   * 获取订阅者列表
+   * TODO: Translate '获取订阅者列表'
    */
   async getSubscribers(address) {
     return await this.call('getSubscribers', address)
   }
 
   /**
-   * 检查是否已订阅
+   * TODO: Translate '检查是否已订阅'
    */
   async isSubscribed(subscriber, target) {
     return await this.call('isSubscribed', subscriber, target)
   }
 
-  // ========== 机会匹配 ==========
+  // ========== TODO: Translate '机会匹配' ==========
 
   /**
-   * 创建机会匹配
+   * TODO: Translate '创建机会匹配'
    */
   async createOpportunityMatch(requiredSkills) {
     return await this.send('createOpportunityMatch', requiredSkills)
   }
 
   /**
-   * 获取匹配机会
+   * TODO: Translate '获取匹配机会'
    */
   async getMatchedOpportunities(address) {
     return await this.call('getMatchedOpportunities', address)
   }
 
-  // ========== 凭证系统 ==========
+  // ========== TODO: Translate '凭证系统' ==========
 
   /**
-   * 发行凭证
+   * TODO: Translate '发行凭证'
    */
   async issueCredential(
     recipient,
@@ -307,7 +307,7 @@ export class LivingPortfolioService extends ContractService {
   }
 
   /**
-   * 获取用户凭证
+   * TODO: Translate '获取用户凭证'
    */
   async getUserCredentials(address) {
     const result = await this.call('getUserCredentials', address)
@@ -329,16 +329,16 @@ export class LivingPortfolioService extends ContractService {
   }
 
   /**
-   * 撤销凭证
+   * TODO: Translate '撤销凭证'
    */
   async revokeCredential(credentialId) {
     return await this.send('revokeCredential', credentialId)
   }
 
-  // ========== 事件监听 ==========
+  // ========== TODO: Translate '事件监听' ==========
 
   /**
-   * 监听作品集创建事件
+   * TODO: Translate '监听作品集创建事件'
    */
   onPortfolioCreated(callback) {
     this.on('PortfolioCreated', (owner, title, timestamp, event) => {
@@ -347,7 +347,7 @@ export class LivingPortfolioService extends ContractService {
   }
 
   /**
-   * 监听项目添加事件
+   * TODO: Translate '监听项目添加事件'
    */
   onProjectAdded(callback) {
     this.on('ProjectAdded', (owner, projectIndex, title, timestamp, event) => {
@@ -362,7 +362,7 @@ export class LivingPortfolioService extends ContractService {
   }
 
   /**
-   * 监听可用性更新事件
+   * TODO: Translate '监听可用性更新事件'
    */
   onAvailabilityUpdated(callback) {
     this.on('AvailabilityUpdated', (owner, status, timestamp, event) => {
@@ -376,7 +376,7 @@ export class LivingPortfolioService extends ContractService {
   }
 
   /**
-   * 监听订阅事件
+   * TODO: Translate '监听订阅事件'
    */
   onSubscribed(callback) {
     this.on('Subscribed', (subscriber, target, timestamp, event) => {
@@ -390,7 +390,7 @@ export class LivingPortfolioService extends ContractService {
   }
 
   /**
-   * 监听机会匹配事件
+   * TODO: Translate '监听机会匹配事件'
    */
   onOpportunityMatched(callback) {
     this.on('OpportunityMatched', (matchId, seeker, provider, matchScore, event) => {
@@ -405,7 +405,7 @@ export class LivingPortfolioService extends ContractService {
   }
 
   /**
-   * 监听凭证发行事件
+   * TODO: Translate '监听凭证发行事件'
    */
   onCredentialIssued(callback) {
     this.on('CredentialIssued', (credentialId, issuer, recipient, title, event) => {
@@ -420,7 +420,7 @@ export class LivingPortfolioService extends ContractService {
   }
 }
 
-// 枚举类型
+// TODO: Translate '枚举类型'
 export const AvailabilityStatus = {
   UNAVAILABLE: 0,
   AVAILABLE: 1,

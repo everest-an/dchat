@@ -1,38 +1,38 @@
 /**
- * 订阅服务
- * 管理用户订阅和功能限制
+ * TODO: Translate '订阅服务'
+ * TODO: Translate '管理用户订阅和功能限制'
  */
 
-// 订阅计划
+// TODO: Translate '订阅计划'
 export const SUBSCRIPTION_PLANS = {
   FREE: 'free',
   PRO: 'pro',
   ENTERPRISE: 'enterprise'
 }
 
-// 免费版限制
+// TODO: Translate '免费版限制'
 export const FREE_LIMITS = {
-  groupMembers: 10,                    // 群组最多10人
-  fileSize: 10 * 1024 * 1024,         // 文件最大10MB
-  storage: 100 * 1024 * 1024,         // 总存储100MB
-  messages: 1000,                      // 最多保存1000条消息
-  groups: 5,                           // 最多5个群组
-  contacts: 100,                       // 最多100个联系人
-  dailyMessages: 500                   // 每天最多500条消息
+  groupMembers: 10,                    // TODO: Translate '群组最多'10TODO: Translate '人'
+  fileSize: 10 * 1024 * 1024,         // TODO: Translate '文件最大'10MB
+  storage: 100 * 1024 * 1024,         // TODO: Translate '总存储'100MB
+  messages: 1000,                      // TODO: Translate '最多保存'1000TODO: Translate '条消息'
+  groups: 5,                           // TODO: Translate '最多'5TODO: Translate '个群组'
+  contacts: 100,                       // TODO: Translate '最多'100TODO: Translate '个联系人'
+  dailyMessages: 500                   // TODO: Translate '每天最多'500TODO: Translate '条消息'
 }
 
-// Pro版限制
+// ProTODO: Translate '版限制'
 export const PRO_LIMITS = {
   groupMembers: Infinity,
-  fileSize: 100 * 1024 * 1024,        // 文件最大100MB
-  storage: 10 * 1024 * 1024 * 1024,   // 总存储10GB
+  fileSize: 100 * 1024 * 1024,        // TODO: Translate '文件最大'100MB
+  storage: 10 * 1024 * 1024 * 1024,   // TODO: Translate '总存储'10GB
   messages: Infinity,
   groups: Infinity,
   contacts: Infinity,
   dailyMessages: Infinity
 }
 
-// 企业版限制
+// TODO: Translate '企业版限制'
 export const ENTERPRISE_LIMITS = {
   groupMembers: Infinity,
   fileSize: Infinity,
@@ -43,40 +43,40 @@ export const ENTERPRISE_LIMITS = {
   dailyMessages: Infinity
 }
 
-// Pro版功能
+// ProTODO: Translate '版功能'
 export const PRO_FEATURES = [
-  'advanced_encryption',   // 高级加密
-  'priority_support',      // 优先支持
-  'custom_domain',         // 自定义域名
-  'api_access',            // API 访问
-  'data_export',           // 数据导出
-  'backup_restore',        // 备份恢复
-  'analytics',             // 数据分析
-  'white_label',           // 白标定制
-  'message_search',        // 消息搜索
-  'voice_call',            // 语音通话
-  'video_call'             // 视频通话
+  'advanced_encryption',   // TODO: Translate '高级加密'
+  'priority_support',      // TODO: Translate '优先支持'
+  'custom_domain',         // TODO: Translate '自定义域名'
+  'api_access',            // API TODO: Translate '访问'
+  'data_export',           // TODO: Translate '数据导出'
+  'backup_restore',        // TODO: Translate '备份恢复'
+  'analytics',             // TODO: Translate '数据分析'
+  'white_label',           // TODO: Translate '白标定制'
+  'message_search',        // TODO: Translate '消息搜索'
+  'voice_call',            // TODO: Translate '语音通话'
+  'video_call'             // TODO: Translate '视频通话'
 ]
 
-// 企业版功能
+// TODO: Translate '企业版功能'
 export const ENTERPRISE_FEATURES = [
   ...PRO_FEATURES,
-  'private_deployment',    // 私有部署
-  'custom_development',    // 定制开发
-  'dedicated_support',     // 专属支持
-  'sla_guarantee',         // SLA 保证
-  'training_service',      // 培训服务
-  'audit_logs',            // 审计日志
-  'compliance',            // 合规支持
-  'integration',           // 企业集成
-  'unlimited_users'        // 无限用户
+  'private_deployment',    // TODO: Translate '私有部署'
+  'custom_development',    // TODO: Translate '定制开发'
+  'dedicated_support',     // TODO: Translate '专属支持'
+  'sla_guarantee',         // SLA TODO: Translate '保证'
+  'training_service',      // TODO: Translate '培训服务'
+  'audit_logs',            // TODO: Translate '审计日志'
+  'compliance',            // TODO: Translate '合规支持'
+  'integration',           // TODO: Translate '企业集成'
+  'unlimited_users'        // TODO: Translate '无限用户'
 ]
 
 class SubscriptionService {
   /**
-   * 获取用户订阅计划
-   * @param {string} address - 钱包地址
-   * @returns {string} 订阅计划
+   * TODO: Translate '获取用户订阅计划'
+   * @param {string} address - TODO: Translate '钱包地址'
+   * @returns {string} TODO: Translate '订阅计划'
    */
   getUserPlan(address) {
     const stored = localStorage.getItem(`dchat_subscription_${address}`)
@@ -84,18 +84,18 @@ class SubscriptionService {
   }
 
   /**
-   * 设置用户订阅计划
-   * @param {string} address - 钱包地址
-   * @param {string} plan - 订阅计划
+   * TODO: Translate '设置用户订阅计划'
+   * @param {string} address - TODO: Translate '钱包地址'
+   * @param {string} plan - TODO: Translate '订阅计划'
    */
   setUserPlan(address, plan) {
     localStorage.setItem(`dchat_subscription_${address}`, plan)
   }
 
   /**
-   * 获取用户限制
-   * @param {string} address - 钱包地址
-   * @returns {object} 限制对象
+   * TODO: Translate '获取用户限制'
+   * @param {string} address - TODO: Translate '钱包地址'
+   * @returns {object} TODO: Translate '限制对象'
    */
   getUserLimits(address) {
     const plan = this.getUserPlan(address)
@@ -110,9 +110,9 @@ class SubscriptionService {
   }
 
   /**
-   * 检查是否有功能权限
-   * @param {string} address - 钱包地址
-   * @param {string} feature - 功能名称
+   * TODO: Translate '检查是否有功能权限'
+   * @param {string} address - TODO: Translate '钱包地址'
+   * @param {string} feature - TODO: Translate '功能名称'
    * @returns {boolean}
    */
   hasFeature(address, feature) {
@@ -130,9 +130,9 @@ class SubscriptionService {
   }
 
   /**
-   * 检查群组成员数量限制
-   * @param {string} address - 钱包地址
-   * @param {number} currentMembers - 当前成员数
+   * TODO: Translate '检查群组成员数量限制'
+   * @param {string} address - TODO: Translate '钱包地址'
+   * @param {number} currentMembers - TODO: Translate '当前成员数'
    * @returns {boolean}
    */
   canAddGroupMember(address, currentMembers) {
@@ -141,9 +141,9 @@ class SubscriptionService {
   }
 
   /**
-   * 检查文件大小限制
-   * @param {string} address - 钱包地址
-   * @param {number} fileSize - 文件大小(字节)
+   * TODO: Translate '检查文件大小限制'
+   * @param {string} address - TODO: Translate '钱包地址'
+   * @param {number} fileSize - TODO: Translate '文件大小'(TODO: Translate '字节')
    * @returns {boolean}
    */
   canUploadFile(address, fileSize) {
@@ -152,9 +152,9 @@ class SubscriptionService {
   }
 
   /**
-   * 检查存储空间限制
-   * @param {string} address - 钱包地址
-   * @param {number} additionalSize - 额外需要的空间(字节)
+   * TODO: Translate '检查存储空间限制'
+   * @param {string} address - TODO: Translate '钱包地址'
+   * @param {number} additionalSize - TODO: Translate '额外需要的空间'(TODO: Translate '字节')
    * @returns {boolean}
    */
   hasStorageSpace(address, additionalSize) {
@@ -164,8 +164,8 @@ class SubscriptionService {
   }
 
   /**
-   * 检查消息数量限制
-   * @param {string} address - 钱包地址
+   * TODO: Translate '检查消息数量限制'
+   * @param {string} address - TODO: Translate '钱包地址'
    * @returns {boolean}
    */
   canSendMessage(address) {
@@ -175,9 +175,9 @@ class SubscriptionService {
   }
 
   /**
-   * 检查群组数量限制
-   * @param {string} address - 钱包地址
-   * @param {number} currentGroups - 当前群组数
+   * TODO: Translate '检查群组数量限制'
+   * @param {string} address - TODO: Translate '钱包地址'
+   * @param {number} currentGroups - TODO: Translate '当前群组数'
    * @returns {boolean}
    */
   canCreateGroup(address, currentGroups) {
@@ -186,9 +186,9 @@ class SubscriptionService {
   }
 
   /**
-   * 检查联系人数量限制
-   * @param {string} address - 钱包地址
-   * @param {number} currentContacts - 当前联系人数
+   * TODO: Translate '检查联系人数量限制'
+   * @param {string} address - TODO: Translate '钱包地址'
+   * @param {number} currentContacts - TODO: Translate '当前联系人数'
    * @returns {boolean}
    */
   canAddContact(address, currentContacts) {
@@ -197,9 +197,9 @@ class SubscriptionService {
   }
 
   /**
-   * 获取已使用的存储空间
-   * @param {string} address - 钱包地址
-   * @returns {number} 已使用空间(字节)
+   * TODO: Translate '获取已使用的存储空间'
+   * @param {string} address - TODO: Translate '钱包地址'
+   * @returns {number} TODO: Translate '已使用空间'(TODO: Translate '字节')
    */
   getUsedStorage(address) {
     const key = `dchat_storage_used_${address}`
@@ -208,9 +208,9 @@ class SubscriptionService {
   }
 
   /**
-   * 更新已使用的存储空间
-   * @param {string} address - 钱包地址
-   * @param {number} size - 大小(字节)
+   * TODO: Translate '更新已使用的存储空间'
+   * @param {string} address - TODO: Translate '钱包地址'
+   * @param {number} size - TODO: Translate '大小'(TODO: Translate '字节')
    */
   addUsedStorage(address, size) {
     const current = this.getUsedStorage(address)
@@ -219,8 +219,8 @@ class SubscriptionService {
   }
 
   /**
-   * 获取今天发送的消息数量
-   * @param {string} address - 钱包地址
+   * TODO: Translate '获取今天发送的消息数量'
+   * @param {string} address - TODO: Translate '钱包地址'
    * @returns {number}
    */
   getTodayMessageCount(address) {
@@ -231,8 +231,8 @@ class SubscriptionService {
   }
 
   /**
-   * 增加今天的消息计数
-   * @param {string} address - 钱包地址
+   * TODO: Translate '增加今天的消息计数'
+   * @param {string} address - TODO: Translate '钱包地址'
    */
   incrementMessageCount(address) {
     const today = new Date().toDateString()
@@ -242,8 +242,8 @@ class SubscriptionService {
   }
 
   /**
-   * 获取订阅状态信息
-   * @param {string} address - 钱包地址
+   * TODO: Translate '获取订阅状态信息'
+   * @param {string} address - TODO: Translate '钱包地址'
    * @returns {object}
    */
   getSubscriptionInfo(address) {
@@ -263,8 +263,8 @@ class SubscriptionService {
   }
 
   /**
-   * 获取可用功能列表
-   * @param {string} address - 钱包地址
+   * TODO: Translate '获取可用功能列表'
+   * @param {string} address - TODO: Translate '钱包地址'
    * @returns {array}
    */
   getAvailableFeatures(address) {
@@ -282,8 +282,8 @@ class SubscriptionService {
   }
 
   /**
-   * 格式化文件大小
-   * @param {number} bytes - 字节数
+   * TODO: Translate '格式化文件大小'
+   * @param {number} bytes - TODO: Translate '字节数'
    * @returns {string}
    */
   formatSize(bytes) {
@@ -297,8 +297,8 @@ class SubscriptionService {
   }
 
   /**
-   * 获取升级提示信息
-   * @param {string} feature - 功能名称
+   * TODO: Translate '获取升级提示信息'
+   * @param {string} feature - TODO: Translate '功能名称'
    * @returns {object}
    */
   getUpgradeMessage(feature) {

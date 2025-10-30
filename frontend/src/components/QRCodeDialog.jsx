@@ -23,7 +23,7 @@ const QRCodeDialog = ({ isOpen, onClose, address }) => {
 
   const generateQRCode = async () => {
     try {
-      // 创建包含用户信息的数据
+      // TODO: Translate '创建包含用户信息的数据'
       const qrData = JSON.stringify({
         type: 'dchat_contact',
         address: address,
@@ -32,7 +32,7 @@ const QRCodeDialog = ({ isOpen, onClose, address }) => {
         timestamp: Date.now()
       })
 
-      // 生成二维码
+      // TODO: Translate '生成二维码'
       const url = await QRCode.toDataURL(qrData, {
         width: 300,
         margin: 2,

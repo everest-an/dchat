@@ -18,8 +18,8 @@ import { Loader2, AlertCircle, CheckCircle2, DollarSign, Shield } from 'lucide-r
 import { formatAddress, getExplorerUrl } from '../../config/web3'
 
 /**
- * 支付对话框组件
- * 创建托管支付
+ * TODO: Translate '支付对话框组件'
+ * TODO: Translate '创建托管支付'
  */
 export default function PaymentDialog({ open, onClose, onSuccess, recipientAddress = '' }) {
   const { provider, signer, balance } = useWeb3()
@@ -42,20 +42,20 @@ export default function PaymentDialog({ open, onClose, onSuccess, recipientAddre
       return
     }
 
-    // 验证地址格式
+    // TODO: Translate '验证地址格式'
     if (!formData.recipient.match(/^0x[a-fA-F0-9]{40}$/)) {
       setError('无效的收款地址')
       return
     }
 
-    // 验证金额
+    // TODO: Translate '验证金额'
     const amount = parseFloat(formData.amount)
     if (isNaN(amount) || amount <= 0) {
       setError('无效的金额')
       return
     }
 
-    // 检查余额
+    // TODO: Translate '检查余额'
     if (amount > parseFloat(balance)) {
       setError('余额不足')
       return
@@ -67,7 +67,7 @@ export default function PaymentDialog({ open, onClose, onSuccess, recipientAddre
 
       const paymentService = new PaymentEscrowService(provider, signer)
       
-      // 计算超时时间(秒)
+      // TODO: Translate '计算超时时间'(TODO: Translate '秒')
       const timeoutDuration = parseInt(formData.timeoutDays) * 24 * 60 * 60
       
       const result = await paymentService.createEscrow(
@@ -164,7 +164,7 @@ export default function PaymentDialog({ open, onClose, onSuccess, recipientAddre
               </Alert>
             )}
 
-            {/* 收款地址 */}
+            {/* TODO: Translate '收款地址' */}
             <div className="space-y-2">
               <Label htmlFor="recipient">收款地址 *</Label>
               <Input
@@ -182,7 +182,7 @@ export default function PaymentDialog({ open, onClose, onSuccess, recipientAddre
               )}
             </div>
 
-            {/* 金额 */}
+            {/* TODO: Translate '金额' */}
             <div className="space-y-2">
               <Label htmlFor="amount">金额 (ETH) *</Label>
               <div className="relative">
@@ -204,7 +204,7 @@ export default function PaymentDialog({ open, onClose, onSuccess, recipientAddre
               </p>
             </div>
 
-            {/* 超时天数 */}
+            {/* TODO: Translate '超时天数' */}
             <div className="space-y-2">
               <Label htmlFor="timeoutDays">托管期限 (天) *</Label>
               <Input
@@ -221,7 +221,7 @@ export default function PaymentDialog({ open, onClose, onSuccess, recipientAddre
               </p>
             </div>
 
-            {/* 描述 */}
+            {/* TODO: Translate '描述' */}
             <div className="space-y-2">
               <Label htmlFor="description">支付说明</Label>
               <Textarea
@@ -234,7 +234,7 @@ export default function PaymentDialog({ open, onClose, onSuccess, recipientAddre
               />
             </div>
 
-            {/* 说明 */}
+            {/* TODO: Translate '说明' */}
             <Alert>
               <Shield className="h-4 w-4" />
               <AlertDescription>

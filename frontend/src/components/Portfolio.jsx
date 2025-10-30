@@ -24,13 +24,13 @@ import ProjectCard from './cards/ProjectCard'
 import CredentialCard from './cards/CredentialCard'
 
 /**
- * Portfolio 页面组件
- * 显示和管理用户的动态作品集
+ * Portfolio TODO: Translate '页面组件'
+ * TODO: Translate '显示和管理用户的动态作品集'
  */
 export default function Portfolio({ user }) {
   const { account, provider, signer, isConnected } = useWeb3()
   
-  // 使用Web3 account或user.walletAddress
+  // useWeb3 accountTODO: Translate '或'user.walletAddress
   const userAddress = account || user?.walletAddress
   const isDemoMode = !isConnected && !!user?.walletAddress
   const [portfolio, setPortfolio] = useState(null)
@@ -45,14 +45,14 @@ export default function Portfolio({ user }) {
   const [showAddProject, setShowAddProject] = useState(false)
   const [showUpdateAvailability, setShowUpdateAvailability] = useState(false)
 
-  // 初始化服务
+  // TODO: Translate '初始化服务'
   const portfolioService = new LivingPortfolioService(provider, signer)
 
-  // 加载作品集数据
+  // TODO: Translate '加载作品集数据'
   const loadPortfolio = async () => {
     if (!userAddress) return
     
-    // Demo模式：使用localStorage
+    // DemoTODO: Translate '模式'：uselocalStorage
     if (isDemoMode) {
       try {
         setLoading(true)
@@ -78,7 +78,7 @@ export default function Portfolio({ user }) {
       setLoading(true)
       setError(null)
 
-      // 检查作品集是否存在
+      // TODO: Translate '检查作品集是否存在'
       const existsResult = await portfolioService.portfolioExists(userAddress)
       
       if (!existsResult.success || !existsResult.data) {
@@ -87,31 +87,31 @@ export default function Portfolio({ user }) {
         return
       }
 
-      // 加载作品集
+      // TODO: Translate '加载作品集'
       const portfolioResult = await portfolioService.getPortfolio(userAddress)
       if (portfolioResult.success) {
         setPortfolio(portfolioResult.portfolio)
       }
 
-      // 加载项目
+      // TODO: Translate '加载项目'
       const projectsResult = await portfolioService.getUserProjects(userAddress)
       if (projectsResult.success) {
         setProjects(projectsResult.projects)
       }
 
-      // 加载当前项目
+      // TODO: Translate '加载当前项目'
       const currentResult = await portfolioService.getCurrentProjects(userAddress)
       if (currentResult.success) {
         setCurrentProjects(currentResult.projects)
       }
 
-      // 加载可用性
+      // TODO: Translate '加载可用性'
       const availabilityResult = await portfolioService.getAvailability(userAddress)
       if (availabilityResult.success) {
         setAvailability(availabilityResult.availability)
       }
 
-      // 加载凭证
+      // TODO: Translate '加载凭证'
       const credentialsResult = await portfolioService.getUserCredentials(userAddress)
       if (credentialsResult.success) {
         setCredentials(credentialsResult.credentials)
@@ -131,25 +131,25 @@ export default function Portfolio({ user }) {
     }
   }, [userAddress, isDemoMode])
 
-  // 创建作品集成功回调
+  // TODO: Translate '创建作品集成功回调'
   const handlePortfolioCreated = () => {
     setShowCreatePortfolio(false)
     loadPortfolio()
   }
 
-  // 添加项目成功回调
+  // TODO: Translate '添加项目成功回调'
   const handleProjectAdded = () => {
     setShowAddProject(false)
     loadPortfolio()
   }
 
-  // 更新可用性成功回调
+  // TODO: Translate '更新可用性成功回调'
   const handleAvailabilityUpdated = () => {
     setShowUpdateAvailability(false)
     loadPortfolio()
   }
 
-  // 获取可用性状态文本
+  // TODO: Translate '获取可用性状态文本'
   const getAvailabilityStatusText = (status) => {
     switch (status) {
       case AvailabilityStatus.AVAILABLE:
@@ -165,7 +165,7 @@ export default function Portfolio({ user }) {
     }
   }
 
-  // 获取可用性状态颜色
+  // TODO: Translate '获取可用性状态颜色'
   const getAvailabilityStatusColor = (status) => {
     switch (status) {
       case AvailabilityStatus.AVAILABLE:
@@ -226,7 +226,7 @@ export default function Portfolio({ user }) {
     )
   }
 
-  // 如果没有作品集,显示创建界面
+  // TODO: Translate '如果没有作品集',TODO: Translate '显示创建界面'
   if (!portfolio) {
     return (
       <div className="flex items-center justify-center h-full p-4">
@@ -286,10 +286,10 @@ export default function Portfolio({ user }) {
     )
   }
 
-  // 显示作品集
+  // TODO: Translate '显示作品集'
   return (
     <div className="h-full overflow-auto p-4 space-y-6">
-      {/* Demo模式提示 */}
+      {/* DemoTODO: Translate '模式提示' */}
       {isDemoMode && (
         <Card className="border-blue-200 bg-blue-50">
           <CardHeader className="pb-3">
@@ -305,7 +305,7 @@ export default function Portfolio({ user }) {
           </CardHeader>
         </Card>
       )}
-      {/* 作品集头部 */}
+      {/* TODO: Translate '作品集头部' */}
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between">
@@ -334,7 +334,7 @@ export default function Portfolio({ user }) {
           </div>
         </CardHeader>
         <CardContent>
-          {/* 技能标签 */}
+          {/* TODO: Translate '技能标签' */}
           <div className="space-y-2">
             <h3 className="font-semibold">技能</h3>
             <div className="flex flex-wrap gap-2">
@@ -346,7 +346,7 @@ export default function Portfolio({ user }) {
             </div>
           </div>
 
-          {/* 可用性状态 */}
+          {/* TODO: Translate '可用性状态' */}
           {availability && (
             <div className="mt-4 p-4 border rounded-lg">
               <div className="flex items-center justify-between mb-2">
@@ -378,7 +378,7 @@ export default function Portfolio({ user }) {
         </CardContent>
       </Card>
 
-      {/* 标签页 */}
+      {/* TODO: Translate '标签页' */}
       <Tabs defaultValue="current" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="current">当前项目</TabsTrigger>
@@ -386,7 +386,7 @@ export default function Portfolio({ user }) {
           <TabsTrigger value="credentials">凭证</TabsTrigger>
         </TabsList>
 
-        {/* 当前项目 */}
+        {/* TODO: Translate '当前项目' */}
         <TabsContent value="current" className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">当前项目</h2>
@@ -411,7 +411,7 @@ export default function Portfolio({ user }) {
           )}
         </TabsContent>
 
-        {/* 所有项目 */}
+        {/* TODO: Translate '所有项目' */}
         <TabsContent value="all" className="space-y-4">
           <h2 className="text-xl font-semibold">所有项目</h2>
           
@@ -430,7 +430,7 @@ export default function Portfolio({ user }) {
           )}
         </TabsContent>
 
-        {/* 凭证 */}
+        {/* TODO: Translate '凭证' */}
         <TabsContent value="credentials" className="space-y-4">
           <h2 className="text-xl font-semibold">已验证凭证</h2>
           
@@ -450,7 +450,7 @@ export default function Portfolio({ user }) {
         </TabsContent>
       </Tabs>
 
-      {/* 对话框 */}
+      {/* TODO: Translate '对话框' */}
       <CreatePortfolioDialog
         open={showCreatePortfolio}
         onClose={() => setShowCreatePortfolio(false)}

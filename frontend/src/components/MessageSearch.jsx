@@ -20,7 +20,7 @@ const MessageSearch = ({ recipientAddress, onClose, onMessageClick }) => {
 
     let filtered = messages
 
-    // 文本搜索
+    // TODO: Translate '文本搜索'
     if (query.trim()) {
       const lowerQuery = query.toLowerCase()
       filtered = filtered.filter(m => 
@@ -28,12 +28,12 @@ const MessageSearch = ({ recipientAddress, onClose, onMessageClick }) => {
       )
     }
 
-    // 发送者筛选
+    // TODO: Translate '发送者筛选'
     if (filters.sender !== 'all') {
       filtered = filtered.filter(m => m.sender === filters.sender)
     }
 
-    // 日期筛选
+    // TODO: Translate '日期筛选'
     if (filters.dateFrom) {
       const fromDate = new Date(filters.dateFrom)
       filtered = filtered.filter(m => {

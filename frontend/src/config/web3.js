@@ -1,4 +1,4 @@
-// Web3 配置文件
+// Web3 TODO: Translate '配置文件'
 export const NETWORKS = {
   sepolia: {
     chainId: '0xaa36a7', // 11155111 in hex
@@ -24,10 +24,10 @@ export const NETWORKS = {
   }
 }
 
-// 默认网络
+// TODO: Translate '默认网络'
 export const DEFAULT_NETWORK = 'sepolia'
 
-// 智能合约地址
+// TODO: Translate '智能合约地址'
 export const CONTRACT_ADDRESSES = {
   sepolia: {
     UserIdentityV2: '0xa9403dCaBE90076e5aB9d942A2076f50ba96Ac2A',
@@ -37,7 +37,7 @@ export const CONTRACT_ADDRESSES = {
     LivingPortfolio: '0x1B57F4fA3fdc02b1F6c7F1b9646Ddfa6d7f86B48'
   },
   mainnet: {
-    // TODO: 部署到主网后填写
+    // TODO: TODO: Translate '部署到主网后填写'
     UserIdentityV2: '',
     MessageStorageV2: '',
     PaymentEscrow: '',
@@ -46,24 +46,24 @@ export const CONTRACT_ADDRESSES = {
   }
 }
 
-// RPC 端点
+// RPC TODO: Translate '端点'
 export const RPC_URLS = {
   sepolia: 'https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
   mainnet: 'https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161'
 }
 
-// 区块浏览器 URL
+// TODO: Translate '区块浏览器' URL
 export const EXPLORER_URLS = {
   sepolia: 'https://sepolia.etherscan.io',
   mainnet: 'https://etherscan.io'
 }
 
-// 获取合约地址
+// TODO: Translate '获取合约地址'
 export const getContractAddress = (contractName, network = DEFAULT_NETWORK) => {
   return CONTRACT_ADDRESSES[network]?.[contractName] || ''
 }
 
-// 获取区块浏览器链接
+// TODO: Translate '获取区块浏览器链接'
 export const getExplorerUrl = (type, value, network = DEFAULT_NETWORK) => {
   const baseUrl = EXPLORER_URLS[network]
   switch (type) {
@@ -80,13 +80,13 @@ export const getExplorerUrl = (type, value, network = DEFAULT_NETWORK) => {
   }
 }
 
-// 格式化地址
+// TODO: Translate '格式化地址'
 export const formatAddress = (address, length = 4) => {
   if (!address) return ''
   return `${address.slice(0, length + 2)}...${address.slice(-length)}`
 }
 
-// 格式化余额
+// TODO: Translate '格式化余额'
 export const formatBalance = (balance, decimals = 4) => {
   if (!balance) return '0'
   const num = parseFloat(balance)

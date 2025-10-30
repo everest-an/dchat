@@ -6,7 +6,7 @@ import { Award, ExternalLink, CheckCircle2 } from 'lucide-react'
 import { formatAddress, getExplorerUrl } from '../../config/web3'
 
 /**
- * 凭证卡片组件
+ * TODO: Translate '凭证卡片组件'
  */
 export default function CredentialCard({ credential }) {
   const formatDate = (timestamp) => {
@@ -53,10 +53,10 @@ export default function CredentialCard({ credential }) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* 描述 */}
+        {/* TODO: Translate '描述' */}
         <p className="text-sm text-gray-700">{credential.description}</p>
 
-        {/* 发行者信息 */}
+        {/* TODO: Translate '发行者信息' */}
         <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
           <Avatar className="w-10 h-10">
             <AvatarFallback>
@@ -78,7 +78,7 @@ export default function CredentialCard({ credential }) {
           </Button>
         </div>
 
-        {/* 相关项目 */}
+        {/* TODO: Translate '相关项目' */}
         {credential.relatedProjectId > 0 && (
           <div className="text-sm">
             <span className="text-gray-500">相关项目 ID: </span>
@@ -86,12 +86,12 @@ export default function CredentialCard({ credential }) {
           </div>
         )}
 
-        {/* 发行日期 */}
+        {/* TODO: Translate '发行日期' */}
         <div className="text-sm text-gray-500">
           发行于 {formatDate(credential.issuedAt)}
         </div>
 
-        {/* 证据链接 */}
+        {/* TODO: Translate '证据链接' */}
         {credential.evidenceHash && credential.evidenceHash !== '' && (
           <Button
             variant="outline"
@@ -104,7 +104,7 @@ export default function CredentialCard({ credential }) {
           </Button>
         )}
 
-        {/* 状态 */}
+        {/* state */}
         {!credential.isValid && (
           <div className="text-sm text-red-500 font-medium">
             此凭证已被撤销

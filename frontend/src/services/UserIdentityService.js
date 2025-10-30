@@ -2,8 +2,8 @@ import { ContractService } from './ContractService'
 import UserIdentityV2ABI from '../abis/UserIdentityV2.json'
 
 /**
- * 用户身份服务
- * 管理用户注册、资料、验证等功能
+ * TODO: Translate '用户身份服务'
+ * TODO: Translate '管理用户注册'、TODO: Translate '资料'、TODO: Translate '验证等功能'
  */
 export class UserIdentityService extends ContractService {
   constructor(provider, signer = null) {
@@ -11,7 +11,7 @@ export class UserIdentityService extends ContractService {
   }
 
   /**
-   * 注册用户
+   * TODO: Translate '注册用户'
    */
   async registerUser(name, title, company, email, linkedInUrl = '') {
     return await this.send(
@@ -25,7 +25,7 @@ export class UserIdentityService extends ContractService {
   }
 
   /**
-   * 更新用户资料
+   * TODO: Translate '更新用户资料'
    */
   async updateProfile(name, title, company, email, linkedInUrl = '') {
     return await this.send(
@@ -39,7 +39,7 @@ export class UserIdentityService extends ContractService {
   }
 
   /**
-   * 获取用户资料
+   * TODO: Translate '获取用户资料'
    */
   async getProfile(address) {
     const result = await this.call('getProfile', address)
@@ -65,49 +65,49 @@ export class UserIdentityService extends ContractService {
   }
 
   /**
-   * 检查用户是否已注册
+   * TODO: Translate '检查用户是否已注册'
    */
   async isRegistered(address) {
     return await this.call('isRegistered', address)
   }
 
   /**
-   * 验证用户
+   * TODO: Translate '验证用户'
    */
   async verifyUser(address) {
     return await this.send('verifyUser', address)
   }
 
   /**
-   * 添加技能
+   * TODO: Translate '添加技能'
    */
   async addSkill(skill) {
     return await this.send('addSkill', skill)
   }
 
   /**
-   * 移除技能
+   * TODO: Translate '移除技能'
    */
   async removeSkill(skill) {
     return await this.send('removeSkill', skill)
   }
 
   /**
-   * 获取用户技能
+   * TODO: Translate '获取用户技能'
    */
   async getUserSkills(address) {
     return await this.call('getUserSkills', address)
   }
 
   /**
-   * 更新信誉分数
+   * TODO: Translate '更新信誉分数'
    */
   async updateReputationScore(address, scoreChange) {
     return await this.send('updateReputationScore', address, scoreChange)
   }
 
   /**
-   * 获取信誉分数
+   * TODO: Translate '获取信誉分数'
    */
   async getReputationScore(address) {
     const result = await this.call('getReputationScore', address)
@@ -121,14 +121,14 @@ export class UserIdentityService extends ContractService {
   }
 
   /**
-   * 搜索用户
+   * TODO: Translate '搜索用户'
    */
   async searchUsersBySkill(skill) {
     return await this.call('searchUsersBySkill', skill)
   }
 
   /**
-   * 监听用户注册事件
+   * TODO: Translate '监听用户注册事件'
    */
   onUserRegistered(callback) {
     this.on('UserRegistered', (userAddress, name, timestamp, event) => {
@@ -142,7 +142,7 @@ export class UserIdentityService extends ContractService {
   }
 
   /**
-   * 监听资料更新事件
+   * TODO: Translate '监听资料更新事件'
    */
   onProfileUpdated(callback) {
     this.on('ProfileUpdated', (userAddress, timestamp, event) => {
@@ -155,7 +155,7 @@ export class UserIdentityService extends ContractService {
   }
 
   /**
-   * 监听用户验证事件
+   * TODO: Translate '监听用户验证事件'
    */
   onUserVerified(callback) {
     this.on('UserVerified', (userAddress, verifier, timestamp, event) => {

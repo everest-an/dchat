@@ -18,7 +18,7 @@ import { Alert, AlertDescription } from '../ui/alert'
 import { Loader2, X, Plus, AlertCircle, CheckCircle2 } from 'lucide-react'
 
 /**
- * 创建作品集对话框
+ * TODO: Translate '创建作品集对话框'
  */
 export default function CreatePortfolioDialog({ open, onClose, onSuccess, userAddress, isDemoMode }) {
   const { provider, signer } = useWeb3()
@@ -45,7 +45,7 @@ export default function CreatePortfolioDialog({ open, onClose, onSuccess, userAd
       setLoading(true)
       setError(null)
 
-      // Demo模式：保存到localStorage
+      // DemoTODO: Translate '模式'：savetolocalStorage
       if (isDemoMode) {
         const portfolioData = {
           portfolio: {
@@ -70,7 +70,7 @@ export default function CreatePortfolioDialog({ open, onClose, onSuccess, userAd
           handleClose()
         }, 1000)
       } else {
-        // Web3模式：保存到区块链
+        // Web3TODO: Translate '模式'：TODO: Translate '保存到区块链'
         const portfolioService = new LivingPortfolioService(provider, signer)
         
         const result = await portfolioService.createPortfolio(
@@ -163,7 +163,7 @@ export default function CreatePortfolioDialog({ open, onClose, onSuccess, userAd
               </Alert>
             )}
 
-            {/* 标题 */}
+            {/* TODO: Translate '标题' */}
             <div className="space-y-2">
               <Label htmlFor="title">职位/标题 *</Label>
               <Input
@@ -175,7 +175,7 @@ export default function CreatePortfolioDialog({ open, onClose, onSuccess, userAd
               />
             </div>
 
-            {/* 简介 */}
+            {/* TODO: Translate '简介' */}
             <div className="space-y-2">
               <Label htmlFor="bio">个人简介 *</Label>
               <Textarea
@@ -188,7 +188,7 @@ export default function CreatePortfolioDialog({ open, onClose, onSuccess, userAd
               />
             </div>
 
-            {/* 技能 */}
+            {/* TODO: Translate '技能' */}
             <div className="space-y-2">
               <Label htmlFor="skills">技能 *</Label>
               <div className="flex gap-2">
@@ -228,7 +228,7 @@ export default function CreatePortfolioDialog({ open, onClose, onSuccess, userAd
               )}
             </div>
 
-            {/* 时薪 */}
+            {/* TODO: Translate '时薪' */}
             <div className="space-y-2">
               <Label htmlFor="hourlyRate">时薪 (ETH) *</Label>
               <Input

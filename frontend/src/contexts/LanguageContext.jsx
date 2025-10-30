@@ -11,12 +11,12 @@ const translations = {
 
 export const LanguageProvider = ({ children }) => {
   const [language, setLanguage] = useState(() => {
-    // 从 localStorage 获取保存的语言设置，默认为英语
+    // from localStorage TODO: Translate '获取保存的语言设置'，TODO: Translate '默认为英语'
     return localStorage.getItem('language') || 'en'
   })
 
   useEffect(() => {
-    // 保存语言设置到 localStorage
+    // TODO: Translate '保存语言设置到' localStorage
     localStorage.setItem('language', language)
   }, [language])
 

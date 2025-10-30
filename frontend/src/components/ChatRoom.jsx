@@ -35,7 +35,7 @@ const ChatRoom = () => {
   const fileInputRef = useRef(null)
   const pollingInterval = useRef(null)
 
-  // 获取接收者资料
+  // TODO: Translate '获取接收者资料'
   useEffect(() => {
     if (recipientAddress) {
       const profile = UserProfileService.getProfile(recipientAddress)
@@ -49,7 +49,7 @@ const ChatRoom = () => {
     }
   }, [recipientAddress])
 
-  // 初始化消息服务
+  // TODO: Translate '初始化消息服务'
   useEffect(() => {
     if (provider && signer) {
       const service = new MessageStorageService(provider, signer)
@@ -57,14 +57,14 @@ const ChatRoom = () => {
     }
   }, [provider, signer])
 
-  // 加载消息
+  // TODO: Translate '加载消息'
   const loadMessages = useCallback(async () => {
     if (!messageService || !account || !recipientAddress) return
 
     try {
       setLoading(true)
       
-      // 从本地存储加载消息
+      // TODO: Translate '从本地存储加载消息'
       const storageKey = `dchat_messages_${account}_${recipientAddress}`
       const stored = localStorage.getItem(storageKey)
       const localMessages = stored ? JSON.parse(stored) : []
@@ -72,7 +72,7 @@ const ChatRoom = () => {
       setMessages(localMessages)
       setLoading(false)
       
-      // 标记消息为已读
+      // TODO: Translate '标记消息为已读'
       markMessagesAsRead(localMessages)
     } catch (err) {
       console.error('Error loading messages:', err)
@@ -81,11 +81,11 @@ const ChatRoom = () => {
     }
   }, [messageService, account, recipientAddress])
 
-  // 标记消息为已读
+  // TODO: Translate '标记消息为已读'
   const markMessagesAsRead = (msgs) => {
     const unreadCount = msgs.filter(m => m.sender === 'other' && !m.isRead).length
     if (unreadCount > 0) {
-      // 更新本地存储
+      // TODO: Translate '更新本地存储'
       const updatedMessages = msgs.map(m => 
         m.sender === 'other' ? { ...m, isRead: true } : m
       )
@@ -93,12 +93,12 @@ const ChatRoom = () => {
       localStorage.setItem(storageKey, JSON.stringify(updatedMessages))
       setMessages(updatedMessages)
       
-      // 更新未读计数
+      // TODO: Translate '更新未读计数'
       updateUnreadCount()
     }
   }
 
-  // 更新未读计数
+  // TODO: Translate '更新未读计数'
   const updateUnreadCount = () => {
     const conversationsKey = 'dchat_conversations'
     const stored = localStorage.getItem(conversationsKey)
@@ -111,14 +111,14 @@ const ChatRoom = () => {
     localStorage.setItem(conversationsKey, JSON.stringify(updated))
   }
 
-  // 初始加载
+  // TODO: Translate '初始加载'
   useEffect(() => {
     if (isConnected && messageService) {
       loadMessages()
     }
   }, [isConnected, messageService, loadMessages])
 
-  // 实时更新 - 每5秒检查新消息
+  // TODO: Translate '实时更新' - TODO: Translate '每'5TODO: Translate '秒检查新消息'
   useEffect(() => {
     if (!isConnected || !messageService) return
 
@@ -133,12 +133,12 @@ const ChatRoom = () => {
     }
   }, [isConnected, messageService, loadMessages])
 
-  // 自动滚动到底部
+  // TODO: Translate '自动滚动到底部'
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // 发送文本消息
+  // TODO: Translate '发送文本消息'
   const handleSendMessage = async () => {
     if (!message.trim() || sending) return
 
@@ -147,7 +147,7 @@ const ChatRoom = () => {
     setSending(true)
 
     try {
-      // 创建消息对象
+      // TODO: Translate '创建消息对象'
       const newMessage = {
         id: Date.now().toString(),
         text: messageText,
@@ -160,15 +160,15 @@ const ChatRoom = () => {
         type: 'text'
       }
 
-      // 立即显示消息
+      // TODO: Translate '立即显示消息'
       const updatedMessages = [...messages, newMessage]
       setMessages(updatedMessages)
 
-      // 保存到本地存储
+      // TODO: Translate '保存到本地存储'
       const storageKey = `dchat_messages_${account}_${recipientAddress}`
       localStorage.setItem(storageKey, JSON.stringify(updatedMessages))
 
-      // 更新对话列表
+      // TODO: Translate '更新对话列表'
       updateConversationsList(messageText)
 
       success('Sent!', 'Message sent successfully')
@@ -180,7 +180,7 @@ const ChatRoom = () => {
     }
   }
 
-  // 更新对话列表
+  // TODO: Translate '更新对话列表'
   const updateConversationsList = (lastMessage) => {
     const conversationsKey = 'dchat_conversations'
     const stored = localStorage.getItem(conversationsKey)
@@ -206,7 +206,7 @@ const ChatRoom = () => {
     localStorage.setItem(conversationsKey, JSON.stringify(conversations))
   }
 
-  // 处理文件上传
+  // TODO: Translate '处理文件上传'
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -230,13 +230,13 @@ const ChatRoom = () => {
     try {
       info('Uploading...', 'Uploading file to IPFS')
 
-      // 上传到 IPFS
+      // TODO: Translate '上传到' IPFS
       const result = await ipfsService.uploadFile(file, (progress) => {
         setUploadProgress(progress)
       })
 
       if (result.success) {
-        // 创建文件消息
+        // TODO: Translate '创建文件消息'
         const fileMessage = {
           id: Date.now().toString(),
           text: file.name,
@@ -252,15 +252,15 @@ const ChatRoom = () => {
           fileName: file.name
         }
 
-        // 添加到消息列表
+        // TODO: Translate '添加到消息列表'
         const updatedMessages = [...messages, fileMessage]
         setMessages(updatedMessages)
 
-        // 保存到本地存储
+        // TODO: Translate '保存到本地存储'
         const storageKey = `dchat_messages_${account}_${recipientAddress}`
         localStorage.setItem(storageKey, JSON.stringify(updatedMessages))
 
-        // 更新对话列表
+        // TODO: Translate '更新对话列表'
         updateConversationsList(`📎 ${file.name}`)
 
         success('Uploaded!', 'File uploaded successfully')
@@ -276,7 +276,7 @@ const ChatRoom = () => {
     }
   }
 
-  // 渲染消息
+  // TODO: Translate '渲染消息'
   const renderMessage = (msg) => {
     const isMe = msg.sender === 'me'
 
@@ -361,7 +361,7 @@ const ChatRoom = () => {
       )
     }
 
-    // 文件消息
+    // TODO: Translate '文件消息'
     return (
       <div
         key={msg.id}

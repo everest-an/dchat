@@ -1,10 +1,10 @@
 /**
- * 加密工具类
- * 提供端到端加密功能
+ * TODO: Translate '加密工具类'
+ * TODO: Translate '提供端到端加密功能'
  */
 
 /**
- * 生成密钥对
+ * TODO: Translate '生成密钥对'
  * @returns {Promise<{publicKey: string, privateKey: string}>}
  */
 export async function generateKeyPair() {
@@ -34,10 +34,10 @@ export async function generateKeyPair() {
 }
 
 /**
- * 加密消息
- * @param {string} message - 要加密的消息
- * @param {string} publicKeyBase64 - Base64 编码的公钥
- * @returns {Promise<string>} Base64 编码的加密消息
+ * TODO: Translate '加密消息'
+ * @param {string} message - TODO: Translate '要加密的消息'
+ * @param {string} publicKeyBase64 - Base64 TODO: Translate '编码的公钥'
+ * @returns {Promise<string>} Base64 TODO: Translate '编码的加密消息'
  */
 export async function encryptMessage(message, publicKeyBase64) {
   try {
@@ -61,10 +61,10 @@ export async function encryptMessage(message, publicKeyBase64) {
 }
 
 /**
- * 解密消息
- * @param {string} encryptedMessageBase64 - Base64 编码的加密消息
- * @param {string} privateKeyBase64 - Base64 编码的私钥
- * @returns {Promise<string>} 解密后的消息
+ * TODO: Translate '解密消息'
+ * @param {string} encryptedMessageBase64 - Base64 TODO: Translate '编码的加密消息'
+ * @param {string} privateKeyBase64 - Base64 TODO: Translate '编码的私钥'
+ * @returns {Promise<string>} TODO: Translate '解密后的消息'
  */
 export async function decryptMessage(encryptedMessageBase64, privateKeyBase64) {
   try {
@@ -88,8 +88,8 @@ export async function decryptMessage(encryptedMessageBase64, privateKeyBase64) {
 }
 
 /**
- * 生成对称密钥 (用于加密文件等大数据)
- * @returns {Promise<string>} Base64 编码的对称密钥
+ * TODO: Translate '生成对称密钥' (TODO: Translate '用于加密文件等大数据')
+ * @returns {Promise<string>} Base64 TODO: Translate '编码的对称密钥'
  */
 export async function generateSymmetricKey() {
   try {
@@ -111,9 +111,9 @@ export async function generateSymmetricKey() {
 }
 
 /**
- * 使用对称密钥加密数据
- * @param {string} data - 要加密的数据
- * @param {string} keyBase64 - Base64 编码的对称密钥
+ * TODO: Translate '使用对称密钥加密数据'
+ * @param {string} data - TODO: Translate '要加密的数据'
+ * @param {string} keyBase64 - Base64 TODO: Translate '编码的对称密钥'
  * @returns {Promise<{encrypted: string, iv: string}>}
  */
 export async function encryptWithSymmetricKey(data, keyBase64) {
@@ -144,11 +144,11 @@ export async function encryptWithSymmetricKey(data, keyBase64) {
 }
 
 /**
- * 使用对称密钥解密数据
- * @param {string} encryptedBase64 - Base64 编码的加密数据
- * @param {string} keyBase64 - Base64 编码的对称密钥
- * @param {string} ivBase64 - Base64 编码的初始化向量
- * @returns {Promise<string>} 解密后的数据
+ * TODO: Translate '使用对称密钥解密数据'
+ * @param {string} encryptedBase64 - Base64 TODO: Translate '编码的加密数据'
+ * @param {string} keyBase64 - Base64 TODO: Translate '编码的对称密钥'
+ * @param {string} ivBase64 - Base64 TODO: Translate '编码的初始化向量'
+ * @returns {Promise<string>} TODO: Translate '解密后的数据'
  */
 export async function decryptWithSymmetricKey(encryptedBase64, keyBase64, ivBase64) {
   try {
@@ -174,9 +174,9 @@ export async function decryptWithSymmetricKey(encryptedBase64, keyBase64, ivBase
 }
 
 /**
- * 计算数据哈希 (用于 IPFS 内容验证)
- * @param {string} data - 要哈希的数据
- * @returns {Promise<string>} 十六进制哈希值
+ * TODO: Translate '计算数据哈希' (TODO: Translate '用于' IPFS TODO: Translate '内容验证')
+ * @param {string} data - TODO: Translate '要哈希的数据'
+ * @returns {Promise<string>} TODO: Translate '十六进制哈希值'
  */
 export async function hashData(data) {
   try {
@@ -191,10 +191,10 @@ export async function hashData(data) {
   }
 }
 
-// ===== 辅助函数 =====
+// ===== TODO: Translate '辅助函数' =====
 
 /**
- * 导入公钥
+ * TODO: Translate '导入公钥'
  */
 async function importPublicKey(publicKeyBase64) {
   const keyData = base64ToArrayBuffer(publicKeyBase64)
@@ -211,7 +211,7 @@ async function importPublicKey(publicKeyBase64) {
 }
 
 /**
- * 导入私钥
+ * TODO: Translate '导入私钥'
  */
 async function importPrivateKey(privateKeyBase64) {
   const keyData = base64ToArrayBuffer(privateKeyBase64)
@@ -228,7 +228,7 @@ async function importPrivateKey(privateKeyBase64) {
 }
 
 /**
- * 导入对称密钥
+ * TODO: Translate '导入对称密钥'
  */
 async function importSymmetricKey(keyBase64) {
   const keyData = base64ToArrayBuffer(keyBase64)
@@ -244,7 +244,7 @@ async function importSymmetricKey(keyBase64) {
 }
 
 /**
- * ArrayBuffer 转 Base64
+ * ArrayBuffer TODO: Translate '转' Base64
  */
 function arrayBufferToBase64(buffer) {
   const bytes = new Uint8Array(buffer)
@@ -256,7 +256,7 @@ function arrayBufferToBase64(buffer) {
 }
 
 /**
- * Base64 转 ArrayBuffer
+ * Base64 TODO: Translate '转' ArrayBuffer
  */
 function base64ToArrayBuffer(base64) {
   const binary = window.atob(base64)
@@ -268,7 +268,7 @@ function base64ToArrayBuffer(base64) {
 }
 
 /**
- * 生成随机字符串 (用于生成会话 ID 等)
+ * TODO: Translate '生成随机字符串' (TODO: Translate '用于生成会话' ID TODO: Translate '等')
  */
 export function generateRandomString(length = 32) {
   const array = new Uint8Array(length)

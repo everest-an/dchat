@@ -76,7 +76,7 @@ const BottomNavigation = () => {
         })}
       </div>
       
-      {/* iOS风格的home indicator */}
+      {/* iOSTODO: Translate '风格的'home indicator */}
       <div className="flex justify-center pt-2">
         <div className="w-32 h-1 bg-black rounded-full opacity-30"></div>
       </div>

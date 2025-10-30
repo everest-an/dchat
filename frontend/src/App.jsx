@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
 
-// 导入组件
+// Importcomponents
 import LoginScreen from './components/LoginScreen'
 import MainApp from './components/MainApp'
 import ResponsiveContainer from './components/ResponsiveContainer'
@@ -10,46 +10,58 @@ import { LanguageProvider } from './contexts/LanguageContext'
 import { Web3Provider } from './contexts/Web3Context'
 import { ToastProvider } from './contexts/ToastContext'
 import { Toaster } from './components/ui/toaster'
+import authService from './services/AuthService'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // 从localStorage恢复登录状态
+  // fromlocalStoragerestoreloginstate - useAuthService
   useEffect(() => {
-    const token = localStorage.getItem('authToken')
-    const savedUser = localStorage.getItem('user')
+    // TODO: Translate '尝试恢复会话'
+    const restoredUser = authService.restoreSession()
     
-    if (token && savedUser) {
-      try {
-        const userData = JSON.parse(savedUser)
-        setIsAuthenticated(true)
-        setUser(userData)
-      } catch (error) {
-        console.error('Failed to restore user session:', error)
-        localStorage.removeItem('authToken')
-        localStorage.removeItem('user')
-      }
+    if (restoredUser) {
+      console.log('✅ Session restored successfully')
+      setIsAuthenticated(true)
+      setUser(restoredUser)
+    } else {
+      console.log('ℹ️ No valid session found')
     }
+    
     setIsLoading(false)
+    
+    // Setup activity tracking and auto-refresh
+    authService.setupActivityTracking()
+    authService.setupAutoRefresh()
   }, [])
 
-  const handleLogin = (userData) => {
+  const handleLogin = (userData, rememberMe = true) => {
     setIsAuthenticated(true)
     setUser(userData)
-    // 保存用户信息到localStorage
-    localStorage.setItem('user', JSON.stringify(userData))
+    
+    // useAuthServicesavesession（default30TODO: Translate '天'）
+    authService.saveSession(userData, undefined, rememberMe)
+    
+    console.log('✅ User logged in successfully', {
+      username: userData.username || userData.email,
+      loginMethod: userData.loginMethod,
+      rememberMe
+    })
   }
 
   const handleLogout = () => {
     setIsAuthenticated(false)
     setUser(null)
-    localStorage.removeItem('authToken')
-    localStorage.removeItem('user')
+    
+    // useAuthServiceclearsession
+    authService.logout()
+    
+    console.log('👋 User logged out successfully')
   }
 
-  // 加载中显示
+  // Loading display
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-white">

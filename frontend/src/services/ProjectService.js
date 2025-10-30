@@ -1,13 +1,13 @@
 /**
- * 项目管理服务
- * 管理用户项目的本地存储和检索
+ * TODO: Translate '项目管理服务'
+ * TODO: Translate '管理用户项目的本地存储和检索'
  */
 
 const STORAGE_KEY = 'dchat_user_projects'
 
 export class ProjectService {
   /**
-   * 获取用户的所有项目
+   * TODO: Translate '获取用户的所有项目'
    */
   static getProjects(address) {
     if (!address) return []
@@ -17,7 +17,7 @@ export class ProjectService {
   }
 
   /**
-   * 添加新项目
+   * TODO: Translate '添加新项目'
    */
   static addProject(address, project) {
     if (!address || !project) return false
@@ -40,7 +40,7 @@ export class ProjectService {
   }
 
   /**
-   * 更新项目
+   * TODO: Translate '更新项目'
    */
   static updateProject(address, projectId, updates) {
     if (!address || !projectId) return false
@@ -63,7 +63,7 @@ export class ProjectService {
   }
 
   /**
-   * 删除项目
+   * TODO: Translate '删除项目'
    */
   static deleteProject(address, projectId) {
     if (!address || !projectId) return false
@@ -79,7 +79,7 @@ export class ProjectService {
   }
 
   /**
-   * 获取所有项目
+   * TODO: Translate '获取所有项目'
    */
   static getAllProjects() {
     try {

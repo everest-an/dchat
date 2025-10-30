@@ -21,12 +21,12 @@ export const Web3Provider = ({ children }) => {
   const [error, setError] = useState(null)
   const [balance, setBalance] = useState('0')
 
-  // 检查是否安装了 MetaMask
+  // TODO: Translate '检查是否安装了' MetaMask
   const isMetaMaskInstalled = () => {
     return typeof window !== 'undefined' && typeof window.ethereum !== 'undefined'
   }
 
-  // 获取余额
+  // TODO: Translate '获取余额'
   const getBalance = useCallback(async (address) => {
     if (!provider || !address) return '0'
     try {
@@ -38,7 +38,7 @@ export const Web3Provider = ({ children }) => {
     }
   }, [provider])
 
-  // 连接钱包
+  // TODO: Translate '连接钱包'
   const connectWallet = async () => {
     if (!isMetaMaskInstalled()) {
       setError('请安装 MetaMask 钱包')
@@ -49,7 +49,7 @@ export const Web3Provider = ({ children }) => {
     setError(null)
 
     try {
-      // 请求账户访问
+      // TODO: Translate '请求账户访问'
       const accounts = await window.ethereum.request({
         method: 'eth_requestAccounts'
       })
@@ -58,7 +58,7 @@ export const Web3Provider = ({ children }) => {
         throw new Error('未找到账户')
       }
 
-      // 创建 provider 和 signer
+      // TODO: Translate '创建' provider TODO: Translate '和' signer
       const web3Provider = new ethers.providers.Web3Provider(window.ethereum)
       const web3Signer = await web3Provider.getSigner()
       const network = await web3Provider.getNetwork()
@@ -68,11 +68,11 @@ export const Web3Provider = ({ children }) => {
       setSigner(web3Signer)
       setChainId(network.chainId.toString())
 
-      // 获取余额
+      // TODO: Translate '获取余额'
       const userBalance = await getBalance(accounts[0])
       setBalance(userBalance)
 
-      // 保存到 localStorage
+      // saveto localStorage
       localStorage.setItem('walletConnected', 'true')
       localStorage.setItem('walletAddress', accounts[0])
 
@@ -86,7 +86,7 @@ export const Web3Provider = ({ children }) => {
     }
   }
 
-  // 断开钱包
+  // TODO: Translate '断开钱包'
   const disconnectWallet = () => {
     setAccount(null)
     setProvider(null)
@@ -97,7 +97,7 @@ export const Web3Provider = ({ children }) => {
     localStorage.removeItem('walletAddress')
   }
 
-  // 切换网络
+  // TODO: Translate '切换网络'
   const switchNetwork = async (networkName = DEFAULT_NETWORK) => {
     if (!isMetaMaskInstalled()) {
       setError('请安装 MetaMask 钱包')
@@ -111,14 +111,14 @@ export const Web3Provider = ({ children }) => {
     }
 
     try {
-      // 尝试切换网络
+      // TODO: Translate '尝试切换网络'
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: network.chainId }]
       })
       return true
     } catch (switchError) {
-      // 如果网络不存在,尝试添加
+      // TODO: Translate '如果网络不存在',TODO: Translate '尝试添加'
       if (switchError.code === 4902) {
         try {
           await window.ethereum.request({
@@ -138,7 +138,7 @@ export const Web3Provider = ({ children }) => {
     }
   }
 
-  // 监听账户变化
+  // TODO: Translate '监听账户变化'
   useEffect(() => {
     if (!isMetaMaskInstalled()) return
 
@@ -148,13 +148,13 @@ export const Web3Provider = ({ children }) => {
       } else if (accounts[0] !== account) {
         setAccount(accounts[0])
         localStorage.setItem('walletAddress', accounts[0])
-        // 更新余额
+        // TODO: Translate '更新余额'
         getBalance(accounts[0]).then(setBalance)
       }
     }
 
     const handleChainChanged = (newChainId) => {
-      // 链变化时重新加载页面
+      // TODO: Translate '链变化时重新加载页面'
       window.location.reload()
     }
 
@@ -175,7 +175,7 @@ export const Web3Provider = ({ children }) => {
     }
   }, [account, getBalance])
 
-  // 自动重连 - 已移除以避免干扰登录流程
+  // TODO: Translate '自动重连' - TODO: Translate '已移除以避免干扰登录流程'
   // useEffect(() => {
   //   const autoConnect = async () => {
   //     const wasConnected = localStorage.getItem('walletConnected')
@@ -186,7 +186,7 @@ export const Web3Provider = ({ children }) => {
   //   autoConnect()
   // }, [])
 
-  // 创建只读 provider (用于未连接钱包时读取数据)
+  // TODO: Translate '创建只读' provider (TODO: Translate '用于未连接钱包时读取数据')
   useEffect(() => {
     if (!provider) {
       const readOnlyProvider = new ethers.providers.JsonRpcProvider(RPC_URLS[DEFAULT_NETWORK])

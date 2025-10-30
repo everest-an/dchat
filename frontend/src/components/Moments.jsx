@@ -81,7 +81,7 @@ const Moments = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 头部 */}
+      {/* TODO: Translate '头部' */}
       <div className="bg-white px-4 pt-12 pb-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-black">商务动态</h1>
@@ -95,11 +95,11 @@ const Moments = () => {
         </div>
       </div>
 
-      {/* 动态列表 */}
+      {/* TODO: Translate '动态列表' */}
       <div className="pb-20">
         {posts.map((post) => (
           <div key={post.id} className="bg-white mb-2 px-4 py-4">
-            {/* 用户信息 */}
+            {/* userinformation */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center">
                 <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-xl mr-3">
@@ -124,11 +124,11 @@ const Moments = () => {
               </div>
             </div>
 
-            {/* 内容 */}
+            {/* content */}
             <div className="mb-4">
               <p className="text-gray-800 leading-relaxed mb-3">{post.content}</p>
               
-              {/* 图表或媒体内容 */}
+              {/* TODO: Translate '图表或媒体内容' */}
               {post.chart && (
                 <div className="bg-gray-50 rounded-lg p-4 flex items-center justify-center">
                   <div className="text-4xl">{post.chart}</div>
@@ -136,7 +136,7 @@ const Moments = () => {
               )}
             </div>
 
-            {/* 互动按钮 */}
+            {/* TODO: Translate '互动按钮' */}
             <div className="flex items-center justify-between pt-3 border-t border-gray-100">
               <div className="flex items-center gap-6">
                 <button

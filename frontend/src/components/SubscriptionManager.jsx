@@ -20,8 +20,8 @@ import {
 import { formatAddress } from '../config/web3'
 
 /**
- * 订阅管理组件
- * 管理用户的订阅和订阅者
+ * TODO: Translate '订阅管理组件'
+ * TODO: Translate '管理用户的订阅和订阅者'
  */
 export default function SubscriptionManager() {
   const { account, provider, signer, isConnected } = useWeb3()
@@ -33,7 +33,7 @@ export default function SubscriptionManager() {
 
   const portfolioService = new LivingPortfolioService(provider, signer)
 
-  // 加载订阅数据
+  // TODO: Translate '加载订阅数据'
   const loadData = async () => {
     if (!account) return
 
@@ -41,13 +41,13 @@ export default function SubscriptionManager() {
       setLoading(true)
       setError(null)
 
-      // 加载订阅列表
+      // TODO: Translate '加载订阅列表'
       const subsResult = await portfolioService.getSubscriptions(account)
       if (subsResult.success) {
         setSubscriptions(subsResult.data || [])
       }
 
-      // 加载订阅者列表
+      // TODO: Translate '加载订阅者列表'
       const subscribersResult = await portfolioService.getSubscribers(account)
       if (subscribersResult.success) {
         setSubscribers(subscribersResult.data || [])
@@ -67,7 +67,7 @@ export default function SubscriptionManager() {
     }
   }, [isConnected, account])
 
-  // 取消订阅
+  // TODO: Translate '取消订阅'
   const handleUnsubscribe = async (targetAddress) => {
     try {
       const result = await portfolioService.unsubscribe(targetAddress)
@@ -110,7 +110,7 @@ export default function SubscriptionManager() {
 
   return (
     <div className="h-full overflow-auto p-4 space-y-6">
-      {/* 头部统计 */}
+      {/* TODO: Translate '头部统计' */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-3">
@@ -154,7 +154,7 @@ export default function SubscriptionManager() {
         </Alert>
       )}
 
-      {/* 标签切换 */}
+      {/* TODO: Translate '标签切换' */}
       <div className="flex gap-2 border-b">
         <Button
           variant={activeTab === 'subscriptions' ? 'default' : 'ghost'}
@@ -172,7 +172,7 @@ export default function SubscriptionManager() {
         </Button>
       </div>
 
-      {/* 订阅列表 */}
+      {/* TODO: Translate '订阅列表' */}
       {activeTab === 'subscriptions' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -228,7 +228,7 @@ export default function SubscriptionManager() {
         </div>
       )}
 
-      {/* 订阅者列表 */}
+      {/* TODO: Translate '订阅者列表' */}
       {activeTab === 'subscribers' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">

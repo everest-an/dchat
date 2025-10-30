@@ -19,7 +19,7 @@ import { Alert, AlertDescription } from '../ui/alert'
 import { Loader2, X, Plus, AlertCircle, CheckCircle2 } from 'lucide-react'
 
 /**
- * 添加项目对话框
+ * TODO: Translate '添加项目对话框'
  */
 export default function AddProjectDialog({ open, onClose, onSuccess }) {
   const { provider, signer } = useWeb3()
@@ -147,7 +147,7 @@ export default function AddProjectDialog({ open, onClose, onSuccess }) {
               </Alert>
             )}
 
-            {/* 项目标题 */}
+            {/* TODO: Translate '项目标题' */}
             <div className="space-y-2">
               <Label htmlFor="title">项目标题 *</Label>
               <Input
@@ -159,7 +159,7 @@ export default function AddProjectDialog({ open, onClose, onSuccess }) {
               />
             </div>
 
-            {/* 项目描述 */}
+            {/* TODO: Translate '项目描述' */}
             <div className="space-y-2">
               <Label htmlFor="description">项目描述 *</Label>
               <Textarea
@@ -172,7 +172,7 @@ export default function AddProjectDialog({ open, onClose, onSuccess }) {
               />
             </div>
 
-            {/* 项目分类 */}
+            {/* TODO: Translate '项目分类' */}
             <div className="space-y-2">
               <Label htmlFor="category">项目分类 *</Label>
               <Input
@@ -184,7 +184,7 @@ export default function AddProjectDialog({ open, onClose, onSuccess }) {
               />
             </div>
 
-            {/* 技术栈 */}
+            {/* TODO: Translate '技术栈' */}
             <div className="space-y-2">
               <Label htmlFor="technologies">技术栈 *</Label>
               <div className="flex gap-2">
@@ -224,7 +224,7 @@ export default function AddProjectDialog({ open, onClose, onSuccess }) {
               )}
             </div>
 
-            {/* 预计工时 */}
+            {/* TODO: Translate '预计工时' */}
             <div className="space-y-2">
               <Label htmlFor="estimatedHours">预计工时 (小时) *</Label>
               <Input
@@ -238,7 +238,7 @@ export default function AddProjectDialog({ open, onClose, onSuccess }) {
               />
             </div>
 
-            {/* 是否公开 */}
+            {/* TODO: Translate '是否公开' */}
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label htmlFor="isPublic">公开项目</Label>

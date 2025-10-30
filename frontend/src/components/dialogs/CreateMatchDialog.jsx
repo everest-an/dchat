@@ -17,7 +17,7 @@ import { Alert, AlertDescription } from '../ui/alert'
 import { Loader2, X, Plus, AlertCircle, CheckCircle2, Sparkles } from 'lucide-react'
 
 /**
- * 创建机会匹配对话框
+ * TODO: Translate '创建机会匹配对话框'
  */
 export default function CreateMatchDialog({ open, onClose, onSuccess }) {
   const { provider, signer } = useWeb3()
@@ -45,7 +45,7 @@ export default function CreateMatchDialog({ open, onClose, onSuccess }) {
       const result = await portfolioService.createOpportunityMatch(skills)
 
       if (result.success) {
-        // 解析匹配结果
+        // TODO: Translate '解析匹配结果'
         const matchIds = result.receipt?.logs
           ?.filter(log => log.topics[0] === portfolioService.contract.interface.getEvent('OpportunityMatched').topicHash)
           ?.map(log => portfolioService.contract.interface.parseLog(log))
@@ -103,7 +103,7 @@ export default function CreateMatchDialog({ open, onClose, onSuccess }) {
     }
   }
 
-  // 常用技能快捷添加
+  // TODO: Translate '常用技能快捷添加'
   const commonSkills = [
     'Solidity',
     'React',
@@ -177,7 +177,7 @@ export default function CreateMatchDialog({ open, onClose, onSuccess }) {
               </Alert>
             )}
 
-            {/* 技能输入 */}
+            {/* TODO: Translate '技能输入' */}
             <div className="space-y-2">
               <Label htmlFor="skills">需要的技能 *</Label>
               <div className="flex gap-2">
@@ -199,7 +199,7 @@ export default function CreateMatchDialog({ open, onClose, onSuccess }) {
                 </Button>
               </div>
 
-              {/* 已添加的技能 */}
+              {/* TODO: Translate '已添加的技能' */}
               {skills.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {skills.map((skill, index) => (
@@ -223,7 +223,7 @@ export default function CreateMatchDialog({ open, onClose, onSuccess }) {
               </p>
             </div>
 
-            {/* 常用技能快捷选择 */}
+            {/* TODO: Translate '常用技能快捷选择' */}
             <div className="space-y-2">
               <Label>常用技能 (点击快速添加)</Label>
               <div className="flex flex-wrap gap-2">
@@ -247,7 +247,7 @@ export default function CreateMatchDialog({ open, onClose, onSuccess }) {
               </div>
             </div>
 
-            {/* 说明 */}
+            {/* TODO: Translate '说明' */}
             <Alert>
               <Sparkles className="h-4 w-4" />
               <AlertDescription>

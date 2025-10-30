@@ -39,7 +39,7 @@ const KeyManagementDialog = ({ isOpen, onClose }) => {
       const keys = await encryptionService.generateKeyPair()
       encryptionService.storeKeyPair(account, keys)
       
-      // 尝试存储到区块链(可选)
+      // TODO: Translate '尝试存储到区块链'(TODO: Translate '可选')
       try {
         await encryptionService.storePublicKeyOnChain(keys.publicKey)
       } catch (err) {
