@@ -14,6 +14,17 @@
     "VITE_LIVING_PORTFOLIO_ADDRESS": "0xYourLivingPortfolioAddress",
     "VITE_VERIFIED_CREDENTIALS_ADDRESS": "0xYourVerifiedCredentialsAddress"
   },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
