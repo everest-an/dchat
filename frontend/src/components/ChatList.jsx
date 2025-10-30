@@ -27,7 +27,7 @@ const ChatList = () => {
   const [myProfile, setMyProfile] = useState(null)
 
   // 加载用户资料
-  useEffect(() => {
+  const loadMyProfile = () => {
     if (account) {
       const profile = UserProfileService.getProfile(account)
       setMyProfile({
@@ -36,6 +36,20 @@ const ChatList = () => {
         bio: profile?.bio || ''
       })
     }
+  }
+
+  useEffect(() => {
+    loadMyProfile()
+    
+    // 监听个人资料更新事件
+    const handleProfileUpdate = (e) => {
+      if (e.detail.address.toLowerCase() === account?.toLowerCase()) {
+        loadMyProfile()
+      }
+    }
+    
+    window.addEventListener('profileUpdated', handleProfileUpdate)
+    return () => window.removeEventListener('profileUpdated', handleProfileUpdate)
   }, [account])
 
   // 加载对话列表

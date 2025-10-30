@@ -4,7 +4,7 @@ import { Button } from '../ui/button'
 import { UserProfileService } from '../../services/UserProfileService'
 import { useToast } from '../../contexts/ToastContext'
 
-const EditProfileDialog = ({ isOpen, onClose, address }) => {
+const EditProfileDialog = ({ isOpen, onClose, address, onSave }) => {
   const { success, error } = useToast()
   const [profile, setProfile] = useState({
     username: '',
@@ -43,6 +43,12 @@ const EditProfileDialog = ({ isOpen, onClose, address }) => {
     const saved = UserProfileService.saveProfile(address, profile)
     if (saved) {
       success('Success', 'Profile updated successfully')
+      // 触发父组件刷新
+      if (onSave) {
+        onSave(profile)
+      }
+      // 触发全局事件以刷新所有组件
+      window.dispatchEvent(new CustomEvent('profileUpdated', { detail: { address, profile } }))
       onClose()
     } else {
       error('Error', 'Failed to save profile')
