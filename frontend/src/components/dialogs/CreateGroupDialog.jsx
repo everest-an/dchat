@@ -6,6 +6,7 @@ import { useToast } from '../../contexts/ToastContext'
 import { useWeb3 } from '../../contexts/Web3Context'
 import { UserProfileService } from '../../services/UserProfileService'
 import { subscriptionService } from '../../services/SubscriptionService'
+import GroupService from '../../services/GroupService'
 import UpgradeDialog from './UpgradeDialog'
 
 const CreateGroupDialog = ({ isOpen, onClose }) => {
@@ -68,43 +69,41 @@ const CreateGroupDialog = ({ isOpen, onClose }) => {
     setMembers(members.filter(m => m.address !== address))
   }
 
-  const handleCreateGroup = () => {
+  const handleCreateGroup = async () => {
     if (!groupName.trim()) {
       error('Error', 'Please enter a group name')
       return
     }
 
-    // 创建群组对象
-    const group = {
-      id: Date.now().toString(),
-      name: groupName,
-      description: groupDescription,
-      avatar: groupName.charAt(0).toUpperCase(),
-      createdBy: account,
-      createdAt: Date.now(),
-      members: [
-        {
-          address: account,
-          username: UserProfileService.getDisplayName(account),
-          avatar: UserProfileService.getDisplayAvatar(account),
-          role: 'admin',
-          joinedAt: Date.now()
+    try {
+      // 使用 GroupService 创建群组
+      const groupData = {
+        name: groupName,
+        description: groupDescription,
+        avatar: {
+          type: 'emoji',
+          emoji: groupName.charAt(0).toUpperCase()
         },
-        ...members.map(m => ({ ...m, joinedAt: Date.now() }))
-      ],
-      memberCount: members.length + 1
+        creator: account,
+        members: members.map(m => ({ address: m.address })),
+        settings: {
+          privacy: 'private',
+          joinApproval: true,
+          allowMemberInvite: true,
+          allowFileSharing: true,
+          maxMembers: 100
+        }
+      }
+
+      const group = await GroupService.createGroup(groupData)
+
+      success('Created!', `Group "${groupName}" created successfully`)
+      onClose()
+      navigate(`/group/${group.id}`)
+    } catch (err) {
+      console.error('Error creating group:', err)
+      error('Error', err.message || 'Failed to create group')
     }
-
-    // 保存到本地存储
-    const groupsKey = 'dchat_groups'
-    const stored = localStorage.getItem(groupsKey)
-    const groups = stored ? JSON.parse(stored) : []
-    groups.unshift(group)
-    localStorage.setItem(groupsKey, JSON.stringify(groups))
-
-    success('Created!', `Group "${groupName}" created successfully`)
-    onClose()
-    navigate(`/group/${group.id}`)
   }
 
   if (!isOpen) return null

@@ -5,7 +5,9 @@ import { Button } from './ui/button'
 import { useWeb3 } from '../contexts/Web3Context'
 import { useToast } from '../contexts/ToastContext'
 import { UserProfileService } from '../services/UserProfileService'
-import { ipfsService } from '../services/IPFSService'
+import GroupService from '../services/GroupService'
+import GroupMessageService from '../services/GroupMessageService'
+import ipfsService from '../services/ipfsService'
 
 const GroupChat = () => {
   const navigate = useNavigate()
@@ -77,25 +79,15 @@ const GroupChat = () => {
     setSending(true)
 
     try {
-      const newMessage = {
-        id: Date.now().toString(),
-        text: messageText,
-        sender: account,
-        senderName: UserProfileService.getDisplayName(account),
-        senderAvatar: UserProfileService.getDisplayAvatar(account),
-        timestamp: new Date().toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit'
-        }),
-        type: 'text'
-      }
+      // 使用 GroupMessageService 发送消息
+      const newMessage = await GroupMessageService.sendMessage(
+        groupId,
+        account,
+        messageText
+      )
 
-      const updatedMessages = [...messages, newMessage]
-      setMessages(updatedMessages)
-
-      // 保存到本地存储
-      const messagesKey = `dchat_group_messages_${groupId}`
-      localStorage.setItem(messagesKey, JSON.stringify(updatedMessages))
+      // 更新本地消息列表
+      setMessages([...messages, newMessage])
 
       success('Sent!', 'Message sent to group')
     } catch (err) {
