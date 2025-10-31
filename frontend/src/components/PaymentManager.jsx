@@ -21,12 +21,15 @@ import {
 } from 'lucide-react'
 import { formatAddress, getExplorerUrl } from '../config/web3'
 import PaymentDialog from './dialogs/PaymentDialog'
+import { useLanguage } from '../contexts/LanguageContext'
 
 /**
  * TODO: Translate '支付管理页面组件'
  * TODO: Translate '管理托管支付'
  */
 export default function PaymentManager({ user }) {
+  const { t } = useLanguage()
+
   const { account, provider, signer, isConnected } = useWeb3()
   
   // useWeb3 accountTODO: Translate '或'user.walletAddress

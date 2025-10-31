@@ -67,10 +67,10 @@ const Moments = () => {
 
   const getTypeLabel = (type) => {
     switch (type) {
-      case 'project_update': return {t('project_update')}
-      case 'industry_insights': return {t('industry_insights')}
-      case 'networking': return {t('business_cooperation')}
-      default: return {t('moments_dynamic')}
+      case 'project_update': return t('project_update')
+      case 'industry_insights': return t('industry_insights')
+      case 'networking': return t('business_cooperation')
+      default: return t('moments_dynamic')
     }
   }
 

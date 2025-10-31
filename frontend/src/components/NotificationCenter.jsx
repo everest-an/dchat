@@ -92,7 +92,7 @@ export default function NotificationCenter() {
     const handleAvailabilityUpdated = (data) => {
       addNotification({
         type: 'availability',
-        title: {t('availability_update')},
+        title: t('availability_update'),
         message: `${formatAddress(data.owner)} 更新了可用性状态`,
         address: data.owner,
         icon: TrendingUp
@@ -103,7 +103,7 @@ export default function NotificationCenter() {
     const handleProjectAdded = (data) => {
       addNotification({
         type: 'project',
-        title: {t('new_project')},
+        title: t('new_project'),
         message: `${formatAddress(data.owner)} 添加了新项目: ${data.title}`,
         address: data.owner,
         icon: Briefcase
@@ -115,7 +115,7 @@ export default function NotificationCenter() {
       if (data.target === account) {
         addNotification({
           type: 'subscribe',
-          title: {t('new_subscriber')},
+          title: t('new_subscriber'),
           message: `${formatAddress(data.subscriber)} 订阅了您的更新`,
           address: data.subscriber,
           icon: User
@@ -128,7 +128,7 @@ export default function NotificationCenter() {
       if (data.recipient === account) {
         addNotification({
           type: 'credential',
-          title: {t('new_credential')},
+          title: t('new_credential'),
           message: `您获得了新凭证: ${data.title}`,
           address: data.issuer,
           icon: Award
@@ -161,7 +161,7 @@ export default function NotificationCenter() {
     const hours = Math.floor(diff / 3600000)
     const days = Math.floor(diff / 86400000)
 
-    if (minutes < 1) return {t('just_now')}
+    if (minutes < 1) return t('just_now')
     if (minutes < 60) return `${minutes}分钟前`
     if (hours < 24) return `${hours}小时前`
     if (days < 7) return `${days}天前`

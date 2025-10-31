@@ -16,11 +16,14 @@ import { Textarea } from '../ui/textarea'
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 import { Alert, AlertDescription } from '../ui/alert'
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 /**
  * TODO: Translate '更新可用性对话框'
  */
 export default function UpdateAvailabilityDialog({ open, onClose, onSuccess, currentAvailability }) {
+  const { t } = useLanguage()
+
   const { provider, signer } = useWeb3()
   const [formData, setFormData] = useState({
     status: AvailabilityStatus.AVAILABLE,

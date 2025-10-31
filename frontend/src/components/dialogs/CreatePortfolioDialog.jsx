@@ -16,11 +16,14 @@ import { Textarea } from '../ui/textarea'
 import { Badge } from '../ui/badge'
 import { Alert, AlertDescription } from '../ui/alert'
 import { Loader2, X, Plus, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 /**
  * TODO: Translate '创建作品集对话框'
  */
 export default function CreatePortfolioDialog({ open, onClose, onSuccess, userAddress }) {
+  const { t } = useLanguage()
+
   const { provider, signer } = useWeb3()
   const [formData, setFormData] = useState({
     title: '',

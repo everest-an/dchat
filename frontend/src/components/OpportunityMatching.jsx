@@ -21,12 +21,15 @@ import {
 import { formatAddress } from '../config/web3'
 import CreateMatchDialog from './dialogs/CreateMatchDialog'
 import SubscribeButton from './SubscribeButton'
+import { useLanguage } from '../contexts/LanguageContext'
 
 /**
  * TODO: Translate '机会匹配页面组件'
  * TODO: Translate '显示和管理技能匹配的机会'
  */
 export default function OpportunityMatching({ user }) {
+  const { t } = useLanguage()
+
   const { account, provider, signer, isConnected } = useWeb3()
   
   // useWeb3 accountTODO: Translate '或'user.walletAddress

@@ -17,11 +17,14 @@ import { Badge } from '../ui/badge'
 import { Switch } from '../ui/switch'
 import { Alert, AlertDescription } from '../ui/alert'
 import { Loader2, X, Plus, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 /**
  * TODO: Translate '添加项目对话框'
  */
 export default function AddProjectDialog({ open, onClose, onSuccess }) {
+  const { t } = useLanguage()
+
   const { provider, signer } = useWeb3()
   const [formData, setFormData] = useState({
     title: '',

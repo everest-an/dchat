@@ -15,11 +15,14 @@ import { Label } from '../ui/label'
 import { Badge } from '../ui/badge'
 import { Alert, AlertDescription } from '../ui/alert'
 import { Loader2, X, Plus, AlertCircle, CheckCircle2, Sparkles } from 'lucide-react'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 /**
  * TODO: Translate '创建机会匹配对话框'
  */
 export default function CreateMatchDialog({ open, onClose, onSuccess }) {
+  const { t } = useLanguage()
+
   const { provider, signer } = useWeb3()
   const [skills, setSkills] = useState([])
   const [skillInput, setSkillInput] = useState('')
