@@ -12,26 +12,14 @@ export default defineConfig({
     },
   },
   build: {
-    // 代码分割优化
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          // React 核心库
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          // Web3 相关库
-          'web3-vendor': ['ethers'],
-          // UI 组件库
-          'ui-vendor': ['lucide-react', 'framer-motion'],
-        }
-      }
-    },
-    // 提高 chunk 大小警告阈值
-    chunkSizeWarningLimit: 1000,
-    // 使用默认的 esbuild 压缩（更快）
+    outDir: 'dist',
+    sourcemap: false,
     minify: 'esbuild',
+    target: 'es2015',
+    chunkSizeWarningLimit: 2000,
   },
-  // 优化依赖预构建
-  optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'ethers']
-  }
+  server: {
+    port: 3000,
+    host: true,
+  },
 })
