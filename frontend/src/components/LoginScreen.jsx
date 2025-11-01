@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Wallet, MessageCircle, Lock, Shield, AlertCircle, Mail, Phone, ArrowLeft, Loader2 } from 'lucide-react'
+import { Wallet, Mail, Phone, ArrowLeft, Loader2 } from 'lucide-react'
 import { useWeb3 } from '../contexts/Web3Context'
 import { useLanguage } from '../contexts/LanguageContext'
+import DchatLogo from './DchatLogo'
 
 
 const LoginScreen = ({ onLogin }) => {
@@ -22,21 +23,18 @@ const LoginScreen = ({ onLogin }) => {
     connectWallet 
   } = useWeb3()
 
-  // Web3 TODO: Translate {t('wallet_login')}
+  // Web3 Wallet Login
   const handleConnectWallet = async () => {
     try {
       setError('')
       setIsSubmitting(true)
       
-      // TODO: Translate {t('connect_wallet_get_address')}
       const walletAddress = await connectWallet()
       
       if (walletAddress) {
-        // TODO: Translate {t('generate_auth_token')}
         const authToken = `web3_${walletAddress}_${Date.now()}`
         localStorage.setItem('authToken', authToken)
         
-        // TODO: Translate {t('create_user_data')}
         const userData = {
           walletAddress: walletAddress,
           username: `User_${walletAddress.slice(2, 8)}`,
@@ -46,7 +44,6 @@ const LoginScreen = ({ onLogin }) => {
           createdAt: new Date().toISOString()
         }
         
-        // TODO: Translate {t('login_success')}
         onLogin(userData)
       } else {
         throw new Error('Failed to connect wallet. Please try again.')
@@ -59,7 +56,7 @@ const LoginScreen = ({ onLogin }) => {
     }
   }
 
-  // TODO: Translate {t('email_login')}(TODO: Translate {t('simplified_version')} - TODO: Translate {t('no_backend_required')})
+  // Email Login (Simplified version - no backend required)
   const handleEmailLogin = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -70,13 +67,11 @@ const LoginScreen = ({ onLogin }) => {
         throw new Error('Please enter a valid email address')
       }
 
-      // TODO: Translate {t('generate_deterministic_wallet_address')}（TODO: Translate {t('based_on')}email）
       const hash = email.split('').reduce((acc, char) => {
         return ((acc << 5) - acc) + char.charCodeAt(0)
       }, 0)
       const mockAddress = '0x' + Math.abs(hash).toString(16).padStart(40, '0').slice(0, 40)
       
-      // TODO: Translate {t('create_user_data')}
       const userData = {
         email,
         username: email.split('@')[0],
@@ -86,7 +81,6 @@ const LoginScreen = ({ onLogin }) => {
         createdAt: new Date().toISOString()
       }
       
-      // TODO: Translate {t('login_success')}
       onLogin(userData)
     } catch (error) {
       console.error('Email login error:', error)
@@ -96,7 +90,7 @@ const LoginScreen = ({ onLogin }) => {
     }
   }
 
-  // TODO: Translate {t('phone_login')}(TODO: Translate {t('simplified_version')} - TODO: Translate {t('no_backend_required')})
+  // Phone Login (Simplified version - no backend required)
   const handlePhoneLogin = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -107,13 +101,11 @@ const LoginScreen = ({ onLogin }) => {
         throw new Error('Please enter a valid phone number')
       }
 
-      // TODO: Translate {t('generate_deterministic_wallet_address')}（TODO: Translate {t('based_on')}phone）
       const hash = phone.split('').reduce((acc, char) => {
         return ((acc << 5) - acc) + char.charCodeAt(0)
       }, 0)
       const mockAddress = '0x' + Math.abs(hash).toString(16).padStart(40, '0').slice(0, 40)
       
-      // TODO: Translate {t('create_user_data')}
       const userData = {
         phone,
         username: `User_${phone.slice(-4)}`,
@@ -123,46 +115,10 @@ const LoginScreen = ({ onLogin }) => {
         createdAt: new Date().toISOString()
       }
       
-      // TODO: Translate {t('login_success')}
       onLogin(userData)
     } catch (error) {
       console.error('Phone login error:', error)
       setError(error.message || 'Failed to login with phone')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  // Alipay login(TODO: Translate {t('simplified_version')} - TODO: Translate {t('no_backend_required')})
-  const handleAlipayLogin = async () => {
-    setIsSubmitting(true)
-    setError('')
-    
-    try {
-      // TODO: Translate {t('generate_simulation')} Alipay ID
-      const alipayId = 'alipay_' + Math.random().toString(36).substr(2, 9)
-      
-      // TODO: Translate {t('generate_deterministic_wallet_address')}（TODO: Translate {t('based_on')}alipayId）
-      const hash = alipayId.split('').reduce((acc, char) => {
-        return ((acc << 5) - acc) + char.charCodeAt(0)
-      }, 0)
-      const mockAddress = '0x' + Math.abs(hash).toString(16).padStart(40, '0').slice(0, 40)
-      
-      // TODO: Translate {t('create_user_data')}
-      const userData = {
-        alipayId: alipayId,
-        username: 'Alipay User',
-        walletAddress: mockAddress,
-        loginMethod: 'alipay',
-        web3Enabled: false,
-        createdAt: new Date().toISOString()
-      }
-      
-      // TODO: Translate {t('login_success')}
-      onLogin(userData)
-    } catch (error) {
-      console.error('Alipay login error:', error)
-      setError(error.message || 'Failed to login with Alipay')
     } finally {
       setIsSubmitting(false)
     }
@@ -175,169 +131,145 @@ const LoginScreen = ({ onLogin }) => {
     setError('')
   }
 
-  // TODO: Translate {t('login_method_selection_screen')}
+  // Login method selection screen
   if (loginMethod === 'select') {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-12">
-          <div className="flex items-center justify-center w-16 h-16 mb-4">
-            <div className="relative">
-              <MessageCircle className="w-12 h-12 text-black" strokeWidth={1.5} />
-              <Lock className="w-6 h-6 text-black absolute -bottom-1 -right-1 bg-white rounded-full p-1" strokeWidth={2} />
-            </div>
+      <div className="min-h-screen bg-gray-50 flex">
+        {/* Left: Brand Display */}
+        <div className="hidden lg:flex lg:w-1/2 bg-black items-center justify-center p-12">
+          <div className="max-w-md">
+            <DchatLogo size={120} className="text-white mb-8" />
+            <h1 className="text-5xl font-bold text-white mb-4">Dchat</h1>
+            <p className="text-xl text-gray-300">
+              Decentralized Signature
+            </p>
           </div>
-          <h1 className="text-3xl font-bold text-black mb-2">Dchat</h1>
-          <p className="text-gray-500 text-center max-w-sm">
-            Secure Business Communication Platform
+        </div>
+
+        {/* Right: Login Form */}
+        <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+          {/* Mobile Logo */}
+          <div className="lg:hidden flex flex-col items-center mb-12">
+            <DchatLogo size={60} className="text-black mb-4" />
+            <h1 className="text-3xl font-bold text-black mb-2">Dchat</h1>
+            <p className="text-gray-500 text-center">
+              Secure Business Communication Platform
+            </p>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="w-full max-w-sm mb-4 bg-red-50 border border-red-200 rounded-xl p-4">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          )}
+
+          {/* Login Options */}
+          <div className="w-full max-w-sm space-y-4">
+            {/* MetaMask Login */}
+            <Button
+              onClick={() => setLoginMethod('wallet')}
+              className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-full text-base font-medium flex items-center justify-center gap-3 transition-all duration-200"
+            >
+              <img src="/metamask-fox.svg" alt="MetaMask" className="w-6 h-6" onError={(e) => e.target.style.display = 'none'} />
+              MetaMask
+            </Button>
+
+            {/* Divider */}
+            <div className="relative py-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-gray-50 text-gray-500">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            {/* Email Login */}
+            <Button
+              onClick={() => setLoginMethod('email')}
+              variant="outline"
+              className="w-full h-14 border-2 border-gray-200 hover:border-gray-300 hover:bg-white text-black rounded-full text-base font-medium flex items-center justify-center gap-3 transition-all duration-200 bg-white"
+            >
+              <Mail className="w-5 h-5" />
+              Email
+            </Button>
+
+            {/* Phone Login */}
+            <Button
+              onClick={() => setLoginMethod('phone')}
+              variant="outline"
+              className="w-full h-14 border-2 border-gray-200 hover:border-gray-300 hover:bg-white text-black rounded-full text-base font-medium flex items-center justify-center gap-3 transition-all duration-200 bg-white"
+            >
+              <Phone className="w-5 h-5" />
+              Phone
+            </Button>
+          </div>
+
+          {/* Security Features */}
+          <div className="w-full max-w-sm mt-8 space-y-3 text-sm text-gray-500">
+            <p className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
+              End-to-end encryption protection
+            </p>
+            <p className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
+              Quantum-resistant encryption
+            </p>
+            <p className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
+              Blockchain message storage
+            </p>
+          </div>
+
+          {/* Terms */}
+          <p className="w-full max-w-sm mt-8 text-xs text-center text-gray-400">
+            By connecting your wallet, you agree to our{' '}
+            <a href="#" className="text-black hover:underline">Terms of Service</a>
+            {' '}and{' '}
+            <a href="#" className="text-black hover:underline">Privacy Policy</a>
           </p>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="w-full max-w-sm mb-4 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-red-800">{error}</p>
-          </div>
-        )}
-
-        {/* Login Options */}
-        <div className="w-full max-w-sm space-y-4">
-          {/* Web3 Wallet Login */}
-          <Button
-            onClick={() => setLoginMethod('wallet')}
-            className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-xl text-base font-medium flex items-center justify-center gap-3 transition-all duration-200"
-          >
-            <Wallet className="w-5 h-5" />
-            Web3 Wallet
-          </Button>
-
-          {/* Divider */}
-          <div className="relative py-4">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500">
-                Or continue with
-              </span>
-            </div>
-          </div>
-
-          {/* Email Login */}
-          <Button
-            onClick={() => setLoginMethod('email')}
-            variant="outline"
-            className="w-full h-14 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-black rounded-xl text-base font-medium flex items-center justify-center gap-3 transition-all duration-200"
-          >
-            <Mail className="w-5 h-5" />
-            Email
-          </Button>
-
-          {/* Phone Login */}
-          <Button
-            onClick={() => setLoginMethod('phone')}
-            variant="outline"
-            className="w-full h-14 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-black rounded-xl text-base font-medium flex items-center justify-center gap-3 transition-all duration-200"
-          >
-            <Phone className="w-5 h-5" />
-            Phone
-          </Button>
-
-          {/* Alipay Login */}
-          <Button
-            onClick={() => setLoginMethod('alipay')}
-            variant="outline"
-            className="w-full h-14 border-2 border-blue-500 hover:border-blue-600 hover:bg-blue-50 text-blue-600 rounded-xl text-base font-medium flex items-center justify-center gap-3 transition-all duration-200"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M6.5 4C5.67 4 5 4.67 5 5.5v13c0 .83.67 1.5 1.5 1.5h11c.83 0 1.5-.67 1.5-1.5v-13c0-.83-.67-1.5-1.5-1.5h-11zm8.5 8.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
-            </svg>
-            Alipay
-          </Button>
-
-          {/* Info Text */}
-          <p className="text-gray-400 text-xs text-center leading-relaxed pt-4">
-            Email, phone, and Alipay login will automatically create a secure wallet for you
-          </p>
-        </div>
-
-        {/* Features List */}
-        <div className="w-full max-w-sm space-y-4 pt-8">
-          <div className="flex items-center gap-3 text-sm text-gray-600">
-            <Shield className="w-4 h-4 text-gray-400" />
-            <span>End-to-end encryption protection</span>
-          </div>
-          <div className="flex items-center gap-3 text-sm text-gray-600">
-            <Lock className="w-4 h-4 text-gray-400" />
-            <span>Quantum-resistant encryption</span>
-          </div>
-          <div className="flex items-center gap-3 text-sm text-gray-600">
-            <MessageCircle className="w-4 h-4 text-gray-400" />
-            <span>Blockchain message storage</span>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-auto pb-8 text-xs text-gray-400 text-center">
-          <p>By connecting your wallet, you agree to our Terms of Service and Privacy Policy</p>
         </div>
       </div>
     )
   }
 
-  // Web3 TODO: Translate {t('wallet_login_screen')}
+  // Wallet Login Screen
   if (loginMethod === 'wallet') {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
-        <div className="w-full max-w-sm">
-          <Button
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
+        <div className="w-full max-w-md">
+          <button
             onClick={resetLoginFlow}
-            variant="ghost"
-            className="mb-8 -ml-2"
+            className="mb-6 flex items-center gap-2 text-gray-600 hover:text-black transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="w-5 h-5" />
             Back
-          </Button>
+          </button>
 
-          <div className="flex flex-col items-center mb-12">
-            <div className="flex items-center justify-center w-16 h-16 mb-4">
-              <Wallet className="w-12 h-12 text-black" />
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+            <div className="flex flex-col items-center mb-8">
+              <DchatLogo size={60} className="text-black mb-4" />
+              <h2 className="text-2xl font-bold text-black mb-2">Connect Wallet</h2>
+              <p className="text-gray-500 text-center">
+                Connect your Web3 wallet to get started
+              </p>
             </div>
-            <h1 className="text-2xl font-bold text-black mb-2">
-              Connect Wallet
-            </h1>
-            <p className="text-gray-500 text-center max-w-sm">
-              Connect your Web3 wallet to continue
-            </p>
-          </div>
 
-          {(walletError || error) && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 mb-6">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm text-red-800">{walletError || error}</p>
-                {!isMetaMaskInstalled() && (
-                  <a 
-                    href="https://metamask.io/download/" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-sm text-red-600 underline mt-2 inline-block"
-                  >
-                    Install MetaMask
-                  </a>
-                )}
+            {error && (
+              <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-sm text-red-800">{error}</p>
               </div>
-            </div>
-          )}
+            )}
 
-          {isMetaMaskInstalled() ? (
             <Button
               onClick={handleConnectWallet}
-              disabled={isConnecting || isSubmitting}
-              className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-xl text-base font-medium flex items-center justify-center gap-3 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSubmitting || isConnecting}
+              className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-full text-base font-medium flex items-center justify-center gap-3 transition-all duration-200"
             >
-              {(isConnecting || isSubmitting) ? (
+              {(isSubmitting || isConnecting) ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
                   Connecting...
@@ -349,107 +281,88 @@ const LoginScreen = ({ onLogin }) => {
                 </>
               )}
             </Button>
-          ) : (
-            <div className="space-y-4">
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-                <p className="text-sm text-yellow-800 mb-3">
-                  MetaMask is not installed. Please install MetaMask to use wallet login.
-                </p>
-                <a 
-                  href="https://metamask.io/download/" 
-                  target="_blank" 
+
+            {!isMetaMaskInstalled && (
+              <p className="mt-4 text-sm text-center text-gray-500">
+                Don't have MetaMask?{' '}
+                <a
+                  href="https://metamask.io/download/"
+                  target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block w-full"
+                  className="text-black hover:underline font-medium"
                 >
-                  <Button className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white rounded-xl">
-                    Install MetaMask
-                  </Button>
+                  Install it here
                 </a>
-              </div>
-              
-
-            </div>
-          )}
-
-          <div className="mt-6 p-4 bg-blue-50 rounded-xl">
-            <h4 className="font-medium text-blue-900 mb-2">What is MetaMask?</h4>
-            <p className="text-sm text-blue-800">
-              MetaMask is a crypto wallet that allows you to interact with blockchain applications.
-              It's free and secure.
-            </p>
+              </p>
+            )}
           </div>
         </div>
       </div>
     )
   }
 
-  // TODO: Translate {t('email_login_screen')}
+  // Email Login Screen
   if (loginMethod === 'email') {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
-        <div className="w-full max-w-sm">
-          <Button
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
+        <div className="w-full max-w-md">
+          <button
             onClick={resetLoginFlow}
-            variant="ghost"
-            className="mb-8 -ml-2"
+            className="mb-6 flex items-center gap-2 text-gray-600 hover:text-black transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="w-5 h-5" />
             Back
-          </Button>
+          </button>
 
-          <div className="flex flex-col items-center mb-12">
-            <div className="flex items-center justify-center w-16 h-16 mb-4">
-              <Mail className="w-12 h-12 text-black" />
-            </div>
-            <h1 className="text-2xl font-bold text-black mb-2">
-              Email Login
-            </h1>
-            <p className="text-gray-500 text-center max-w-sm">
-              Enter your email to continue
-            </p>
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 mb-6">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          )}
-
-          <form onSubmit={handleEmailLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black"
-                required
-              />
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+            <div className="flex flex-col items-center mb-8">
+              <DchatLogo size={60} className="text-black mb-4" />
+              <h2 className="text-2xl font-bold text-black mb-2">Email Login</h2>
+              <p className="text-gray-500 text-center">
+                Enter your email to continue
+              </p>
             </div>
 
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-xl text-base font-medium flex items-center justify-center gap-3 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Logging in...
-                </>
-              ) : (
-                'Continue'
-              )}
-            </Button>
-          </form>
+            {error && (
+              <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-sm text-red-800">{error}</p>
+              </div>
+            )}
 
-          <div className="mt-6 p-4 bg-blue-50 rounded-xl">
-            <p className="text-sm text-blue-800">
-              A secure wallet will be automatically created for you.
+            <form onSubmit={handleEmailLogin} className="space-y-4">
+              <div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-full h-14 px-4 border-2 border-gray-200 rounded-full focus:border-black focus:outline-none transition-colors text-base"
+                  disabled={isSubmitting}
+                  required
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-full text-base font-medium flex items-center justify-center gap-3 transition-all duration-200"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Logging in...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-5 h-5" />
+                    Continue with Email
+                  </>
+                )}
+              </Button>
+            </form>
+
+            <p className="mt-6 text-xs text-center text-gray-400">
+              Email, phone, and Alipay login will automatically create a secure wallet for you.
             </p>
           </div>
         </div>
@@ -457,137 +370,68 @@ const LoginScreen = ({ onLogin }) => {
     )
   }
 
-  // TODO: Translate {t('mobile_login_screen')}
+  // Phone Login Screen
   if (loginMethod === 'phone') {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
-        <div className="w-full max-w-sm">
-          <Button
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
+        <div className="w-full max-w-md">
+          <button
             onClick={resetLoginFlow}
-            variant="ghost"
-            className="mb-8 -ml-2"
+            className="mb-6 flex items-center gap-2 text-gray-600 hover:text-black transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="w-5 h-5" />
             Back
-          </Button>
+          </button>
 
-          <div className="flex flex-col items-center mb-12">
-            <div className="flex items-center justify-center w-16 h-16 mb-4">
-              <Phone className="w-12 h-12 text-black" />
-            </div>
-            <h1 className="text-2xl font-bold text-black mb-2">
-              Phone Login
-            </h1>
-            <p className="text-gray-500 text-center max-w-sm">
-              Enter your phone number to continue
-            </p>
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 mb-6">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          )}
-
-          <form onSubmit={handlePhoneLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+1 (555) 123-4567"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black"
-                required
-              />
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+            <div className="flex flex-col items-center mb-8">
+              <DchatLogo size={60} className="text-black mb-4" />
+              <h2 className="text-2xl font-bold text-black mb-2">Phone Login</h2>
+              <p className="text-gray-500 text-center">
+                Enter your phone number to continue
+              </p>
             </div>
 
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-xl text-base font-medium flex items-center justify-center gap-3 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Logging in...
-                </>
-              ) : (
-                'Continue'
-              )}
-            </Button>
-          </form>
-
-          <div className="mt-6 p-4 bg-blue-50 rounded-xl">
-            <p className="text-sm text-blue-800">
-              A secure wallet will be automatically created for you.
-            </p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Alipay TODO: Translate {t('login_screen')}
-  if (loginMethod === 'alipay') {
-    return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
-        <div className="w-full max-w-sm">
-          <Button
-            onClick={resetLoginFlow}
-            variant="ghost"
-            className="mb-8 -ml-2"
-          >
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            Back
-          </Button>
-
-          <div className="flex flex-col items-center mb-12">
-            <div className="flex items-center justify-center w-16 h-16 mb-4">
-              <svg className="w-12 h-12 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M6.5 4C5.67 4 5 4.67 5 5.5v13c0 .83.67 1.5 1.5 1.5h11c.83 0 1.5-.67 1.5-1.5v-13c0-.83-.67-1.5-1.5-1.5h-11zm8.5 8.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
-              </svg>
-            </div>
-            <h1 className="text-2xl font-bold text-black mb-2">
-              Alipay Login
-            </h1>
-            <p className="text-gray-500 text-center max-w-sm">
-              Connect with Alipay to continue
-            </p>
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 mb-6">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          )}
-
-          <Button
-            onClick={handleAlipayLogin}
-            disabled={isSubmitting}
-            className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-base font-medium flex items-center justify-center gap-3 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Connecting...
-              </>
-            ) : (
-              <>
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6.5 4C5.67 4 5 4.67 5 5.5v13c0 .83.67 1.5 1.5 1.5h11c.83 0 1.5-.67 1.5-1.5v-13c0-.83-.67-1.5-1.5-1.5h-11zm8.5 8.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
-                </svg>
-                Connect with Alipay
-              </>
+            {error && (
+              <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-sm text-red-800">{error}</p>
+              </div>
             )}
-          </Button>
 
-          <div className="mt-6 p-4 bg-blue-50 rounded-xl">
-            <p className="text-sm text-blue-800">
+            <form onSubmit={handlePhoneLogin} className="space-y-4">
+              <div>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+1 (555) 000-0000"
+                  className="w-full h-14 px-4 border-2 border-gray-200 rounded-full focus:border-black focus:outline-none transition-colors text-base"
+                  disabled={isSubmitting}
+                  required
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-full text-base font-medium flex items-center justify-center gap-3 transition-all duration-200"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Logging in...
+                  </>
+                ) : (
+                  <>
+                    <Phone className="w-5 h-5" />
+                    Continue with Phone
+                  </>
+                )}
+              </Button>
+            </form>
+
+            <p className="mt-6 text-xs text-center text-gray-400">
+              Email, phone, and Alipay login will automatically create a secure wallet for you.
             </p>
           </div>
         </div>
