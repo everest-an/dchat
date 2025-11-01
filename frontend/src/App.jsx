@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
 
-// Importcomponents
+// Import components
 import LoginScreen from './components/LoginScreen'
 import MainApp from './components/MainApp'
+import LandingPage from './components/LandingPage'
 import ResponsiveContainer from './components/ResponsiveContainer'
 import { LanguageProvider } from './contexts/LanguageContext'
 import { Web3Provider } from './contexts/Web3Context'
@@ -17,7 +18,7 @@ function App() {
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // fromlocalStoragerestoreloginstate - useAuthService
+  // 从 localStorage 恢复登录状态 - 使用 AuthService
   useEffect(() => {
     // Try to restore session from AuthService
     let restoredUser = authService.restoreSession()
@@ -80,13 +81,13 @@ function App() {
     setIsAuthenticated(false)
     setUser(null)
     
-    // useAuthServiceclearsession
+    // 使用 AuthService 清除会话
     authService.logout()
     
     console.log('👋 User logged out successfully')
   }
 
-  // Loading display
+  // Loading 显示
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-white">
@@ -105,21 +106,44 @@ function App() {
         <Router>
           <ResponsiveContainer>
             <Routes>
+              {/* 首页路由 - 类似 Telegram/WeChat 的设计 */}
+              <Route 
+                path="/" 
+                element={
+                  isAuthenticated ? 
+                    // 已登录用户：直接进入聊天主界面
+                    <MainApp user={user} onLogout={handleLogout} /> : 
+                    // 未登录用户：显示产品介绍页
+                    <LandingPage />
+                } 
+              />
+              
+              {/* 登录页面路由 */}
               <Route 
                 path="/login" 
                 element={
                   !isAuthenticated ? 
                     <LoginScreen onLogin={handleLogin} /> : 
+                    // 已登录用户访问登录页：重定向到首页（聊天界面）
                     <Navigate to="/" replace />
                 } 
               />
+              
+              {/* 主应用路由（聊天、群组、个人页面等） */}
               <Route 
-                path="/*" 
+                path="/app/*" 
                 element={
                   isAuthenticated ? 
                     <MainApp user={user} onLogout={handleLogout} /> : 
+                    // 未登录用户：重定向到登录页
                     <Navigate to="/login" replace />
                 } 
+              />
+              
+              {/* 404 处理 - 重定向到首页 */}
+              <Route 
+                path="*" 
+                element={<Navigate to="/" replace />} 
               />
             </Routes>
           </ResponsiveContainer>
