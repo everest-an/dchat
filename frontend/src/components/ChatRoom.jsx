@@ -6,12 +6,13 @@ import { useWeb3 } from '../contexts/Web3Context'
 import { useToast } from '../contexts/ToastContext'
 import { MessageStorageService } from '../services/MessageStorageService'
 import { UserProfileService } from '../services/UserProfileService'
-import { ipfsService } from '../services/IPFSService'
+import ipfsService from '../services/ipfsService'
 import { encryptMessage, decryptMessage } from '../utils/encryption'
 import { subscriptionService } from '../services/SubscriptionService'
 import UpgradeDialog from './dialogs/UpgradeDialog'
 import PaymentDialog from './dialogs/PaymentDialog'
 import { useLanguage } from '../contexts/LanguageContext'
+import socketService from '../services/socketService'
 
 
 const ChatRoom = () => {
@@ -122,20 +123,66 @@ const ChatRoom = () => {
     }
   }, [isConnected, messageService, loadMessages])
 
-  // TODO: Translate {t('real_time_update')} - TODO: Translate {t('per_message')}5TODO: Translate {t('check_new_message_seconds')}
+  // Connect to Socket.IO server
   useEffect(() => {
-    if (!isConnected || !messageService) return
+    if (!account) return
 
-    pollingInterval.current = setInterval(() => {
-      loadMessages()
-    }, 5000)
+    // Connect to Socket.IO with user account
+    socketService.connect(account)
+
+    // Join room for this conversation
+    const roomId = [account, recipientAddress].sort().join('_')
+    socketService.joinRoom(roomId)
+
+    // Listen for new messages
+    const unsubscribe = socketService.onMessage((data) => {
+      console.log('Received message via Socket.IO:', data)
+      
+      // Only process messages for this room
+      if (data.room_id !== roomId) return
+      
+      // Don't add our own messages (already added when sending)
+      if (data.user_id === account) return
+
+      // Add received message to list
+      const newMessage = {
+        id: data.message_id,
+        text: data.message,
+        sender: 'other',
+        timestamp: new Date(data.timestamp).toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        isRead: false,
+        type: 'text'
+      }
+
+      setMessages(prev => {
+        // Check if message already exists
+        if (prev.some(m => m.id === newMessage.id)) {
+          return prev
+        }
+        const updated = [...prev, newMessage]
+        
+        // Save to local storage
+        const storageKey = `dchat_messages_${account}_${recipientAddress}`
+        localStorage.setItem(storageKey, JSON.stringify(updated))
+        
+        return updated
+      })
+
+      // Update conversations list
+      updateConversationsList(data.message)
+    })
 
     return () => {
-      if (pollingInterval.current) {
-        clearInterval(pollingInterval.current)
-      }
+      // Leave room and disconnect
+      socketService.leaveRoom(roomId)
+      unsubscribe()
     }
-  }, [isConnected, messageService, loadMessages])
+  }, [account, recipientAddress])
+
+  // TODO: Translate {t('real_time_update')} - Removed polling, using Socket.IO instead
 
   // TODO: Translate {t('auto_scroll_bottom')}
   useEffect(() => {
@@ -151,9 +198,12 @@ const ChatRoom = () => {
     setSending(true)
 
     try {
+      // Generate message ID
+      const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      
       // TODO: Translate {t('create_message_object')}
       const newMessage = {
-        id: Date.now().toString(),
+        id: messageId,
         text: messageText,
         sender: 'me',
         timestamp: new Date().toLocaleTimeString('en-US', {
@@ -174,6 +224,10 @@ const ChatRoom = () => {
 
       // TODO: Translate {t('update_chat_list')}
       updateConversationsList(messageText)
+
+      // Send via Socket.IO
+      const roomId = [account, recipientAddress].sort().join('_')
+      socketService.sendMessage(roomId, messageText, messageId)
 
       success('Sent!', 'Message sent successfully')
     } catch (err) {
