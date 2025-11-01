@@ -9,6 +9,7 @@ import LandingPage from './components/LandingPage'
 import ResponsiveContainer from './components/ResponsiveContainer'
 import { LanguageProvider } from './contexts/LanguageContext'
 import { Web3Provider } from './contexts/Web3Context'
+import WagmiWeb3Provider from './components/Web3Provider'
 import { ToastProvider } from './contexts/ToastContext'
 import { Toaster } from './components/ui/toaster'
 import authService from './services/AuthService'
@@ -100,6 +101,7 @@ function App() {
   }
 
   return (
+    <WagmiWeb3Provider>
     <Web3Provider>
       <ToastProvider>
         <LanguageProvider>
@@ -152,6 +154,7 @@ function App() {
         </LanguageProvider>
       </ToastProvider>
     </Web3Provider>
+    </WagmiWeb3Provider>
   )
 }
 
