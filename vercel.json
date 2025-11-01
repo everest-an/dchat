@@ -1,7 +1,7 @@
 {
-  "buildCommand": "cd frontend && npm install --legacy-peer-deps && npm run build",
+  "buildCommand": "cd frontend && pnpm install && pnpm build",
   "outputDirectory": "frontend/dist",
-  "installCommand": "echo 'Skipping root install'",
+  "installCommand": "npm install -g pnpm",
   "framework": null,
   "env": {
     "VITE_CHAIN_ID": "11155111",
@@ -12,7 +12,12 @@
     "VITE_USER_IDENTITY_ADDRESS": "0x32a75De07Cd3FE59A8437445BE37D0546B4Bb17a",
     "VITE_PROJECT_COLLABORATION_ADDRESS": "0x09668e0764B43E8093a65d33620DeAd9BDa1d85c",
     "VITE_LIVING_PORTFOLIO_ADDRESS": "0xYourLivingPortfolioAddress",
-    "VITE_VERIFIED_CREDENTIALS_ADDRESS": "0xYourVerifiedCredentialsAddress"
+    "VITE_VERIFIED_CREDENTIALS_ADDRESS": "0xYourVerifiedCredentialsAddress",
+    "VITE_API_BASE_URL": "https://dchat.pro/api",
+    "VITE_BACKEND_URL": "https://dchat.pro/api",
+    "VITE_ENABLE_LINKEDIN_AUTH": "true",
+    "VITE_ENABLE_EMAIL_VERIFICATION": "true",
+    "VITE_ENABLE_PROJECT_COLLABORATION": "true"
   },
   "headers": [
     {
@@ -20,7 +25,28 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
+          "value": "public, max-age=3600, must-revalidate"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
         }
       ]
     }
@@ -32,4 +58,3 @@
     }
   ]
 }
-
