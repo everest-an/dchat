@@ -2,6 +2,7 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import BottomNavigation from './BottomNavigation'
 import ChatList from './ChatList'
 import ChatRoom from './ChatRoom'
+import ChatInterface from './ChatInterface'
 import Moments from './Moments'
 import Projects from './Projects'
 import Profile from './Profile'
@@ -34,7 +35,7 @@ const MainApp = ({ user, onLogout }) => {
       <div className="flex-1 overflow-hidden">
         <Routes>
           <Route path="/" element={<ChatList user={user} />} />
-          <Route path="/chat/:id" element={<ChatRoom />} />
+          <Route path="/chat/:id" element={<ChatInterface />} />
           <Route path="/group/:id" element={<GroupChat />} />
           <Route path="/moments" element={<Moments />} />
           <Route path="/projects" element={<Projects />} />
