@@ -1,7 +1,7 @@
 {
-  "buildCommand": "cd frontend && pnpm install && pnpm build",
+  "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
-  "installCommand": "npm install -g pnpm",
+  "installCommand": "echo 'Using npm'",
   "framework": null,
   "env": {
     "VITE_CHAIN_ID": "11155111",
