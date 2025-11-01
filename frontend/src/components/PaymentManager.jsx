@@ -21,18 +21,15 @@ import {
 } from 'lucide-react'
 import { formatAddress, getExplorerUrl } from '../config/web3'
 import PaymentDialog from './dialogs/PaymentDialog'
-import { useLanguage } from '../contexts/LanguageContext'
 
 /**
- * TODO: Translate '支付管理页面组件'
- * TODO: Translate '管理托管支付'
+ * Payment Management Page Component
+ * Manage escrow payments
  */
 export default function PaymentManager({ user }) {
-  const { t } = useLanguage()
-
   const { account, provider, signer, isConnected } = useWeb3()
   
-  // useWeb3 accountTODO: Translate '或'user.walletAddress
+  // Use account from useWeb3 or user.walletAddress
   const userAddress = account || user?.walletAddress
   const [escrows, setEscrows] = useState([])
   const [loading, setLoading] = useState(true)
@@ -42,7 +39,7 @@ export default function PaymentManager({ user }) {
 
   const paymentService = new PaymentEscrowService(provider, signer)
 
-  // TODO: Translate '加载托管数据'
+  // Load escrow data
   const loadEscrows = async () => {
     if (!userAddress) return
     
@@ -68,79 +65,79 @@ export default function PaymentManager({ user }) {
     }
   }, [userAddress])
 
-  // TODO: Translate '释放托管'
+  // Release escrow
   const handleRelease = async (escrowId) => {
-    if (!confirm('确认释放托管资金?')) return
+    if (!confirm('Confirm release of escrow funds?')) return
 
     try {
       const result = await paymentService.releaseEscrow(escrowId)
       if (result.success) {
-        alert('托管已释放')
+        alert('Escrow released')
         await loadEscrows()
       } else {
-        alert(`释放失败: ${result.error}`)
+        alert(`Release failed: ${result.error}`)
       }
     } catch (err) {
-      alert(`释放失败: ${err.message}`)
+      alert(`Release failed: ${err.message}`)
     }
   }
 
-  // TODO: Translate '申请退款'
+  // Request refund
   const handleRefund = async (escrowId) => {
-    if (!confirm('确认申请退款?')) return
+    if (!confirm('Confirm refund request?')) return
 
     try {
       const result = await paymentService.refund(escrowId)
       if (result.success) {
-        alert('退款成功')
+        alert('Refund successful')
         await loadEscrows()
       } else {
-        alert(`退款失败: ${result.error}`)
+        alert(`Refund failed: ${result.error}`)
       }
     } catch (err) {
-      alert(`退款失败: ${err.message}`)
+      alert(`Refund failed: ${err.message}`)
     }
   }
 
-  // TODO: Translate '提起争议'
+  // Raise dispute
   const handleDispute = async (escrowId) => {
-    const reason = prompt('请输入争议原因:')
+    const reason = prompt('Please enter dispute reason:')
     if (!reason) return
 
     try {
       const result = await paymentService.raiseDispute(escrowId, reason)
       if (result.success) {
-        alert('争议已提交')
+        alert('Dispute submitted')
         await loadEscrows()
       } else {
-        alert(`提交失败: ${result.error}`)
+        alert(`Submission failed: ${result.error}`)
       }
     } catch (err) {
-      alert(`提交失败: ${err.message}`)
+      alert(`Submission failed: ${err.message}`)
     }
   }
 
-  // TODO: Translate '获取状态文本'
+  // Get status text
   const getStatusText = (status) => {
     switch (status) {
       case EscrowStatus.PENDING:
-        return '待处理'
+        return 'Pending'
       case EscrowStatus.RELEASED:
-        return '已释放'
+        return 'Released'
       case EscrowStatus.REFUNDED:
-        return '已退款'
+        return 'Refunded'
       case EscrowStatus.DISPUTED:
-        return '争议中'
+        return 'Disputed'
       case EscrowStatus.RESOLVED:
-        return '已解决'
+        return 'Resolved'
       case EscrowStatus.CANCELLED:
-        return '已取消'
+        return 'Cancelled'
       default:
-        return '未知'
+        return 'Unknown'
     }
   }
 
-  // TODO: Translate '获取状态颜色'
+  // Get status color
   const getStatusColor = (status) => {
     switch (status) {
       case EscrowStatus.PENDING:
@@ -160,13 +157,13 @@ export default function PaymentManager({ user }) {
     }
   }
 
-  // TODO: Translate '格式化日期'
+  // Format date
   const formatDate = (timestamp) => {
     if (!timestamp) return ''
-    return new Date(timestamp * 1000).toLocaleString('zh-CN')
+    return new Date(timestamp * 1000).toLocaleString('en-US')
   }
 
-  // TODO: Translate '过滤托管'
+  // Filter escrows
   const sentEscrows = escrows.filter(e => e.payer === userAddress)
   const receivedEscrows = escrows.filter(e => e.recipient === userAddress)
 
@@ -175,9 +172,9 @@ export default function PaymentManager({ user }) {
       <div className="flex items-center justify-center h-full">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>请先登录</CardTitle>
+            <CardTitle>Please Login First</CardTitle>
             <CardDescription>
-              您需要登录才能使用支付功能
+              You need to login to use payment features
             </CardDescription>
           </CardHeader>
         </Card>
@@ -190,7 +187,7 @@ export default function PaymentManager({ user }) {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" />
-          <p className="text-gray-500">加载支付数据...</p>
+          <p className="text-gray-500">Loading payment data...</p>
         </div>
       </div>
     )
@@ -198,20 +195,20 @@ export default function PaymentManager({ user }) {
 
   return (
     <div className="h-full overflow-auto p-4 space-y-6">
-      {/* TODO: Translate '头部' */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Wallet className="w-6 h-6" />
-            支付管理
+            Payment Management
           </h1>
           <p className="text-gray-500 mt-1">
-            使用智能合约托管,确保交易安全
+            Use smart contract escrow to ensure secure transactions
           </p>
         </div>
         <Button onClick={() => setShowPaymentDialog(true)}>
           <Plus className="w-4 h-4 mr-2" />
-          创建支付
+          Create Payment
         </Button>
       </div>
 
@@ -222,12 +219,12 @@ export default function PaymentManager({ user }) {
         </Alert>
       )}
 
-      {/* TODO: Translate '统计卡片' */}
+      {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-gray-500">
-              发送的支付
+              Sent Payments
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -241,7 +238,7 @@ export default function PaymentManager({ user }) {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-gray-500">
-              收到的支付
+              Received Payments
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -255,7 +252,7 @@ export default function PaymentManager({ user }) {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-gray-500">
-              待处理
+              Pending
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -269,29 +266,29 @@ export default function PaymentManager({ user }) {
         </Card>
       </div>
 
-      {/* TODO: Translate '标签页' */}
+      {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="sent">
             <Send className="w-4 h-4 mr-2" />
-            发送的 ({sentEscrows.length})
+            Sent ({sentEscrows.length})
           </TabsTrigger>
           <TabsTrigger value="received">
             <Inbox className="w-4 h-4 mr-2" />
-            收到的 ({receivedEscrows.length})
+            Received ({receivedEscrows.length})
           </TabsTrigger>
         </TabsList>
 
-        {/* TODO: Translate '发送的支付' */}
+        {/* Sent Payments */}
         <TabsContent value="sent" className="space-y-4">
           {sentEscrows.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <Send className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-500 mb-2">暂无发送的支付</p>
+                <p className="text-gray-500 mb-2">No sent payments yet</p>
                 <Button onClick={() => setShowPaymentDialog(true)}>
                   <Plus className="w-4 h-4 mr-2" />
-                  创建支付
+                  Create Payment
                 </Button>
               </CardContent>
             </Card>
@@ -307,7 +304,7 @@ export default function PaymentManager({ user }) {
                           <span className="text-2xl font-bold">{escrow.amount} ETH</span>
                         </div>
                         <p className="text-sm text-gray-500">
-                          收款方: {formatAddress(escrow.recipient, 8)}
+                          Recipient: {formatAddress(escrow.recipient, 8)}
                         </p>
                       </div>
                       <Badge variant="outline" className="gap-1">
@@ -322,12 +319,12 @@ export default function PaymentManager({ user }) {
 
                     <div className="grid grid-cols-2 gap-4 text-sm mb-4">
                       <div>
-                        <span className="text-gray-500">创建时间:</span>
+                        <span className="text-gray-500">Created:</span>
                         <p>{formatDate(escrow.createdAt)}</p>
                       </div>
                       {escrow.releasedAt > 0 && (
                         <div>
-                          <span className="text-gray-500">释放时间:</span>
+                          <span className="text-gray-500">Released:</span>
                           <p>{formatDate(escrow.releasedAt)}</p>
                         </div>
                       )}
@@ -340,7 +337,7 @@ export default function PaymentManager({ user }) {
                           onClick={() => handleRelease(escrow.escrowId)}
                         >
                           <CheckCircle2 className="w-4 h-4 mr-2" />
-                          释放资金
+                          Release Funds
                         </Button>
                         <Button
                           size="sm"
@@ -348,7 +345,7 @@ export default function PaymentManager({ user }) {
                           onClick={() => handleDispute(escrow.escrowId)}
                         >
                           <AlertTriangle className="w-4 h-4 mr-2" />
-                          提起争议
+                          Raise Dispute
                         </Button>
                       </div>
                     )}
@@ -359,13 +356,13 @@ export default function PaymentManager({ user }) {
           )}
         </TabsContent>
 
-        {/* TODO: Translate '收到的支付' */}
+        {/* Received Payments */}
         <TabsContent value="received" className="space-y-4">
           {receivedEscrows.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <Inbox className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-500">暂无收到的支付</p>
+                <p className="text-gray-500">No received payments yet</p>
               </CardContent>
             </Card>
           ) : (
@@ -380,7 +377,7 @@ export default function PaymentManager({ user }) {
                           <span className="text-2xl font-bold">{escrow.amount} ETH</span>
                         </div>
                         <p className="text-sm text-gray-500">
-                          付款方: {formatAddress(escrow.payer, 8)}
+                          From: {formatAddress(escrow.payer, 8)}
                         </p>
                       </div>
                       <Badge variant="outline" className="gap-1">
@@ -395,24 +392,36 @@ export default function PaymentManager({ user }) {
 
                     <div className="grid grid-cols-2 gap-4 text-sm mb-4">
                       <div>
-                        <span className="text-gray-500">创建时间:</span>
+                        <span className="text-gray-500">Created:</span>
                         <p>{formatDate(escrow.createdAt)}</p>
                       </div>
                       {escrow.releasedAt > 0 && (
                         <div>
-                          <span className="text-gray-500">释放时间:</span>
+                          <span className="text-gray-500">Released:</span>
                           <p>{formatDate(escrow.releasedAt)}</p>
                         </div>
                       )}
                     </div>
 
                     {escrow.status === EscrowStatus.PENDING && (
-                      <Alert>
-                        <Clock className="h-4 w-4" />
-                        <AlertDescription>
-                          等待付款方释放资金。完成工作后请联系付款方。
-                        </AlertDescription>
-                      </Alert>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRefund(escrow.escrowId)}
+                        >
+                          <XCircle className="w-4 h-4 mr-2" />
+                          Request Refund
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDispute(escrow.escrowId)}
+                        >
+                          <AlertTriangle className="w-4 h-4 mr-2" />
+                          Raise Dispute
+                        </Button>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
@@ -422,11 +431,14 @@ export default function PaymentManager({ user }) {
         </TabsContent>
       </Tabs>
 
-      {/* TODO: Translate '支付对话框' */}
+      {/* Payment Dialog */}
       <PaymentDialog
         open={showPaymentDialog}
         onClose={() => setShowPaymentDialog(false)}
-        onSuccess={() => loadEscrows()}
+        onSuccess={() => {
+          setShowPaymentDialog(false)
+          loadEscrows()
+        }}
       />
     </div>
   )
