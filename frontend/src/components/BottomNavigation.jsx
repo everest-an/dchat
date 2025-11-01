@@ -14,37 +14,37 @@ const BottomNavigation = () => {
       id: 'chats',
       label: 'Chats',
       icon: MessageCircle,
-      path: '/'
+      path: '/app'
     },
     {
       id: 'portfolio',
       label: 'Portfolio',
       icon: Briefcase,
-      path: '/portfolio'
+      path: '/app/portfolio'
     },
     {
       id: 'matching',
       label: 'Matching',
       icon: Target,
-      path: '/matching'
+      path: '/app/matching'
     },
     {
       id: 'payments',
       label: 'Payments',
       icon: Wallet,
-      path: '/payments'
+      path: '/app/payments'
     },
     {
       id: 'profile',
       label: 'Profile',
       icon: User,
-      path: '/profile'
+      path: '/app/profile'
     }
   ]
 
   const isActive = (path) => {
-    if (path === '/') {
-      return location.pathname === '/'
+    if (path === '/app') {
+      return location.pathname === '/app' || location.pathname === '/app/'
     }
     return location.pathname.startsWith(path)
   }

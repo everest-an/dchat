@@ -108,44 +108,44 @@ function App() {
         <Router>
           <ResponsiveContainer>
             <Routes>
-              {/* 首页路由 - 类似 Telegram/WeChat 的设计 */}
+              {/* Landing Page - for unauthenticated users */}
               <Route 
                 path="/" 
                 element={
-                  isAuthenticated ? 
-                    // 已登录用户：直接进入聊天主界面
-                    <MainApp user={user} onLogout={handleLogout} /> : 
-                    // 未登录用户：显示产品介绍页
-                    <LandingPage />
+                  !isAuthenticated ? 
+                    <LandingPage /> :
+                    <Navigate to="/app" replace />
                 } 
               />
               
-              {/* 登录页面路由 */}
+              {/* Login Page */}
               <Route 
                 path="/login" 
                 element={
                   !isAuthenticated ? 
                     <LoginScreen onLogin={handleLogin} /> : 
-                    // 已登录用户访问登录页：重定向到首页（聊天界面）
-                    <Navigate to="/" replace />
+                    <Navigate to="/app" replace />
                 } 
               />
               
-              {/* 主应用路由（聊天、群组、个人页面等） */}
+              {/* Main App - all authenticated routes */}
               <Route 
                 path="/app/*" 
                 element={
                   isAuthenticated ? 
                     <MainApp user={user} onLogout={handleLogout} /> : 
-                    // 未登录用户：重定向到登录页
                     <Navigate to="/login" replace />
                 } 
               />
               
-              {/* 404 处理 - 重定向到首页 */}
+              {/* Catch all - redirect based on auth status */}
               <Route 
                 path="*" 
-                element={<Navigate to="/" replace />} 
+                element={
+                  isAuthenticated ? 
+                    <Navigate to="/app" replace /> :
+                    <Navigate to="/" replace />
+                } 
               />
             </Routes>
           </ResponsiveContainer>
