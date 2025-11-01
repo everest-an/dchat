@@ -1,3 +1,8 @@
+"""
+增强版主应用文件
+包含所有API路由、中间件和安全配置
+"""
+
 import os
 import sys
 # DON'T CHANGE THIS !!!
@@ -10,16 +15,8 @@ from src.routes.user import user_bp
 from src.routes.auth import auth_bp
 from src.routes.messages import messages_bp
 from src.routes.projects import projects_bp
-
-# 导入新增的路由
-try:
-    from src.routes.groups import groups_bp
-    from src.routes.notifications import notifications_bp
-    from src.routes.linkedin_oauth import linkedin_bp
-    HAS_NEW_ROUTES = True
-except ImportError:
-    HAS_NEW_ROUTES = False
-    print("⚠️  新路由模块未找到，使用基础版本")
+from src.routes.groups import groups_bp
+from src.routes.notifications import notifications_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 
@@ -54,20 +51,21 @@ with app.app_context():
     db.create_all()
     print("✅ 数据库表创建成功")
 
-# 注册基础蓝图
+# 注册蓝图
 app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(messages_bp, url_prefix='/api/messages')
 app.register_blueprint(projects_bp, url_prefix='/api')
+app.register_blueprint(groups_bp, url_prefix='/api/groups')
+app.register_blueprint(notifications_bp, url_prefix='/api/notifications')
 
-# 注册新增蓝图
-if HAS_NEW_ROUTES:
-    app.register_blueprint(groups_bp, url_prefix='/api/groups')
-    app.register_blueprint(notifications_bp, url_prefix='/api/notifications')
-    app.register_blueprint(linkedin_bp, url_prefix='/api/linkedin')
-    print("✅ 所有API路由已注册（包含新功能）")
-else:
-    print("✅ 基础API路由已注册")
+print("✅ 所有API路由已注册:")
+print("   - /api/users")
+print("   - /api/auth")
+print("   - /api/messages")
+print("   - /api/projects")
+print("   - /api/groups")
+print("   - /api/notifications")
 
 # 全局错误处理
 @app.errorhandler(400)
@@ -122,25 +120,18 @@ def internal_server_error(error):
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """健康检查接口"""
-    endpoints = {
-        'auth': '/api/auth',
-        'users': '/api/users',
-        'messages': '/api/messages',
-        'projects': '/api/projects'
-    }
-    
-    if HAS_NEW_ROUTES:
-        endpoints.update({
-            'groups': '/api/groups',
-            'notifications': '/api/notifications',
-            'linkedin': '/api/linkedin'
-        })
-    
     return jsonify({
         'status': 'ok',
         'message': 'Dchat API is running',
         'version': '2.0.0',
-        'endpoints': endpoints
+        'endpoints': {
+            'auth': '/api/auth',
+            'users': '/api/users',
+            'messages': '/api/messages',
+            'groups': '/api/groups',
+            'notifications': '/api/notifications',
+            'projects': '/api/projects'
+        }
     })
 
 # API文档接口
@@ -173,6 +164,22 @@ def api_docs():
                 'GET /messages/conversations/:user_id': '获取与特定用户的消息',
                 'POST /messages/send': '发送消息'
             },
+            'groups': {
+                'POST /groups/create': '创建群组',
+                'GET /groups/:id': '获取群组信息',
+                'GET /groups/:id/messages': '获取群组消息',
+                'POST /groups/:id/messages': '发送群组消息',
+                'POST /groups/:id/members': '添加群组成员',
+                'DELETE /groups/:id/members/:member_id': '移除群组成员',
+                'GET /groups/list': '获取用户的群组列表'
+            },
+            'notifications': {
+                'GET /notifications': '获取通知列表',
+                'PUT /notifications/:id/read': '标记通知已读',
+                'PUT /notifications/read-all': '标记所有通知已读',
+                'DELETE /notifications/:id': '删除通知',
+                'DELETE /notifications/clear': '清空所有通知'
+            },
             'projects': {
                 'GET /projects': '获取项目列表',
                 'POST /projects': '创建项目',
@@ -191,11 +198,9 @@ def serve(path):
     static_folder_path = app.static_folder
     if static_folder_path is None:
         return jsonify({
-            'message': 'Dchat API Server',
-            'version': '2.0.0',
-            'docs': '/api/docs',
-            'health': '/api/health'
-        }), 200
+            'error': 'Static folder not configured',
+            'message': 'This is API server. Please access frontend separately.'
+        }), 404
 
     if path != "" and os.path.exists(os.path.join(static_folder_path, path)):
         return send_from_directory(static_folder_path, path)
@@ -219,11 +224,6 @@ if __name__ == '__main__':
     print(f"   Port: {port}")
     print(f"   Debug: {debug}")
     print(f"   Database: {database_url}")
-    print(f"   Version: 2.0.0")
-    if HAS_NEW_ROUTES:
-        print(f"   Features: Enhanced (Groups, Notifications, LinkedIn OAuth)")
-    else:
-        print(f"   Features: Basic")
     print(f"\n📚 API Documentation: http://localhost:{port}/api/docs")
     print(f"💚 Health Check: http://localhost:{port}/api/health\n")
     
