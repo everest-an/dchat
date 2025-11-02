@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { Plus, Search, Filter, Calendar, Users, DollarSign } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import CreateProjectDialog from './CreateProjectDialog'
 
 const Projects = () => {
   const [activeTab, setActiveTab] = useState('current')
   const [searchQuery, setSearchQuery] = useState('')
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
 
-  const projects = {
+  const [projects, setProjects] = useState({
     current: [
       {
         id: 1,
@@ -78,6 +80,15 @@ const Projects = () => {
     { id: 'seeking', label: 'Seeking Partners', count: projects.seeking.length },
     { id: 'resources', label: 'Available Resources', count: projects.resources.length }
   ]
+
+  const handleCreateProject = (newProject) => {
+    // Add project to appropriate category
+    const category = newProject.category || 'current';
+    setProjects(prev => ({
+      ...prev,
+      [category]: [newProject, ...prev[category]]
+    }));
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -233,14 +244,22 @@ const Projects = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Create Project Dialog */}
+      <CreateProjectDialog
+        isOpen={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        onCreate={handleCreateProject}
+      />
+
       {/* Header */}
       <div className="bg-white px-4 pt-12 pb-4 border-b border-gray-200">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold text-black">Project Center</h1>
           <Button
+            onClick={() => setIsCreateDialogOpen(true)}
             variant="ghost"
             size="icon"
-            className="w-10 h-10 rounded-full"
+            className="w-10 h-10 rounded-full hover:bg-gray-100"
           >
             <Plus className="w-5 h-5" />
           </Button>

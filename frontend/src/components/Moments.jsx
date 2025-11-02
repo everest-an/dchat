@@ -2,10 +2,19 @@ import { useState } from 'react'
 import { Plus, MessageCircle, Heart, Share, MoreHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '../contexts/LanguageContext'
+import CreateMomentDialog from './CreateMomentDialog'
 
 
 const Moments = () => {
   const { t } = useLanguage()
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+
+  // Mock current user - in production, get from auth context
+  const currentUser = {
+    name: 'Current User',
+    company: 'Your Company',
+    avatar: '👤'
+  }
 
   const [posts, setPosts] = useState([
     {
@@ -65,6 +74,10 @@ const Moments = () => {
     ))
   }
 
+  const handlePublish = (newPost) => {
+    setPosts([newPost, ...posts])
+  }
+
   const getTypeLabel = (type) => {
     switch (type) {
       case 'project_update': return t('project_update')
@@ -90,14 +103,23 @@ const Moments = () => {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-black">{t("business_updates")}</h1>
           <Button
+            onClick={() => setIsCreateDialogOpen(true)}
             variant="ghost"
             size="icon"
-            className="w-10 h-10 rounded-full"
+            className="w-10 h-10 rounded-full hover:bg-gray-100"
           >
             <Plus className="w-5 h-5" />
           </Button>
         </div>
       </div>
+
+      {/* Create Moment Dialog */}
+      <CreateMomentDialog
+        isOpen={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        onPublish={handlePublish}
+        currentUser={currentUser}
+      />
 
       {/* TODO: Translate {t('dynamic_list')} */}
       <div className="pb-20">
