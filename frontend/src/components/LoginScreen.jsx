@@ -227,9 +227,9 @@ const LoginScreen = ({ onLogin }) => {
           {/* Terms */}
           <p className="w-full max-w-sm mt-8 text-xs text-center text-gray-400">
             By connecting your wallet, you agree to our{' '}
-            <a href="#" className="text-black hover:underline">Terms of Service</a>
+                  <a href="/terms" className="text-black hover:underline">Terms of Service</a>
             {' '}and{' '}
-            <a href="#" className="text-black hover:underline">Privacy Policy</a>
+            <a href="/privacy" className="text-black hover:underline">Privacy Policy</a>
           </p>
         </div>
       </div>

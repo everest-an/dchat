@@ -7,6 +7,11 @@ import LoginScreen from './components/LoginScreen'
 import MainApp from './components/MainApp'
 import LandingPage from './components/LandingPage'
 import ResponsiveContainer from './components/ResponsiveContainer'
+import TermsOfService from './components/TermsOfService'
+import PrivacyPolicy from './components/PrivacyPolicy'
+import FeaturesPage from './components/FeaturesPage'
+import PricingPage from './components/PricingPage'
+import ContactPage from './components/ContactPage'
 import { LanguageProvider } from './contexts/LanguageContext'
 import { Web3Provider } from './contexts/Web3Context'
 import WagmiWeb3Provider from './components/Web3Provider'
@@ -127,6 +132,13 @@ function App() {
                     <Navigate to="/app" replace />
                 } 
               />
+              
+              {/* Public Pages */}
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/features" element={<FeaturesPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/contact" element={<ContactPage />} />
               
               {/* Main App - all authenticated routes */}
               <Route 
