@@ -1,12 +1,16 @@
 import { useState } from 'react'
-import { Plus, Search, Filter, Calendar, Users, DollarSign } from 'lucide-react'
+import { Plus, Search, Filter, Calendar, Users, DollarSign, Edit2, Trash2, MoreVertical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import CreateProjectDialog from './CreateProjectDialog'
+import EditProjectDialog from './EditProjectDialog'
 
 const Projects = () => {
   const [activeTab, setActiveTab] = useState('current')
   const [searchQuery, setSearchQuery] = useState('')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [selectedProject, setSelectedProject] = useState(null)
+  const [showProjectMenu, setShowProjectMenu] = useState(null)
 
   const [projects, setProjects] = useState({
     current: [
@@ -90,6 +94,38 @@ const Projects = () => {
     }));
   };
 
+  const handleEditProject = (project) => {
+    setSelectedProject(project);
+    setIsEditDialogOpen(true);
+    setShowProjectMenu(null);
+  };
+
+  const handleUpdateProject = (updatedProject) => {
+    // Update project in appropriate category
+    setProjects(prev => {
+      const newProjects = { ...prev };
+      Object.keys(newProjects).forEach(category => {
+        newProjects[category] = newProjects[category].map(p =>
+          p.id === updatedProject.id ? updatedProject : p
+        );
+      });
+      return newProjects;
+    });
+  };
+
+  const handleDeleteProject = (projectId) => {
+    if (window.confirm('Are you sure you want to delete this project?')) {
+      setProjects(prev => {
+        const newProjects = { ...prev };
+        Object.keys(newProjects).forEach(category => {
+          newProjects[category] = newProjects[category].filter(p => p.id !== projectId);
+        });
+        return newProjects;
+      });
+      setShowProjectMenu(null);
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'In Progress': return 'bg-green-100 text-green-800'
@@ -113,6 +149,33 @@ const Projects = () => {
                 </span>
                 <span className="text-xs text-gray-500">Progress: {project.progress}%</span>
               </div>
+            </div>
+            {/* Action Menu */}
+            <div className="relative">
+              <button
+                onClick={() => setShowProjectMenu(showProjectMenu === project.id ? null : project.id)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <MoreVertical className="w-4 h-4 text-gray-600" />
+              </button>
+              {showProjectMenu === project.id && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                  <button
+                    onClick={() => handleEditProject(project)}
+                    className="w-full flex items-center space-x-2 px-4 py-3 hover:bg-gray-50 text-left"
+                  >
+                    <Edit2 className="w-4 h-4 text-gray-600" />
+                    <span className="text-sm text-gray-700">Edit Project</span>
+                  </button>
+                  <button
+                    onClick={() => handleDeleteProject(project.id)}
+                    className="w-full flex items-center space-x-2 px-4 py-3 hover:bg-red-50 text-left border-t border-gray-100"
+                  >
+                    <Trash2 className="w-4 h-4 text-red-600" />
+                    <span className="text-sm text-red-600">Delete Project</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -249,6 +312,14 @@ const Projects = () => {
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
         onCreate={handleCreateProject}
+      />
+
+      {/* Edit Project Dialog */}
+      <EditProjectDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        onUpdate={handleUpdateProject}
+        project={selectedProject}
       />
 
       {/* Header */}

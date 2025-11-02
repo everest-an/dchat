@@ -12,6 +12,7 @@ import PrivacyPolicy from './components/PrivacyPolicy'
 import FeaturesPage from './components/FeaturesPage'
 import PricingPage from './components/PricingPage'
 import ContactPage from './components/ContactPage'
+import AboutPage from './components/AboutPage'
 import { LanguageProvider } from './contexts/LanguageContext'
 import { Web3Provider } from './contexts/Web3Context'
 import WagmiWeb3Provider from './components/Web3Provider'
@@ -139,6 +140,7 @@ function App() {
               <Route path="/features" element={<FeaturesPage />} />
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/contact" element={<ContactPage />} />
+              <Route path="/about" element={<AboutPage />} />
               
               {/* Main App - all authenticated routes */}
               <Route 

@@ -9,6 +9,7 @@ import QRCodeDialog from './QRCodeDialog'
 import ScanQRDialog from './ScanQRDialog'
 import EditProfileDialog from './dialogs/EditProfileDialog'
 import CreateGroupDialog from './dialogs/CreateGroupDialog'
+import NewChatDialog from './NewChatDialog'
 import StatusBadge from './StatusBadge'
 import presenceService from '../services/PresenceService'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -134,6 +135,13 @@ const ChatList = ({ user }) => {
     navigate(`/chat/${newChatAddress}`)
     setShowNewChat(false)
     setNewChatAddress('')
+  }
+
+  // Handle start chat from NewChatDialog
+  const handleStartChat = (chatData) => {
+    if (chatData.type === 'direct') {
+      navigate(`/chat/${chatData.address}`)
+    }
   }
 
   // TODO: Translate {t('format_time')}
@@ -347,38 +355,17 @@ const ChatList = ({ user }) => {
       />
 
       {/* New Chat Dialog */}
-      {showNewChat && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6">
-            <h2 className="text-xl font-semibold mb-4">New Chat</h2>
-            <input
-              type="text"
-              value={newChatAddress}
-              onChange={(e) => setNewChatAddress(e.target.value)}
-              placeholder="Enter wallet address (0x...)"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black mb-4"
-            />
-            <div className="flex gap-3">
-              <Button
-                onClick={() => {
-                  setShowNewChat(false)
-                  setNewChatAddress('')
-                }}
-                variant="outline"
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleNewChat}
-                className="flex-1 bg-black hover:bg-gray-800 text-white"
-              >
-                Start Chat
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <NewChatDialog
+        isOpen={showNewChat}
+        onClose={() => setShowNewChat(false)}
+        onStartChat={handleStartChat}
+        contacts={conversations.map(conv => ({
+          address: conv.address,
+          name: conv.displayName,
+          username: conv.displayName,
+          avatar: conv.avatar
+        }))}
+      />
     </div>
   )
 }
