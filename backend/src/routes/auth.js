@@ -24,6 +24,10 @@ router.post('/verify-login', loginLimiter, authController.verifyAndLogin);
 router.post('/wallet-login', loginLimiter, authController.walletLogin);
 router.post('/alipay-login', loginLimiter, authController.alipayLogin);
 
+// Password-based authentication
+router.post('/register', loginLimiter, authController.registerWithPassword);
+router.post('/login', loginLimiter, authController.loginWithPassword);
+
 // Protected routes
 router.get('/me', authenticateToken, authController.getCurrentUser);
 

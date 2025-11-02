@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Wallet, Mail, Phone, ArrowLeft, Loader2 } from 'lucide-react'
 import { useWeb3 } from '../contexts/Web3Context'
 import { useLanguage } from '../contexts/LanguageContext'
 import DchatLogo from './DchatLogo'
+import EmailPasswordLogin from './EmailPasswordLogin'
 
 
 const LoginScreen = ({ onLogin }) => {
@@ -304,69 +305,10 @@ const LoginScreen = ({ onLogin }) => {
   // Email Login Screen
   if (loginMethod === 'email') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
-        <div className="w-full max-w-md">
-          <button
-            onClick={resetLoginFlow}
-            className="mb-6 flex items-center gap-2 text-gray-600 hover:text-black transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Back
-          </button>
-
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
-            <div className="flex flex-col items-center mb-8">
-              <DchatLogo size={60} className="text-black mb-4" />
-              <h2 className="text-2xl font-bold text-black mb-2">Email Login</h2>
-              <p className="text-gray-500 text-center">
-                Enter your email to continue
-              </p>
-            </div>
-
-            {error && (
-              <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
-                <p className="text-sm text-red-800">{error}</p>
-              </div>
-            )}
-
-            <form onSubmit={handleEmailLogin} className="space-y-4">
-              <div>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="w-full h-14 px-4 border-2 border-gray-200 rounded-full focus:border-black focus:outline-none transition-colors text-base"
-                  disabled={isSubmitting}
-                  required
-                />
-              </div>
-
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-full text-base font-medium flex items-center justify-center gap-3 transition-all duration-200"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Logging in...
-                  </>
-                ) : (
-                  <>
-                    <Mail className="w-5 h-5" />
-                    Continue with Email
-                  </>
-                )}
-              </Button>
-            </form>
-
-            <p className="mt-6 text-xs text-center text-gray-400">
-              Email, phone, and Alipay login will automatically create a secure wallet for you.
-            </p>
-          </div>
-        </div>
-      </div>
+      <EmailPasswordLogin 
+        onLogin={onLogin} 
+        onBack={resetLoginFlow}
+      />
     )
   }
 

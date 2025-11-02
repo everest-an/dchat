@@ -174,9 +174,9 @@ const LandingPage = () => {
             <div>
               <h5 className="text-white font-semibold mb-4">Product</h5>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Enterprise</a></li>
+                <li><a href="/features" className="hover:text-white transition-colors">Features</a></li>
+                <li><a href="/pricing" className="hover:text-white transition-colors">Pricing</a></li>
+                <li><a href="/contact" className="hover:text-white transition-colors">Enterprise</a></li>
               </ul>
             </div>
 
@@ -184,17 +184,17 @@ const LandingPage = () => {
               <h5 className="text-white font-semibold mb-4">Resources</h5>
               <ul className="space-y-2 text-sm">
                 <li><a href="https://github.com/everest-an/dchat" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">GitHub</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">API</a></li>
+                <li><a href="/about" className="hover:text-white transition-colors">Documentation</a></li>
+                <li><a href="/contact" className="hover:text-white transition-colors">API</a></li>
               </ul>
             </div>
 
             <div>
               <h5 className="text-white font-semibold mb-4">Support</h5>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
+                <li><a href="/contact" className="hover:text-white transition-colors">Help Center</a></li>
+                <li><a href="/contact" className="hover:text-white transition-colors">Contact Us</a></li>
+                <li><a href="/privacy" className="hover:text-white transition-colors">Privacy Policy</a></li>
               </ul>
             </div>
           </div>
