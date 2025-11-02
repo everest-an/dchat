@@ -1,37 +1,37 @@
 # Dchat 域名配置指南
 
-本指南将帮助您将 dechat.com 域名配置到 Vercel 部署的前端应用。
+本指南将帮助您将 dchat.pro 域名配置到 Vercel 部署的前端应用。
 
 ## 📋 前提条件
 
-- ✅ 域名 dechat.com 已在阿里云注册
+- ✅ 域名 dchat.pro 已在阿里云注册
 - ✅ 前端应用已部署到 Vercel: https://dechatcom.vercel.app
 - ✅ 拥有阿里云域名管理权限
 - ✅ 拥有 Vercel 项目管理权限
 
 ## 🎯 配置目标
 
-将 dechat.com 和 www.dechat.com 都指向 Vercel 前端应用。
+将 dchat.pro 和 www.dchat.pro 都指向 Vercel 前端应用。
 
 ## 📝 步骤 1: 在 Vercel 添加自定义域名
 
 ### 1.1 访问 Vercel 项目设置
 
 1. 登录 Vercel: https://vercel.com/login
-2. 进入项目: https://vercel.com/everest-ans-projects/dechat.com
+2. 进入项目: https://vercel.com/everest-ans-projects/dchat.pro
 3. 点击顶部导航栏的 **"Settings"**
 4. 在左侧菜单中选择 **"Domains"**
 
 ### 1.2 添加域名
 
 1. 在 "Domains" 页面,找到 "Add" 输入框
-2. 输入: `dechat.com`
+2. 输入: `dchat.pro`
 3. 点击 **"Add"** 按钮
 4. Vercel 会提示需要配置 DNS 记录
 
 ### 1.3 添加 www 子域名(可选)
 
-1. 重复上述步骤,添加 `www.dechat.com`
+1. 重复上述步骤,添加 `www.dchat.pro`
 2. 或者在添加主域名后,Vercel 会自动建议添加 www 子域名
 
 ### 1.4 获取 DNS 配置信息
@@ -60,7 +60,7 @@ TTL: 3600
 
 1. 访问: https://dc.console.aliyun.com/
 2. 登录您的阿里云账号
-3. 找到并点击 **dechat.com** 域名
+3. 找到并点击 **dchat.pro** 域名
 
 ### 2.2 进入 DNS 解析设置
 
@@ -112,20 +112,20 @@ DNS 记录更新通常需要一些时间:
 
 ```bash
 # 检查 A 记录
-nslookup dechat.com
+nslookup dchat.pro
 
 # 检查 CNAME 记录
-nslookup www.dechat.com
+nslookup www.dchat.pro
 
 # 或使用 dig 命令
-dig dechat.com
-dig www.dechat.com
+dig dchat.pro
+dig www.dchat.pro
 ```
 
 **预期结果**:
 ```
-dechat.com → cname.vercel-dns.com → 76.76.21.241 (或其他 Vercel IP)
-www.dechat.com → cname.vercel-dns.com → 76.76.21.241 (或其他 Vercel IP)
+dchat.pro → cname.vercel-dns.com → 76.76.21.241 (或其他 Vercel IP)
+www.dchat.pro → cname.vercel-dns.com → 76.76.21.241 (或其他 Vercel IP)
 ```
 
 ### 3.3 在 Vercel 验证域名
@@ -137,8 +137,8 @@ www.dechat.com → cname.vercel-dns.com → 76.76.21.241 (或其他 Vercel IP)
 ### 3.4 测试访问
 
 在浏览器中访问:
-- https://dechat.com
-- https://www.dechat.com
+- https://dchat.pro
+- https://www.dchat.pro
 
 应该都能正常访问 Dchat 应用。
 
@@ -154,21 +154,21 @@ Vercel 会自动为您的自定义域名配置 SSL 证书:
 
 ### 5.1 www 重定向到主域名
 
-如果您希望 www.dechat.com 自动重定向到 dechat.com:
+如果您希望 www.dchat.pro 自动重定向到 dchat.pro:
 
 1. 在 Vercel Domains 设置中
-2. 找到 www.dechat.com 域名
+2. 找到 www.dchat.pro 域名
 3. 点击右侧的 **"..."** 菜单
-4. 选择 **"Redirect to dechat.com"**
+4. 选择 **"Redirect to dchat.pro"**
 
 ### 5.2 主域名重定向到 www
 
-如果您希望 dechat.com 自动重定向到 www.dechat.com:
+如果您希望 dchat.pro 自动重定向到 www.dchat.pro:
 
 1. 在 Vercel Domains 设置中
-2. 找到 dechat.com 域名
+2. 找到 dchat.pro 域名
 3. 点击右侧的 **"..."** 菜单
-4. 选择 **"Redirect to www.dechat.com"**
+4. 选择 **"Redirect to www.dchat.pro"**
 
 ## 🔍 常见问题
 
@@ -209,10 +209,10 @@ Vercel 会自动为您的自定义域名配置 SSL 证书:
 ### Q4: 同时使用多个域名?
 
 可以为同一个项目配置多个域名:
-- dechat.com (主域名)
-- www.dechat.com (www 子域名)
-- app.dechat.com (应用子域名)
-- api.dechat.com (API 子域名)
+- dchat.pro (主域名)
+- www.dchat.pro (www 子域名)
+- app.dchat.pro (应用子域名)
+- api.dchat.pro (API 子域名)
 
 每个域名都需要单独配置 DNS 记录。
 
@@ -227,15 +227,15 @@ Vercel 会自动为您的自定义域名配置 SSL 证书:
 
 ### Vercel 域名配置清单
 
-- [ ] 添加 dechat.com 到 Vercel 项目
-- [ ] 添加 www.dechat.com 到 Vercel 项目
+- [ ] 添加 dchat.pro 到 Vercel 项目
+- [ ] 添加 www.dchat.pro 到 Vercel 项目
 - [x] 配置阿里云主域名 CNAME 记录
 - [x] 配置阿里云 www CNAME 记录
 - [ ] 等待 DNS 传播
 - [ ] 验证域名在 Vercel 中显示为 Active
 - [ ] 验证 SSL 证书自动配置
-- [ ] 测试访问 https://dechat.com
-- [ ] 测试访问 https://www.dechat.com
+- [ ] 测试访问 https://dchat.pro
+- [ ] 测试访问 https://www.dchat.pro
 - [ ] 配置域名重定向(可选)
 
 ## 🚀 下一步

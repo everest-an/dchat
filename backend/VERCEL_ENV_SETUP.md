@@ -34,7 +34,7 @@ EMAIL_PASSWORD=your_app_password
 ### Frontend URL (for CORS)
 
 ```
-FRONTEND_URL=https://dechat.com
+FRONTEND_URL=https://dchat.pro
 ```
 
 ### Node Environment

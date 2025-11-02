@@ -470,7 +470,7 @@ export class PortfolioService {
 ## 📞 支持
 
 - **GitHub**: https://github.com/everest-an/dchat
-- **网站**: https://dechat.com
+- **网站**: https://dchat.pro
 - **Demo**: https://dechatcom.vercel.app
 
 ---

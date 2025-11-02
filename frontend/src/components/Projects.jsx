@@ -77,7 +77,7 @@ const Projects = () => {
         tags: ['Client Network', 'Fintech', 'Partnerships']
       }
     ]
-  }
+  })
 
   const tabs = [
     { id: 'current', label: 'Current Projects', count: projects.current.length },

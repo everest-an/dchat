@@ -110,7 +110,7 @@ Welcome to the Dchat developer documentation! This guide is specifically for dev
 - **GitHub**: https://github.com/everest-an/dchat
 - **Issues**: https://github.com/everest-an/dchat/issues
 - **Pinata**: https://app.pinata.cloud
-- **Vercel**: https://vercel.com/everest-ans-projects/dechat.com
+- **Vercel**: https://vercel.com/everest-ans-projects/dchat.pro
 
 ### External Docs
 

@@ -23,7 +23,7 @@
 - **连接**: 后端已成功连接
 
 ### ✅ DNS 配置
-- **域名**: dechat.com
+- **域名**: dchat.pro
 - **配置方式**: CNAME 记录
 - **主域名**: @ → cname.vercel-dns.com ✅
 - **www 子域名**: www → cname.vercel-dns.com ✅
@@ -88,19 +88,19 @@ curl -X POST https://backend-op1c06n9l-everest-ans-projects.vercel.app/api/auth/
 
 ### 2. 添加自定义域名到 Vercel
 
-**前提条件**: DNS 已传播完成(可以用 `nslookup dechat.com` 验证)
+**前提条件**: DNS 已传播完成(可以用 `nslookup dchat.pro` 验证)
 
 **步骤**:
 
 1. 登录 Vercel: https://vercel.com/login
 
-2. 访问项目域名设置: https://vercel.com/everest-ans-projects/dechat.com/settings/domains
+2. 访问项目域名设置: https://vercel.com/everest-ans-projects/dchat.pro/settings/domains
 
-3. 在 "Add" 输入框中输入: `dechat.com`
+3. 在 "Add" 输入框中输入: `dchat.pro`
 
 4. 点击 **"Add"** 按钮
 
-5. 重复步骤 3-4,添加 `www.dechat.com`
+5. 重复步骤 3-4,添加 `www.dchat.pro`
 
 6. 等待 Vercel 验证 DNS 配置
 
@@ -109,8 +109,8 @@ curl -X POST https://backend-op1c06n9l-everest-ans-projects.vercel.app/api/auth/
 8. 域名状态变为 **"Active"** 或 **"Valid Configuration"**
 
 **验证域名配置成功**:
-- 访问 https://dechat.com
-- 访问 https://www.dechat.com
+- 访问 https://dchat.pro
+- 访问 https://www.dchat.pro
 - 两个域名都应该显示 Dchat 应用
 
 ---
@@ -120,7 +120,7 @@ curl -X POST https://backend-op1c06n9l-everest-ans-projects.vercel.app/api/auth/
 完成上述两个步骤后,按以下流程测试:
 
 ### 1. 测试前端访问
-- 访问 https://dechat.com (或 https://dechatcom.vercel.app)
+- 访问 https://dchat.pro (或 https://dechatcom.vercel.app)
 - 确认页面正常加载
 - 确认四种登录方式按钮都显示
 
@@ -154,7 +154,7 @@ curl -X POST https://backend-op1c06n9l-everest-ans-projects.vercel.app/api/auth/
 - **样式**: TailwindCSS
 - **部署**: Vercel
 - **URL**: https://dechatcom.vercel.app
-- **自定义域名**: https://dechat.com (配置中)
+- **自定义域名**: https://dchat.pro (配置中)
 
 ### 后端
 - **框架**: Node.js + Express
@@ -201,7 +201,7 @@ curl -X POST https://backend-op1c06n9l-everest-ans-projects.vercel.app/api/auth/
 
 **原因**: DNS 传播需要时间
 
-**解决方案**: 等待 10-30 分钟,使用 `nslookup dechat.com` 检查
+**解决方案**: 等待 10-30 分钟,使用 `nslookup dchat.pro` 检查
 
 ### 问题 4: 邮件服务未配置
 

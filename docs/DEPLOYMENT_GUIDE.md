@@ -16,7 +16,7 @@
 
 ### 自定义域名 (DNS 传播中)
 
-- **域名**: https://dechat.com
+- **域名**: https://dchat.pro
 - **状态**: DNS 配置已完成,等待全球传播(通常需要几分钟到48小时)
 - **DNS 配置**: A 记录指向 76.76.21.21 (阿里云)
 
@@ -182,7 +182,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://backend-op1c06n9l-
 ## 🚀 下一步建议
 
 ### 短期 (1-2 周)
-1. ✅ **域名生效确认** - 等待 dechat.com DNS 传播完成
+1. ✅ **域名生效确认** - 等待 dchat.pro DNS 传播完成
 2. 🔲 **配置邮件服务** - 启用真实的邮箱验证码发送
 3. 🔲 **完善错误处理** - 添加更友好的错误提示
 4. 🔲 **添加加载状态** - 改善用户体验
@@ -225,7 +225,7 @@ Dchat 前端和后端已成功部署到 Vercel,所有核心功能均已实现并
 
 **当前可用的生产环境 URL**: https://dechatcom.vercel.app
 
-自定义域名 dechat.com 已完成 DNS 配置,等待全球传播生效。
+自定义域名 dchat.pro 已完成 DNS 配置,等待全球传播生效。
 
 项目已准备好进行下一阶段的功能开发和优化!
 

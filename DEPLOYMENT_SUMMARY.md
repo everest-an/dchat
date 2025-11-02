@@ -336,7 +336,7 @@
 
 ### 生产环境
 - **网站**: https://dechatcom.vercel.app
-- **域名**: https://dechat.com
+- **域名**: https://dchat.pro
 
 ### 开发资源
 - **GitHub**: https://github.com/everest-an/dchat

@@ -62,7 +62,7 @@
 - **Token**: 已提供 (请妥善保管)
 
 ### Vercel
-- **项目**: dechat.com
+- **项目**: dchat.pro
 - **团队**: everest-an's projects
 - **Token**: 已提供 (请妥善保管)
 - **权限**: 完整的部署和管理权限

@@ -7,7 +7,7 @@
 ### 🌐 域名配置
 
 #### 已完成
-- ✅ 在阿里云配置 dechat.com DNS 记录
+- ✅ 在阿里云配置 dchat.pro DNS 记录
 - ✅ 使用 CNAME 记录指向 cname.vercel-dns.com
 - ✅ 配置主域名 (@) CNAME 记录
 - ✅ 配置 www 子域名 CNAME 记录

@@ -1057,9 +1057,9 @@ User A: "Looking for blockchain developer"
 
 **Contact Information**
 
-Website: https://dechat.com  
+Website: https://dchat.pro  
 GitHub: https://github.com/everest-an/dchat  
-Email: team@dechat.com  
+Email: team@dchat.pro  
 Twitter: @dchat_official
 
 **Document Version Control**
