@@ -1,0 +1,472 @@
+/**
+ * Mobile-First Responsive Styles
+ * 
+ * Optimized for mobile devices with progressive enhancement.
+ * 
+ * Author: Manus AI
+ * Date: 2024-11-05
+ */
+
+/* ===== Mobile-First Base Styles ===== */
+
+/* Touch-friendly tap targets (minimum 44x44px) */
+.tap-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Prevent text selection on interactive elements */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth scrolling */
+.smooth-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Safe area insets for notched devices */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-left {
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-area-right {
+  padding-right: env(safe-area-inset-right);
+}
+
+.safe-area-all {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* ===== Mobile Navigation ===== */
+
+.mobile-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 50;
+}
+
+.mobile-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  min-height: 56px;
+  color: #6b7280;
+  transition: color 0.2s;
+}
+
+.mobile-nav-item.active {
+  color: #4f46e5;
+}
+
+.mobile-nav-item:active {
+  background: #f3f4f6;
+}
+
+/* ===== Mobile Header ===== */
+
+.mobile-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding-top: env(safe-area-inset-top);
+  z-index: 50;
+}
+
+.mobile-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 16px;
+}
+
+/* ===== Mobile Drawer ===== */
+
+.mobile-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.mobile-drawer-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.mobile-drawer.open .mobile-drawer-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobile-drawer-content {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80%;
+  max-width: 320px;
+  background: white;
+  transform: translateX(-100%);
+  transition: transform 0.3s;
+  pointer-events: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-drawer.open .mobile-drawer-content {
+  transform: translateX(0);
+}
+
+/* ===== Mobile Input Optimization ===== */
+
+/* Prevent zoom on input focus (iOS) */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+input[type="search"],
+textarea,
+select {
+  font-size: 16px; /* Minimum to prevent zoom */
+}
+
+/* Better touch input */
+input,
+textarea,
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* ===== Mobile Chat Interface ===== */
+
+.chat-container-mobile {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height */
+}
+
+.chat-messages-mobile {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+
+.chat-input-mobile {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+
+/* ===== Mobile Cards ===== */
+
+.mobile-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== Mobile Buttons ===== */
+
+.mobile-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.mobile-button:active {
+  transform: scale(0.98);
+}
+
+/* ===== Mobile Lists ===== */
+
+.mobile-list-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #f3f4f6;
+  min-height: 64px;
+}
+
+.mobile-list-item:active {
+  background: #f9fafb;
+}
+
+.mobile-list-item:last-child {
+  border-bottom: none;
+}
+
+/* ===== Mobile Modals ===== */
+
+.mobile-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+}
+
+.mobile-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.mobile-modal-content {
+  position: relative;
+  width: 100%;
+  max-height: 90vh;
+  background: white;
+  border-radius: 20px 20px 0 0;
+  padding: 24px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  animation: slide-up 0.3s ease-out;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* ===== Mobile Pull-to-Refresh ===== */
+
+.pull-to-refresh {
+  position: relative;
+}
+
+.pull-to-refresh-indicator {
+  position: absolute;
+  top: -60px;
+  left: 0;
+  right: 0;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s;
+}
+
+.pull-to-refresh.pulling .pull-to-refresh-indicator {
+  transform: translateY(60px);
+}
+
+/* ===== Mobile Swipe Actions ===== */
+
+.swipe-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.swipe-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  transform: translateX(100%);
+  transition: transform 0.3s;
+}
+
+.swipe-item.swiped .swipe-actions {
+  transform: translateX(0);
+}
+
+.swipe-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  padding: 0 16px;
+  color: white;
+  font-weight: 600;
+}
+
+/* ===== Mobile Gestures ===== */
+
+.gesture-area {
+  touch-action: pan-y;
+  user-select: none;
+}
+
+/* ===== Mobile Performance ===== */
+
+/* GPU acceleration */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ===== Responsive Breakpoints ===== */
+
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) {
+  .mobile-drawer-content {
+    width: 70%;
+  }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+  .mobile-nav {
+    display: none;
+  }
+
+  .mobile-header {
+    position: static;
+  }
+
+  .mobile-drawer-content {
+    width: 60%;
+    max-width: 400px;
+  }
+
+  .chat-container-mobile {
+    height: auto;
+  }
+
+  .chat-input-mobile {
+    position: static;
+  }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+  .mobile-card {
+    padding: 24px;
+  }
+
+  .mobile-button {
+    min-height: 44px;
+  }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+  /* Desktop-specific styles */
+}
+
+/* ===== Dark Mode Support ===== */
+
+@media (prefers-color-scheme: dark) {
+  .mobile-nav,
+  .mobile-header,
+  .mobile-drawer-content,
+  .mobile-card,
+  .chat-input-mobile,
+  .mobile-modal-content {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .mobile-list-item {
+    border-color: #374151;
+  }
+
+  .mobile-list-item:active {
+    background: #374151;
+  }
+}
+
+/* ===== Utility Classes ===== */
+
+.hide-on-mobile {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hide-on-mobile {
+    display: block;
+  }
+
+  .show-on-mobile {
+    display: none;
+  }
+}
+
+/* ===== iOS Specific ===== */
+
+@supports (-webkit-touch-callout: none) {
+  /* iOS-specific styles */
+  .ios-bounce-fix {
+    overscroll-behavior-y: contain;
+  }
+}
+
+/* ===== Android Specific ===== */
+
+@supports not (-webkit-touch-callout: none) {
+  /* Android-specific styles */
+}
