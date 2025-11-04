@@ -10,6 +10,7 @@ from src.routes.user import user_bp
 from src.routes.auth import auth_bp
 from src.routes.messages import messages_bp
 from src.routes.projects import projects_bp
+from src.routes.files import files_bp
 
 # 导入新增的路由
 try:
@@ -59,6 +60,7 @@ app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(messages_bp, url_prefix='/api/messages')
 app.register_blueprint(projects_bp, url_prefix='/api')
+app.register_blueprint(files_bp, url_prefix='/api/files')
 
 # 注册新增蓝图
 if HAS_NEW_ROUTES:
@@ -172,6 +174,12 @@ def api_docs():
                 'GET /messages/conversations': '获取对话列表',
                 'GET /messages/conversations/:user_id': '获取与特定用户的消息',
                 'POST /messages/send': '发送消息'
+            },
+            'files': {
+                'POST /files/upload': '上传文件到IPFS',
+                'GET /files/download/:ipfs_hash': '获取文件下载链接',
+                'GET /files/metadata/:ipfs_hash': '获取文件元数据',
+                'DELETE /files/unpin/:ipfs_hash': '删除IPFS文件'
             },
             'projects': {
                 'GET /projects': '获取项目列表',
