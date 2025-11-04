@@ -16,6 +16,7 @@ from functools import wraps
 import jwt
 import os
 from src.models.user_profile import UserProject, UserSkill, UserResource, UserSeeking, db
+from src.middleware.security_middleware import rate_limit
 from datetime import datetime
 
 user_profile_bp = Blueprint('user_profile', __name__)
@@ -46,6 +47,7 @@ def require_auth(f):
 
 @user_profile_bp.route('/api/profile/projects', methods=['GET'])
 @require_auth
+@rate_limit(max_requests=100, window_seconds=60)
 def get_projects():
     """Get user's projects"""
     try:
@@ -60,6 +62,7 @@ def get_projects():
 
 @user_profile_bp.route('/api/profile/projects', methods=['POST'])
 @require_auth
+@rate_limit(max_requests=30, window_seconds=60)
 def create_project():
     """Create new project"""
     try:
@@ -143,6 +146,7 @@ def delete_project(project_id):
 
 @user_profile_bp.route('/api/profile/skills', methods=['GET'])
 @require_auth
+@rate_limit(max_requests=100, window_seconds=60)
 def get_skills():
     """Get user's skills"""
     try:
@@ -157,6 +161,7 @@ def get_skills():
 
 @user_profile_bp.route('/api/profile/skills', methods=['POST'])
 @require_auth
+@rate_limit(max_requests=30, window_seconds=60)
 def create_skill():
     """Create new skill"""
     try:

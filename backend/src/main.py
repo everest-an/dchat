@@ -11,6 +11,7 @@ from src.routes.auth import auth_bp
 from src.routes.messages import messages_bp
 from src.routes.projects import projects_bp
 from src.routes.files import files_bp
+from src.middleware.api_logger import init_api_logging
 
 # 导入新增的路由
 try:
@@ -70,6 +71,9 @@ app.config['SQLALCHEMY_ECHO'] = os.environ.get('DEBUG', 'False') == 'True'
 
 # 初始化数据库
 db.init_app(app)
+
+# 初始化 API 日志
+init_api_logging(app)
 
 # 创建数据库表
 with app.app_context():
