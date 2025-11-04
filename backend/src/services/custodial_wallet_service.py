@@ -17,11 +17,15 @@ Features:
 
 import os
 import logging
+import json
 from web3 import Web3
 from cryptography.fernet import Fernet
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from src.models.custodial_wallet import CustodialWallet, CustodialTransaction, db
+from src.config.token_contracts import get_token_contract_address, get_token_decimals
+from src.services.gas_estimator import GasEstimator
+from src.services.nonce_manager import NonceManager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -36,6 +40,12 @@ w3 = Web3(Web3.HTTPProvider(WEB3_PROVIDER_URL))
 
 # Initialize encryption
 cipher = Fernet(ENCRYPTION_KEY)
+
+# Initialize gas estimator
+gas_estimator = GasEstimator(w3)
+
+# Initialize nonce manager
+nonce_manager = NonceManager(w3)
 
 
 class CustodialWalletService:
@@ -225,10 +235,8 @@ class CustodialWalletService:
             # Decrypt private key
             private_key = CustodialWalletService.decrypt_private_key(wallet)
             
-            # Build and send transaction
-            # NOTE: This is a simplified version. Production should use proper gas estimation,
-            # nonce management, and error handling
-            nonce = w3.eth.get_transaction_count(wallet.wallet_address)
+            # Allocate nonce using nonce manager
+            nonce = nonce_manager.allocate_nonce(wallet.wallet_address)
             
             if token == 'ETH':
                 # ETH transfer
@@ -240,17 +248,27 @@ class CustodialWalletService:
                     'gasPrice': w3.eth.gas_price,
                     'chainId': w3.eth.chain_id
                 }
+                
+                # Sign transaction
+                signed_tx = w3.eth.account.sign_transaction(tx, private_key)
+                
+                # Send transaction
+                tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+                tx_hash_hex = tx_hash.hex()
+                
             else:
                 # ERC-20 token transfer (USDT/USDC)
-                # TODO: Implement ERC-20 transfer logic
-                return False, "ERC-20 withdrawals not yet implemented", None
-            
-            # Sign transaction
-            signed_tx = w3.eth.account.sign_transaction(tx, private_key)
-            
-            # Send transaction
-            tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
-            tx_hash_hex = tx_hash.hex()
+                tx_hash_hex = CustodialWalletService._withdraw_erc20(
+                    wallet=wallet,
+                    token=token,
+                    amount=amount,
+                    to_address=to_address,
+                    private_key=private_key,
+                    nonce=nonce
+                )
+                
+                if not tx_hash_hex:
+                    return False, f"Failed to send {token} transaction", None
             
             # Update wallet balance
             if token == 'ETH':
@@ -279,12 +297,22 @@ class CustodialWalletService:
             db.session.add(transaction)
             db.session.commit()
             
+            # Release nonce (success)
+            nonce_manager.release_nonce(wallet.wallet_address, nonce, True)
+            
             logger.info(f"Withdrew {amount} {token} from wallet {wallet.wallet_address} to {to_address}")
             return True, "Withdrawal successful", tx_hash_hex
             
         except Exception as e:
             logger.error(f"Failed to process withdrawal: {e}")
             db.session.rollback()
+            
+            # Release nonce (failure) - rollback nonce
+            try:
+                nonce_manager.release_nonce(wallet.wallet_address, nonce, False)
+            except:
+                pass
+            
             return False, str(e), None
     
     @staticmethod
@@ -415,3 +443,149 @@ class CustodialWalletService:
         except Exception as e:
             logger.error(f"Failed to sync balance for wallet {wallet.id}: {e}")
             return False
+    
+    @staticmethod
+    def _withdraw_erc20(wallet: CustodialWallet, token: str, amount: int, 
+                        to_address: str, private_key: str, nonce: int) -> Optional[str]:
+        """
+        Internal method to withdraw ERC-20 tokens
+        
+        Args:
+            wallet: Custodial wallet
+            token: Token symbol (USDT, USDC)
+            amount: Amount in smallest unit
+            to_address: Destination address
+            private_key: Decrypted private key
+            nonce: Transaction nonce
+        
+        Returns:
+            str: Transaction hash or None if failed
+        """
+        try:
+            # Load ERC-20 ABI
+            abi_path = os.path.join(
+                os.path.dirname(os.path.dirname(__file__)),
+                'contracts',
+                'erc20_abi.json'
+            )
+            
+            with open(abi_path, 'r') as f:
+                erc20_abi = json.load(f)
+            
+            # Get token contract address
+            contract_address = get_token_contract_address(token)
+            
+            # Create contract instance
+            contract = w3.eth.contract(
+                address=Web3.toChecksumAddress(contract_address),
+                abi=erc20_abi
+            )
+            
+            # Build transfer transaction
+            transfer_function = contract.functions.transfer(
+                Web3.toChecksumAddress(to_address),
+                amount
+            )
+            
+            # Estimate gas using gas estimator
+            gas_limit = gas_estimator.estimate_erc20_transfer_gas(
+                contract=contract,
+                from_address=wallet.wallet_address,
+                to_address=to_address,
+                amount=amount
+            )
+            
+            # Get gas price (use standard strategy)
+            gas_price_params = gas_estimator.get_gas_price('standard')
+            
+            # Build transaction with appropriate gas parameters
+            tx_params = {
+                'from': wallet.wallet_address,
+                'nonce': nonce,
+                'gas': gas_limit,
+                'chainId': w3.eth.chain_id
+            }
+            
+            # Add gas price parameters based on transaction type
+            if gas_price_params['type'] == 2:
+                # EIP-1559
+                tx_params['maxFeePerGas'] = gas_price_params['maxFeePerGas']
+                tx_params['maxPriorityFeePerGas'] = gas_price_params['maxPriorityFeePerGas']
+            else:
+                # Legacy
+                tx_params['gasPrice'] = gas_price_params['gasPrice']
+            
+            tx = transfer_function.buildTransaction(tx_params)
+            
+            # Sign transaction
+            signed_tx = w3.eth.account.sign_transaction(tx, private_key)
+            
+            # Send transaction
+            tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+            tx_hash_hex = tx_hash.hex()
+            
+            logger.info(f"Sent {token} withdrawal: {tx_hash_hex}")
+            logger.info(f"  From: {wallet.wallet_address}")
+            logger.info(f"  To: {to_address}")
+            logger.info(f"  Amount: {amount}")
+            logger.info(f"  Gas: {gas_limit}")
+            logger.info(f"  Gas Price: {gas_price}")
+            
+            return tx_hash_hex
+            
+        except Exception as e:
+            logger.error(f"Failed to send ERC-20 transaction: {e}")
+            logger.error(f"  Token: {token}")
+            logger.error(f"  Amount: {amount}")
+            logger.error(f"  To: {to_address}")
+            return None
+    
+    @staticmethod
+    def _load_erc20_abi() -> list:
+        """
+        Load ERC-20 ABI from file
+        
+        Returns:
+            list: ERC-20 ABI
+        """
+        abi_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            'contracts',
+            'erc20_abi.json'
+        )
+        
+        with open(abi_path, 'r') as f:
+            return json.load(f)
+    
+    @staticmethod
+    def get_erc20_balance(wallet_address: str, token: str) -> int:
+        """
+        Get ERC-20 token balance from blockchain
+        
+        Args:
+            wallet_address: Wallet address
+            token: Token symbol (USDT, USDC)
+        
+        Returns:
+            int: Token balance in smallest unit
+        """
+        try:
+            # Load ABI and get contract
+            erc20_abi = CustodialWalletService._load_erc20_abi()
+            contract_address = get_token_contract_address(token)
+            
+            contract = w3.eth.contract(
+                address=Web3.toChecksumAddress(contract_address),
+                abi=erc20_abi
+            )
+            
+            # Get balance
+            balance = contract.functions.balanceOf(
+                Web3.toChecksumAddress(wallet_address)
+            ).call()
+            
+            return balance
+            
+        except Exception as e:
+            logger.error(f"Failed to get {token} balance for {wallet_address}: {e}")
+            return 0
