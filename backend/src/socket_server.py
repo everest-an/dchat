@@ -350,3 +350,325 @@ def get_socket_app():
     Get Socket.IO application instance
     """
     return sio
+
+
+# ===== WebRTC Signaling Events =====
+
+@sio.event
+async def webrtc_offer(sid, data):
+    """
+    Handle WebRTC offer from caller.
+    Forward offer to recipient.
+    
+    Args:
+        data: {
+            'call_id': str,
+            'offer': dict,
+            'to_user_id': str
+        }
+    """
+    try:
+        user_id = user_sessions.get(sid)
+        if not user_id:
+            await sio.emit('error', {'message': 'Not authenticated'}, room=sid)
+            return
+        
+        call_id = data.get('call_id')
+        offer = data.get('offer')
+        to_user_id = data.get('to_user_id')
+        
+        if not all([call_id, offer, to_user_id]):
+            await sio.emit('error', {'message': 'Missing required fields'}, room=sid)
+            return
+        
+        # Find recipient's session ID
+        recipient_sid = None
+        for s, u in user_sessions.items():
+            if u == to_user_id:
+                recipient_sid = s
+                break
+        
+        # Forward offer to recipient
+        if recipient_sid:
+            await sio.emit('webrtc_offer', {
+                'call_id': call_id,
+                'offer': offer,
+                'from_user_id': user_id
+            }, room=recipient_sid)
+            logger.info(f"WebRTC offer forwarded from {user_id} to {to_user_id}")
+        else:
+            await sio.emit('error', {'message': 'Recipient not online'}, room=sid)
+    
+    except Exception as e:
+        logger.error(f"Error handling WebRTC offer: {str(e)}")
+        await sio.emit('error', {'message': 'Failed to send offer'}, room=sid)
+
+
+@sio.event
+async def webrtc_answer(sid, data):
+    """
+    Handle WebRTC answer from callee.
+    Forward answer to caller.
+    
+    Args:
+        data: {
+            'call_id': str,
+            'answer': dict,
+            'to_user_id': str
+        }
+    """
+    try:
+        user_id = user_sessions.get(sid)
+        if not user_id:
+            await sio.emit('error', {'message': 'Not authenticated'}, room=sid)
+            return
+        
+        call_id = data.get('call_id')
+        answer = data.get('answer')
+        to_user_id = data.get('to_user_id')
+        
+        if not all([call_id, answer, to_user_id]):
+            await sio.emit('error', {'message': 'Missing required fields'}, room=sid)
+            return
+        
+        # Find caller's session ID
+        caller_sid = None
+        for s, u in user_sessions.items():
+            if u == to_user_id:
+                caller_sid = s
+                break
+        
+        # Forward answer to caller
+        if caller_sid:
+            await sio.emit('webrtc_answer', {
+                'call_id': call_id,
+                'answer': answer,
+                'from_user_id': user_id
+            }, room=caller_sid)
+            logger.info(f"WebRTC answer forwarded from {user_id} to {to_user_id}")
+        else:
+            await sio.emit('error', {'message': 'Caller not online'}, room=sid)
+    
+    except Exception as e:
+        logger.error(f"Error handling WebRTC answer: {str(e)}")
+        await sio.emit('error', {'message': 'Failed to send answer'}, room=sid)
+
+
+@sio.event
+async def webrtc_ice_candidate(sid, data):
+    """
+    Handle ICE candidate exchange.
+    Forward candidate to peer.
+    
+    Args:
+        data: {
+            'call_id': str,
+            'candidate': dict,
+            'to_user_id': str
+        }
+    """
+    try:
+        user_id = user_sessions.get(sid)
+        if not user_id:
+            await sio.emit('error', {'message': 'Not authenticated'}, room=sid)
+            return
+        
+        call_id = data.get('call_id')
+        candidate = data.get('candidate')
+        to_user_id = data.get('to_user_id')
+        
+        if not all([call_id, candidate, to_user_id]):
+            await sio.emit('error', {'message': 'Missing required fields'}, room=sid)
+            return
+        
+        # Find peer's session ID
+        peer_sid = None
+        for s, u in user_sessions.items():
+            if u == to_user_id:
+                peer_sid = s
+                break
+        
+        # Forward ICE candidate to peer
+        if peer_sid:
+            await sio.emit('webrtc_ice_candidate', {
+                'call_id': call_id,
+                'candidate': candidate,
+                'from_user_id': user_id
+            }, room=peer_sid)
+            logger.debug(f"ICE candidate forwarded from {user_id} to {to_user_id}")
+        else:
+            logger.warning(f"Peer {to_user_id} not online for ICE candidate")
+    
+    except Exception as e:
+        logger.error(f"Error handling ICE candidate: {str(e)}")
+        await sio.emit('error', {'message': 'Failed to send ICE candidate'}, room=sid)
+
+
+@sio.event
+async def webrtc_call_ringing(sid, data):
+    """
+    Notify participants that call is ringing.
+    
+    Args:
+        data: {
+            'call_id': str,
+            'participants': list,
+            'type': str
+        }
+    """
+    try:
+        user_id = user_sessions.get(sid)
+        if not user_id:
+            await sio.emit('error', {'message': 'Not authenticated'}, room=sid)
+            return
+        
+        call_id = data.get('call_id')
+        participants = data.get('participants', [])
+        call_type = data.get('type', 'audio')
+        
+        # Notify all participants except caller
+        for participant_id in participants:
+            if participant_id != user_id:
+                # Find participant's session ID
+                participant_sid = None
+                for s, u in user_sessions.items():
+                    if u == participant_id:
+                        participant_sid = s
+                        break
+                
+                if participant_sid:
+                    await sio.emit('webrtc_call_ringing', {
+                        'call_id': call_id,
+                        'caller_id': user_id,
+                        'type': call_type,
+                        'participants': participants
+                    }, room=participant_sid)
+        
+        logger.info(f"Call ringing notification sent for {call_id}")
+    
+    except Exception as e:
+        logger.error(f"Error handling call ringing: {str(e)}")
+        await sio.emit('error', {'message': 'Failed to notify participants'}, room=sid)
+
+
+@sio.event
+async def webrtc_call_accepted(sid, data):
+    """
+    Notify caller that call was accepted.
+    
+    Args:
+        data: {
+            'call_id': str,
+            'caller_id': str
+        }
+    """
+    try:
+        user_id = user_sessions.get(sid)
+        if not user_id:
+            await sio.emit('error', {'message': 'Not authenticated'}, room=sid)
+            return
+        
+        call_id = data.get('call_id')
+        caller_id = data.get('caller_id')
+        
+        # Find caller's session ID
+        caller_sid = None
+        for s, u in user_sessions.items():
+            if u == caller_id:
+                caller_sid = s
+                break
+        
+        # Notify caller
+        if caller_sid:
+            await sio.emit('webrtc_call_accepted', {
+                'call_id': call_id,
+                'user_id': user_id
+            }, room=caller_sid)
+            logger.info(f"Call {call_id} accepted by {user_id}")
+    
+    except Exception as e:
+        logger.error(f"Error handling call accepted: {str(e)}")
+        await sio.emit('error', {'message': 'Failed to notify caller'}, room=sid)
+
+
+@sio.event
+async def webrtc_call_rejected(sid, data):
+    """
+    Notify caller that call was rejected.
+    
+    Args:
+        data: {
+            'call_id': str,
+            'caller_id': str
+        }
+    """
+    try:
+        user_id = user_sessions.get(sid)
+        if not user_id:
+            await sio.emit('error', {'message': 'Not authenticated'}, room=sid)
+            return
+        
+        call_id = data.get('call_id')
+        caller_id = data.get('caller_id')
+        
+        # Find caller's session ID
+        caller_sid = None
+        for s, u in user_sessions.items():
+            if u == caller_id:
+                caller_sid = s
+                break
+        
+        # Notify caller
+        if caller_sid:
+            await sio.emit('webrtc_call_rejected', {
+                'call_id': call_id,
+                'user_id': user_id
+            }, room=caller_sid)
+            logger.info(f"Call {call_id} rejected by {user_id}")
+    
+    except Exception as e:
+        logger.error(f"Error handling call rejected: {str(e)}")
+        await sio.emit('error', {'message': 'Failed to notify caller'}, room=sid)
+
+
+@sio.event
+async def webrtc_call_ended(sid, data):
+    """
+    Notify all participants that call ended.
+    
+    Args:
+        data: {
+            'call_id': str,
+            'participants': list
+        }
+    """
+    try:
+        user_id = user_sessions.get(sid)
+        if not user_id:
+            await sio.emit('error', {'message': 'Not authenticated'}, room=sid)
+            return
+        
+        call_id = data.get('call_id')
+        participants = data.get('participants', [])
+        
+        # Notify all participants except the one who ended
+        for participant_id in participants:
+            if participant_id != user_id:
+                # Find participant's session ID
+                participant_sid = None
+                for s, u in user_sessions.items():
+                    if u == participant_id:
+                        participant_sid = s
+                        break
+                
+                if participant_sid:
+                    await sio.emit('webrtc_call_ended', {
+                        'call_id': call_id,
+                        'ended_by': user_id
+                    }, room=participant_sid)
+        
+        logger.info(f"Call {call_id} ended by {user_id}")
+    
+    except Exception as e:
+        logger.error(f"Error handling call ended: {str(e)}")
+        await sio.emit('error', {'message': 'Failed to notify participants'}, room=sid)

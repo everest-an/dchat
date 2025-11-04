@@ -27,3 +27,5 @@ gevent==23.9.1
 flask-cors==4.0.0
 bleach==6.1.0
 eth-utils==2.3.1
+aiortc==1.5.0
+av==10.0.0
