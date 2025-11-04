@@ -188,7 +188,7 @@ class CustodialTransaction(db.Model):
     
     # Metadata
     description = db.Column(db.Text, nullable=True)
-    metadata = db.Column(db.Text, nullable=True)  # JSON string for additional data
+    transaction_metadata = db.Column(db.Text, nullable=True)  # JSON string for additional data
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     confirmed_at = db.Column(db.DateTime, nullable=True)
     
