@@ -4,10 +4,13 @@
 export const CHAIN_ID = 11155111; // Sepolia
 export const NETWORK_NAME = 'sepolia';
 
+// Contract addresses from deployment-v2-addresses.json (backend source of truth)
+// Last updated: 2025-10-20
 export const CONTRACT_ADDRESSES = {
-  MessageStorage: '0x5a7f2f9538D6a5044142123c12A254F73bf77F6f',
+  UserIdentity: '0x6BCF16f82F8d3A37b7b6fd59DeE9adf95B1BA5a1',  // UserIdentityV2
+  MessageStorage: '0x906626694a065bEECf51F2C776f272bDB67Ce174',  // MessageStorageV2
+  // Legacy contracts (deprecated, use V2 versions above)
   PaymentEscrow: '0xB71fD2eD9a15A2Bef002b1206A97e9Bddd7436d6',
-  UserIdentity: '0x32a75De07Cd3FE59A8437445BE37D0546B4Bb17a',
   ProjectCollaboration: '0x09668e0764B43E8093a65d33620DeAd9BDa1d85c',
 };
 
