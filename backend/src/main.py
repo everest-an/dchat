@@ -35,6 +35,15 @@ except ImportError:
     HAS_WEB3_ROUTES = False
     print("⚠️  Web3 路由模块未找到")
 
+# 导入订阅和 NFT 头像路由
+try:
+    from src.routes.subscription import subscription_bp
+    from src.routes.nft_avatar import nft_avatar_bp
+    HAS_SUBSCRIPTION_ROUTES = True
+except ImportError:
+    HAS_SUBSCRIPTION_ROUTES = False
+    print("⚠️  订阅路由模块未找到")
+
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 
 # 配置
@@ -65,6 +74,11 @@ with app.app_context():
     # 导入所有模型以确保表被创建
     from src.models.message import Message
     from src.models.project import Project, Moment
+    # 导入订阅模型
+    try:
+        from src.models.subscription import Subscription, NFTMembership, NFTAvatar, SubscriptionFeatureUsage
+    except ImportError:
+        pass
     db.create_all()
     print("✅ 数据库表创建成功")
 
@@ -93,6 +107,12 @@ if HAS_WEB3_ROUTES:
     app.register_blueprint(stickers_bp)
     app.register_blueprint(reactions_bp)
     print("✅ Web3 API路由已注册（智能合约 + WebRTC + 搜索 + 表情包 + 消息反应）")
+
+# 注册订阅和 NFT 头像蓝图
+if HAS_SUBSCRIPTION_ROUTES:
+    app.register_blueprint(subscription_bp, url_prefix='/api/subscriptions')
+    app.register_blueprint(nft_avatar_bp, url_prefix='/api/avatars/nft')
+    print("✅ 订阅和 NFT 头像 API 路由已注册")
 
 # 全局错误处理
 @app.errorhandler(400)
@@ -165,6 +185,12 @@ def health_check():
         endpoints.update({
             'web3_groups': '/api/web3/groups',
             'web3_payments': '/api/web3/payments'
+        })
+    
+    if HAS_SUBSCRIPTION_ROUTES:
+        endpoints.update({
+            'subscriptions': '/api/subscriptions',
+            'nft_avatars': '/api/avatars/nft'
         })
     
     return jsonify({
@@ -262,6 +288,8 @@ if __name__ == '__main__':
         features.append("Groups, Notifications, LinkedIn OAuth")
     if HAS_WEB3_ROUTES:
         features.append("Web3 Smart Contracts")
+    if HAS_SUBSCRIPTION_ROUTES:
+        features.append("Subscription & NFT Avatars")
     
     if features:
         print(f"   Features: Enhanced ({', '.join(features)})")
