@@ -3,27 +3,32 @@
  * 处理基于签名的 Web3 认证流程
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://dchat.pro/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 class Web3AuthService {
   /**
    * 获取登录 nonce
    * @param {string} address - 钱包地址
-   * @returns {Promise<{nonce: string, timestamp: number, message: string}>}
+   * @returns {Promise<{nonce: string, expiresAt: string}>}
    */
   async getNonce(address) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/nonce?address=${address}`);
+      const response = await fetch(`${API_BASE_URL}/auth/nonce`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ address })
+      });
       const data = await response.json();
       
-      if (!data.success) {
+      if (!response.ok || !data.nonce) {
         throw new Error(data.error || 'Failed to get nonce');
       }
       
       return {
         nonce: data.nonce,
-        timestamp: data.timestamp,
-        message: data.message
+        expiresAt: data.expiresAt
       };
     } catch (error) {
       console.error('Get nonce error:', error);
@@ -64,13 +69,13 @@ class Web3AuthService {
    */
   async verifyAndLogin(address, signature) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/connect-wallet`, {
+      const response = await fetch(`${API_BASE_URL}/auth/verify-signature`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          wallet_address: address,
+          address: address,
           signature: signature
         })
       });
@@ -83,6 +88,8 @@ class Web3AuthService {
 
       // 保存 token 到 localStorage
       localStorage.setItem('authToken', data.token);
+      localStorage.setItem('dchat_jwt_token', data.token);
+      localStorage.setItem('dchat_wallet_address', address);
       localStorage.setItem('user', JSON.stringify(data.user));
 
       return {
@@ -103,10 +110,10 @@ class Web3AuthService {
   async login(address) {
     try {
       // 1. 获取 nonce
-      const { message } = await this.getNonce(address);
+      const { nonce } = await this.getNonce(address);
 
       // 2. 请求用户签名
-      const signature = await this.signMessage(address, message);
+      const signature = await this.signMessage(address, nonce);
 
       // 3. 验证签名并登录
       const result = await this.verifyAndLogin(address, signature);
