@@ -257,6 +257,93 @@ async def get_online_users(sid, data):
     }, room=sid)
 
 
+@sio.event
+async def message_delivered(sid, data):
+    """
+    Mark message as delivered
+    
+    Args:
+        data: {
+            'message_id': str,
+            'room_id': str
+        }
+    """
+    user_id = user_sessions.get(sid)
+    
+    if not user_id:
+        return
+    
+    message_id = data.get('message_id')
+    room_id = data.get('room_id')
+    
+    if message_id and room_id:
+        # Notify sender that message was delivered
+        await sio.emit('message_status', {
+            'message_id': message_id,
+            'room_id': room_id,
+            'status': 'delivered',
+            'delivered_to': user_id,
+            'timestamp': asyncio.get_event_loop().time()
+        }, room=room_id)
+        
+        logger.info(f"Message {message_id} delivered to {user_id}")
+
+
+@sio.event
+async def message_read(sid, data):
+    """
+    Mark message as read
+    
+    Args:
+        data: {
+            'message_id': str,
+            'room_id': str
+        }
+    """
+    user_id = user_sessions.get(sid)
+    
+    if not user_id:
+        return
+    
+    message_id = data.get('message_id')
+    room_id = data.get('room_id')
+    
+    if message_id and room_id:
+        # Notify sender that message was read
+        await sio.emit('message_status', {
+            'message_id': message_id,
+            'room_id': room_id,
+            'status': 'read',
+            'read_by': user_id,
+            'timestamp': asyncio.get_event_loop().time()
+        }, room=room_id)
+        
+        logger.info(f"Message {message_id} read by {user_id}")
+
+
+@sio.event
+async def mark_all_read(sid, data):
+    """
+    Mark all messages in a room as read
+    
+    Args:
+        data: {
+            'room_id': str
+        }
+    """
+    user_id = user_sessions.get(sid)
+    room_id = data.get('room_id')
+    
+    if user_id and room_id:
+        await sio.emit('all_messages_read', {
+            'room_id': room_id,
+            'read_by': user_id,
+            'timestamp': asyncio.get_event_loop().time()
+        }, room=room_id)
+        
+        logger.info(f"All messages in room {room_id} marked as read by {user_id}")
+
+
 # Export server instance
 def get_socket_app():
     """
