@@ -7,28 +7,32 @@ async function main() {
 
   const [deployer] = await hre.ethers.getSigners();
   console.log("📝 Deploying contracts with account:", deployer.address);
-  console.log("💰 Account balance:", (await deployer.getBalance()).toString(), "\n");
+  const balance = await hre.ethers.provider.getBalance(deployer.address);
+  console.log("💰 Account balance:", hre.ethers.formatEther(balance), "ETH\n");
 
   // Deploy GroupChatV2
   console.log("📦 Deploying GroupChatV2...");
   const GroupChatV2 = await hre.ethers.getContractFactory("GroupChatV2");
   const groupChat = await GroupChatV2.deploy();
-  await groupChat.deployed();
-  console.log("✅ GroupChatV2 deployed to:", groupChat.address);
+  await groupChat.waitForDeployment();
+  const groupChatAddress = await groupChat.getAddress();
+  console.log("✅ GroupChatV2 deployed to:", groupChatAddress);
 
   // Deploy GroupPayment
   console.log("\n📦 Deploying GroupPayment...");
   const GroupPayment = await hre.ethers.getContractFactory("GroupPayment");
   const groupPayment = await GroupPayment.deploy();
-  await groupPayment.deployed();
-  console.log("✅ GroupPayment deployed to:", groupPayment.address);
+  await groupPayment.waitForDeployment();
+  const groupPaymentAddress = await groupPayment.getAddress();
+  console.log("✅ GroupPayment deployed to:", groupPaymentAddress);
 
   // Deploy RedPacket
   console.log("\n📦 Deploying RedPacket...");
   const RedPacket = await hre.ethers.getContractFactory("RedPacket");
   const redPacket = await RedPacket.deploy();
-  await redPacket.deployed();
-  console.log("✅ RedPacket deployed to:", redPacket.address);
+  await redPacket.waitForDeployment();
+  const redPacketAddress = await redPacket.getAddress();
+  console.log("✅ RedPacket deployed to:", redPacketAddress);
 
   // Save deployment addresses
   const deploymentData = {
@@ -36,14 +40,14 @@ async function main() {
     deployer: deployer.address,
     timestamp: new Date().toISOString(),
     contracts: {
-      GroupChatV2: groupChat.address,
-      GroupPayment: groupPayment.address,
-      RedPacket: redPacket.address,
+      GroupChatV2: groupChatAddress,
+      GroupPayment: groupPaymentAddress,
+      RedPacket: redPacketAddress,
     },
     transactionHashes: {
-      GroupChatV2: groupChat.deployTransaction.hash,
-      GroupPayment: groupPayment.deployTransaction.hash,
-      RedPacket: redPacket.deployTransaction.hash,
+      GroupChatV2: groupChat.deploymentTransaction().hash,
+      GroupPayment: groupPayment.deploymentTransaction().hash,
+      RedPacket: redPacket.deploymentTransaction().hash,
     },
   };
 
@@ -58,30 +62,30 @@ async function main() {
   console.log("Network:", hre.network.name);
   console.log("Deployer:", deployer.address);
   console.log("\n📝 Contract Addresses:");
-  console.log("  GroupChatV2:   ", groupChat.address);
-  console.log("  GroupPayment:  ", groupPayment.address);
-  console.log("  RedPacket:     ", redPacket.address);
+  console.log("  GroupChatV2:   ", groupChatAddress);
+  console.log("  GroupPayment:  ", groupPaymentAddress);
+  console.log("  RedPacket:     ", redPacketAddress);
   console.log("\n🔗 Etherscan Links:");
   const explorerUrl = hre.network.name === "sepolia" 
     ? "https://sepolia.etherscan.io/address/"
     : "https://etherscan.io/address/";
-  console.log("  GroupChatV2:   ", explorerUrl + groupChat.address);
-  console.log("  GroupPayment:  ", explorerUrl + groupPayment.address);
-  console.log("  RedPacket:     ", explorerUrl + redPacket.address);
+  console.log("  GroupChatV2:   ", explorerUrl + groupChatAddress);
+  console.log("  GroupPayment:  ", explorerUrl + groupPaymentAddress);
+  console.log("  RedPacket:     ", explorerUrl + redPacketAddress);
   console.log("=".repeat(60) + "\n");
 
   // Verify contracts on Etherscan (if not localhost)
   if (hre.network.name !== "hardhat" && hre.network.name !== "localhost") {
     console.log("⏳ Waiting for block confirmations before verification...");
-    await groupChat.deployTransaction.wait(5);
-    await groupPayment.deployTransaction.wait(5);
-    await redPacket.deployTransaction.wait(5);
+    await groupChat.deploymentTransaction().wait(5);
+    await groupPayment.deploymentTransaction().wait(5);
+    await redPacket.deploymentTransaction().wait(5);
 
     console.log("\n🔍 Verifying contracts on Etherscan...");
     
     try {
       await hre.run("verify:verify", {
-        address: groupChat.address,
+        address: groupChatAddress,
         constructorArguments: [],
       });
       console.log("✅ GroupChatV2 verified");
@@ -91,7 +95,7 @@ async function main() {
 
     try {
       await hre.run("verify:verify", {
-        address: groupPayment.address,
+        address: groupPaymentAddress,
         constructorArguments: [],
       });
       console.log("✅ GroupPayment verified");
@@ -101,7 +105,7 @@ async function main() {
 
     try {
       await hre.run("verify:verify", {
-        address: redPacket.address,
+        address: redPacketAddress,
         constructorArguments: [],
       });
       console.log("✅ RedPacket verified");

@@ -4,12 +4,19 @@
 export const CHAIN_ID = 11155111; // Sepolia
 export const NETWORK_NAME = 'sepolia';
 
-// Contract addresses from deployment-v2-addresses.json (backend source of truth)
-// Last updated: 2025-10-20
+// Contract addresses from deployment files (backend source of truth)
+// Last updated: 2025-11-04
 export const CONTRACT_ADDRESSES = {
+  // Core contracts (deployment-v2-addresses.json)
   UserIdentity: '0x6BCF16f82F8d3A37b7b6fd59DeE9adf95B1BA5a1',  // UserIdentityV2
   MessageStorage: '0x906626694a065bEECf51F2C776f272bDB67Ce174',  // MessageStorageV2
-  // Legacy contracts (deprecated, use V2 versions above)
+  
+  // Group functionality contracts (deployment-group-contracts.json)
+  GroupChat: '0x4f93AEaAE5981fd6C95cFA8096D31D3d92ae2F28',  // GroupChatV2
+  GroupPayment: '0x788Ba6e9B0EB746F58E4bab891B9c0add8359541',  // GroupPayment
+  RedPacket: '0x0354fCfB243639d37F84E8d00031422655219f75',  // RedPacket
+  
+  // Legacy contracts (deprecated)
   PaymentEscrow: '0xB71fD2eD9a15A2Bef002b1206A97e9Bddd7436d6',
   ProjectCollaboration: '0x09668e0764B43E8093a65d33620DeAd9BDa1d85c',
 };
