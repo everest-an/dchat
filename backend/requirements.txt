@@ -17,3 +17,4 @@ python-dotenv==1.2.1
 web3==6.15.1
 eth-account==0.11.0
 redis==5.0.1
+sentry-sdk[flask]==1.40.0
