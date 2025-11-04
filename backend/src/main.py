@@ -22,6 +22,15 @@ except ImportError:
     HAS_NEW_ROUTES = False
     print("⚠️  新路由模块未找到，使用基础版本")
 
+# 导入 Web3 路由
+try:
+    from src.routes.groups_web3 import groups_web3_bp
+    from src.routes.payments_web3 import payments_web3_bp
+    HAS_WEB3_ROUTES = True
+except ImportError:
+    HAS_WEB3_ROUTES = False
+    print("⚠️  Web3 路由模块未找到")
+
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 
 # 配置
@@ -70,6 +79,12 @@ if HAS_NEW_ROUTES:
     print("✅ 所有API路由已注册（包含新功能）")
 else:
     print("✅ 基础API路由已注册")
+
+# 注册 Web3 蓝图
+if HAS_WEB3_ROUTES:
+    app.register_blueprint(groups_web3_bp, url_prefix='/api/web3/groups')
+    app.register_blueprint(payments_web3_bp, url_prefix='/api/web3/payments')
+    print("✅ Web3 API路由已注册（智能合约集成）")
 
 # 全局错误处理
 @app.errorhandler(400)
@@ -136,6 +151,12 @@ def health_check():
             'groups': '/api/groups',
             'notifications': '/api/notifications',
             'linkedin': '/api/linkedin'
+        })
+    
+    if HAS_WEB3_ROUTES:
+        endpoints.update({
+            'web3_groups': '/api/web3/groups',
+            'web3_payments': '/api/web3/payments'
         })
     
     return jsonify({
@@ -228,8 +249,14 @@ if __name__ == '__main__':
     print(f"   Debug: {debug}")
     print(f"   Database: {database_url}")
     print(f"   Version: 2.0.0")
+    features = []
     if HAS_NEW_ROUTES:
-        print(f"   Features: Enhanced (Groups, Notifications, LinkedIn OAuth)")
+        features.append("Groups, Notifications, LinkedIn OAuth")
+    if HAS_WEB3_ROUTES:
+        features.append("Web3 Smart Contracts")
+    
+    if features:
+        print(f"   Features: Enhanced ({', '.join(features)})")
     else:
         print(f"   Features: Basic")
     print(f"\n📚 API Documentation: http://localhost:{port}/api/docs")
