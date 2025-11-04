@@ -1,0 +1,256 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [ main, develop, feature/* ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+
+jobs:
+  test:
+    name: Test Backend
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ['3.11']
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: 'backend/requirements.txt'
+      
+      - name: Install dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Lint with flake8
+        run: |
+          cd backend
+          pip install flake8
+          # Stop the build if there are Python syntax errors or undefined names
+          flake8 src --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Exit-zero treats all errors as warnings
+          flake8 src --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      
+      - name: Run unit tests
+        env:
+          TESTING: true
+          DATABASE_URL: sqlite:///:memory:
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_SECRET_KEY: test_secret_key_for_ci
+        run: |
+          cd backend
+          pytest tests/ -v --cov=src --cov-report=xml --cov-report=html
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./backend/coverage.xml
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+      
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-coverage-report
+          path: backend/htmlcov/
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run Bandit security scan
+        run: |
+          pip install bandit
+          cd backend
+          bandit -r src -f json -o bandit-report.json || true
+      
+      - name: Run Safety check
+        run: |
+          pip install safety
+          cd backend
+          safety check --json || true
+      
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-reports
+          path: backend/*-report.json
+
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/dchat-backend
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: staging
+      url: https://staging-api.dchat.pro
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Deploy to ECS
+        run: |
+          # Update ECS service with new image
+          aws ecs update-service \
+            --cluster dchat-staging \
+            --service dchat-backend-staging \
+            --force-new-deployment
+      
+      - name: Wait for deployment
+        run: |
+          aws ecs wait services-stable \
+            --cluster dchat-staging \
+            --services dchat-backend-staging
+      
+      - name: Run smoke tests
+        run: |
+          # Wait for service to be healthy
+          sleep 30
+          
+          # Test health endpoint
+          curl -f https://staging-api.dchat.pro/health || exit 1
+          
+          echo "✅ Staging deployment successful!"
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://api.dchat.pro
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Deploy to ECS
+        run: |
+          # Update ECS service with new image
+          aws ecs update-service \
+            --cluster dchat-production \
+            --service dchat-backend-production \
+            --force-new-deployment
+      
+      - name: Wait for deployment
+        run: |
+          aws ecs wait services-stable \
+            --cluster dchat-production \
+            --services dchat-backend-production
+      
+      - name: Run smoke tests
+        run: |
+          # Wait for service to be healthy
+          sleep 30
+          
+          # Test health endpoint
+          curl -f https://api.dchat.pro/health || exit 1
+          
+          # Test authentication endpoint
+          curl -f https://api.dchat.pro/api/auth/health || exit 1
+          
+          echo "✅ Production deployment successful!"
+      
+      - name: Notify deployment
+        if: success()
+        run: |
+          echo "🚀 Backend deployed to production successfully!"
+          # Add Slack/Discord notification here if needed
