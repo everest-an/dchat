@@ -28,6 +28,7 @@ try:
     from src.routes.payments_web3 import payments_web3_bp
     from src.routes.webrtc import webrtc_bp
     from src.routes.search import search_bp
+    from src.routes.stickers import stickers_bp
     HAS_WEB3_ROUTES = True
 except ImportError:
     HAS_WEB3_ROUTES = False
@@ -88,7 +89,8 @@ if HAS_WEB3_ROUTES:
     app.register_blueprint(payments_web3_bp, url_prefix='/api/web3/payments')
     app.register_blueprint(webrtc_bp)
     app.register_blueprint(search_bp)
-    print("✅ Web3 API路由已注册（智能合约集成 + WebRTC + 搜索）")
+    app.register_blueprint(stickers_bp)
+    print("✅ Web3 API路由已注册（智能合约集成 + WebRTC + 搜索 + 表情包）")
 
 # 全局错误处理
 @app.errorhandler(400)
