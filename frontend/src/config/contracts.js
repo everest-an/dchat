@@ -16,6 +16,10 @@ export const CONTRACT_ADDRESSES = {
   GroupPayment: '0x788Ba6e9B0EB746F58E4bab891B9c0add8359541',  // GroupPayment
   RedPacket: '0x0354fCfB243639d37F84E8d00031422655219f75',  // RedPacket
   
+  // Subscription contracts (deployment-subscription-contracts.json)
+  SubscriptionManager: '0x5d154C1A6DE2B10aFcCd139A4aBa3bbCfd8A31c8',  // SubscriptionManager
+  NFTAvatarManager: '0xF91E0E6afF5A93831F67838539245a44Ca384187',  // NFTAvatarManager
+  
   // Legacy contracts (deprecated)
   PaymentEscrow: '0xB71fD2eD9a15A2Bef002b1206A97e9Bddd7436d6',
   ProjectCollaboration: '0x09668e0764B43E8093a65d33620DeAd9BDa1d85c',

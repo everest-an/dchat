@@ -69,7 +69,7 @@ contract NFTAvatarManager is Ownable {
     /**
      * @dev Constructor
      */
-    constructor() {
+    constructor() Ownable(msg.sender) {
         whitelistEnabled = false; // Allow all collections by default
     }
     

@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+// Counters removed in OpenZeppelin v5.x, using uint256 instead
 
 /**
  * @title SubscriptionManager
@@ -22,7 +22,6 @@ import "@openzeppelin/contracts/utils/Counters.sol";
  * @notice This contract handles all subscription-related operations
  */
 contract SubscriptionManager is Ownable, ReentrancyGuard {
-    using Counters for Counters.Counter;
     
     // Subscription tiers
     enum SubscriptionTier {
@@ -73,13 +72,12 @@ contract SubscriptionManager is Ownable, ReentrancyGuard {
     struct Pricing {
         uint256 monthlyPrice;
         uint256 yearlyPrice;
-        uint256 nftPrice; // One-time NFT membership price
+        uint256 nftPrice;
     }
     
     // State variables
-    Counters.Counter private _subscriptionIdCounter;
-    Counters.Counter private _nftTokenIdCounter;
-    
+    uint256 private _subscriptionIdCounter;
+    uint256 private _nftTokenIdCounter;    
     // Subscription ID => Subscription
     mapping(uint256 => Subscription) public subscriptions;
     
@@ -155,7 +153,7 @@ contract SubscriptionManager is Ownable, ReentrancyGuard {
     /**
      * @dev Constructor
      */
-    constructor() {
+    constructor() Ownable(msg.sender) {
         // Initialize pricing (in wei for ETH)
         // Pro: $4.99/month, $49.99/year, $199 NFT
         // Enterprise: $19.99/month, $199.99/year, $999 NFT
@@ -222,8 +220,8 @@ contract SubscriptionManager is Ownable, ReentrancyGuard {
         }
         
         // Create new subscription
-        _subscriptionIdCounter.increment();
-        uint256 newSubId = _subscriptionIdCounter.current();
+        _subscriptionIdCounter++;
+        uint256 newSubId = _subscriptionIdCounter;
         
         subscriptions[newSubId] = Subscription({
             id: newSubId,
@@ -273,8 +271,8 @@ contract SubscriptionManager is Ownable, ReentrancyGuard {
         }
         
         // Mint NFT
-        _nftTokenIdCounter.increment();
-        uint256 tokenId = _nftTokenIdCounter.current();
+        _nftTokenIdCounter++;
+        uint256 tokenId = _nftTokenIdCounter;
         
         nftMemberships[tokenId] = NFTMembership({
             tokenId: tokenId,
@@ -509,7 +507,7 @@ contract SubscriptionManager is Ownable, ReentrancyGuard {
      * @return Total subscriptions
      */
     function getTotalSubscriptions() external view returns (uint256) {
-        return _subscriptionIdCounter.current();
+        return _subscriptionIdCounter;
     }
     
     /**
@@ -517,6 +515,6 @@ contract SubscriptionManager is Ownable, ReentrancyGuard {
      * @return Total NFT memberships
      */
     function getTotalNFTMemberships() external view returns (uint256) {
-        return _nftTokenIdCounter.current();
+        return _nftTokenIdCounter;
     }
 }
