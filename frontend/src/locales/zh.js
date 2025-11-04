@@ -94,6 +94,31 @@ export default {
     members: '成员',
     deadline: '截止日期'
   },
+
+  // Payment
+  payment: {
+    title: '支付',
+    paymentDetails: '支付详情',
+    amount: '金额',
+    paymentMethod: '支付方式',
+    walletType: '钱包类型',
+    custodial: '托管钱包',
+    nonCustodial: '非托管钱包',
+    custodialDescription: '平台托管,降低手续费,适合流支付',
+    nonCustodialDescription: '自主控制,直接支付,适合小额支付',
+    creditCard: '信用卡/借记卡',
+    creditCardDescription: '使用 Visa、Mastercard 或 Amex 支付',
+    cryptocurrency: '加密货币',
+    cryptocurrencyDescription: '使用 ETH、USDC 或 USDT 支付',
+    recipient: '收款人',
+    processing: '处理中...',
+    success: '支付成功!',
+    successMessage: '您的支付已处理完成',
+    failed: '支付失败',
+    cancel: '取消',
+    pay: '支付',
+    securityNotice: '您的支付信息已加密并受到保护。我们不会存储您的卡片详情。'
+  },
   
   // LinkedIn
   linkedin: {

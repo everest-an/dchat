@@ -39,6 +39,8 @@ except ImportError:
 try:
     from src.routes.subscription import subscription_bp
     from src.routes.nft_avatar import nft_avatar_bp
+    from src.routes.custodial_wallet import custodial_wallet_bp
+    from src.routes.user_profile import user_profile_bp
     HAS_SUBSCRIPTION_ROUTES = True
 except ImportError:
     HAS_SUBSCRIPTION_ROUTES = False
@@ -112,7 +114,9 @@ if HAS_WEB3_ROUTES:
 if HAS_SUBSCRIPTION_ROUTES:
     app.register_blueprint(subscription_bp, url_prefix='/api/subscriptions')
     app.register_blueprint(nft_avatar_bp, url_prefix='/api/avatars/nft')
-    print("✅ 订阅和 NFT 头像 API 路由已注册")
+    app.register_blueprint(custodial_wallet_bp)
+    app.register_blueprint(user_profile_bp)
+    print("✅ 订阅、NFT 头像、托管钱包和用户资料 API 路由已注册")
 
 # 全局错误处理
 @app.errorhandler(400)

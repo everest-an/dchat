@@ -94,6 +94,31 @@ export default {
     members: 'Members',
     deadline: 'Deadline'
   },
+
+  // Payment
+  payment: {
+    title: 'Payment',
+    paymentDetails: 'Payment Details',
+    amount: 'Amount',
+    paymentMethod: 'Payment Method',
+    walletType: 'Wallet Type',
+    custodial: 'Custodial Wallet',
+    nonCustodial: 'Non-Custodial Wallet',
+    custodialDescription: 'Platform-managed, lower fees, ideal for streaming payments',
+    nonCustodialDescription: 'Self-custody, direct payments, ideal for small transactions',
+    creditCard: 'Credit/Debit Card',
+    creditCardDescription: 'Pay with Visa, Mastercard, or Amex',
+    cryptocurrency: 'Cryptocurrency',
+    cryptocurrencyDescription: 'Pay with ETH, USDC, or USDT',
+    recipient: 'Recipient',
+    processing: 'Processing...',
+    success: 'Payment Successful!',
+    successMessage: 'Your payment has been processed',
+    failed: 'Payment Failed',
+    cancel: 'Cancel',
+    pay: 'Pay',
+    securityNotice: 'Your payment information is encrypted and secure. We never store your card details.'
+  },
   
   // LinkedIn
   linkedin: {

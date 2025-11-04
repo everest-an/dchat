@@ -5,6 +5,7 @@ import LinkedInConnect from './LinkedInConnect'
 import LinkedInMessages from './LinkedInMessages'
 import LanguageSwitcher from './LanguageSwitcher'
 import AvatarUpload from './AvatarUpload'
+import ProfileEditDialog from './ProfileEditDialog'
 import { useLanguage } from '../contexts/LanguageContext'
 import { UserProfileService } from '../services/UserProfileService'
 
@@ -15,6 +16,7 @@ const Profile = ({ user, onLogout }) => {
   const [showLinkedInMessages, setShowLinkedInMessages] = useState(false)
   const [userProfile, setUserProfile] = useState(null)
   const [avatarData, setAvatarData] = useState(null)
+  const [showEditDialog, setShowEditDialog] = useState(false)
 
   // Load user profile
   useEffect(() => {
@@ -153,7 +155,12 @@ const Profile = ({ user, onLogout }) => {
                 <p className="text-sm text-gray-500">{userProfile?.position || user?.position || ''}</p>
               </div>
             </div>
-            <Button variant="ghost" size="icon" title={t('profile.edit')}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              title={t('profile.edit')}
+              onClick={() => setShowEditDialog(true)}
+            >
               <Edit className="w-4 h-4" />
             </Button>
           </div>
@@ -318,6 +325,14 @@ const Profile = ({ user, onLogout }) => {
           {t('profile.logout')}
         </Button>
       </div>
+
+      {/* Profile Edit Dialog */}
+      <ProfileEditDialog
+        isOpen={showEditDialog}
+        onClose={() => setShowEditDialog(false)}
+        userId={user?.id}
+        authToken={localStorage.getItem('authToken')}
+      />
     </div>
   )
 }
