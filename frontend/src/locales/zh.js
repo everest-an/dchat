@@ -176,7 +176,14 @@ export default {
     walletAddress: '钱包地址',
     createdAt: '创建时间',
     dailyLimit: '每日提取限额',
-    securitySettings: '安全设置'
+    securitySettings: '安全设置',
+    claim: '领取',
+    claimedAt: '领取时间',
+    expiresAt: '过期时间',
+    expired: '已过期',
+    cancelled: '已取消',
+    cancelledByUser: '发送者已取消',
+    optional: '可选'
   },
   
   // LinkedIn

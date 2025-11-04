@@ -176,7 +176,14 @@ export default {
     walletAddress: 'Wallet Address',
     createdAt: 'Created At',
     dailyLimit: 'Daily Withdrawal Limit',
-    securitySettings: 'Security Settings'
+    securitySettings: 'Security Settings',
+    claim: 'Claim',
+    claimedAt: 'Claimed at',
+    expiresAt: 'Expires at',
+    expired: 'Expired',
+    cancelled: 'Cancelled',
+    cancelledByUser: 'Cancelled by sender',
+    optional: 'Optional'
   },
   
   // LinkedIn
