@@ -8,23 +8,13 @@ import datetime
 import os
 import secrets
 import time
+from src.config.redis_config import redis_service
 
 auth_bp = Blueprint('auth', __name__)
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'dchat-secret-key')
 
-# Nonce 存储 (生产环境应使用 Redis)
-nonce_store = {}
-
-def cleanup_expired_nonces():
-    """清理过期的 nonce"""
-    current_time = time.time()
-    expired_addresses = [
-        addr for addr, data in nonce_store.items()
-        if current_time - data['timestamp'] > 300  # 5分钟过期
-    ]
-    for addr in expired_addresses:
-        del nonce_store[addr]
+# Nonce now stored in Redis (automatic expiration)
 
 @auth_bp.route('/nonce', methods=['GET'])
 def get_nonce():
@@ -39,17 +29,16 @@ def get_nonce():
         if not Web3.is_address(address):
             return jsonify({'success': False, 'error': '无效的以太坊地址'}), 400
         
-        # 清理过期的 nonce
-        cleanup_expired_nonces()
-        
         # 生成新的 nonce
         nonce = secrets.token_hex(16)
         timestamp = int(time.time())
         
-        nonce_store[address.lower()] = {
+        # Store in Redis with 5 minute expiration
+        nonce_data = {
             'nonce': nonce,
             'timestamp': timestamp
         }
+        redis_service.set(f'nonce:{address.lower()}', nonce_data, expire=300)
         
         return jsonify({
             'success': True,
@@ -64,15 +53,10 @@ def get_nonce():
 def verify_signature(address, signature):
     """验证 Web3 签名"""
     try:
-        # 1. 验证 nonce 是否存在
-        nonce_data = nonce_store.get(address.lower())
+        # 1. Get nonce from Redis
+        nonce_data = redis_service.get(f'nonce:{address.lower()}')
         if not nonce_data:
-            return False, 'Nonce not found. Please request a new nonce.'
-        
-        # 2. 验证 nonce 是否过期（5分钟）
-        if time.time() - nonce_data['timestamp'] > 300:
-            del nonce_store[address.lower()]
-            return False, 'Nonce expired. Please request a new nonce.'
+            return False, 'Nonce not found or expired. Please request a new nonce.'
         
         # 3. 构造签名消息
         message = f"Sign in to Dchat\n\nNonce: {nonce_data['nonce']}\nTimestamp: {nonce_data['timestamp']}\n\nThis request will not trigger a blockchain transaction or cost any gas fees."
@@ -89,8 +73,8 @@ def verify_signature(address, signature):
         if recovered_address.lower() != address.lower():
             return False, f'Signature verification failed. Expected {address}, got {recovered_address}'
         
-        # 6. 删除已使用的 nonce（防止重放攻击）
-        del nonce_store[address.lower()]
+        # 6. Delete used nonce from Redis (prevent replay attacks)
+        redis_service.delete(f'nonce:{address.lower()}')
         
         return True, 'Signature verified successfully'
         
