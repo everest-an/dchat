@@ -7,16 +7,13 @@ import { useToast } from '../contexts/ToastContext'
 import { MessageStorageService } from '../services/MessageStorageService'
 import { UserProfileService } from '../services/UserProfileService'
 import ipfsService from '../services/ipfsService'
-import { encryptMessage, decryptMessage } from '../utils/encryption'
 import { subscriptionService } from '../services/SubscriptionService'
 import UpgradeDialog from './dialogs/UpgradeDialog'
 import PaymentDialog from './dialogs/PaymentDialog'
-import { useLanguage } from '../contexts/LanguageContext'
 import socketService from '../services/socketService'
 
 
 const ChatRoom = () => {
-  const { t } = useLanguage()
 
   const navigate = useNavigate()
   const { id: recipientAddress } = useParams()
@@ -38,7 +35,6 @@ const ChatRoom = () => {
   
   const messagesEndRef = useRef(null)
   const fileInputRef = useRef(null)
-  const pollingInterval = useRef(null)
 
   // TODO: Translate {t('get_recipient_info')}
   useEffect(() => {

@@ -1,3 +1,4 @@
+/* global process */
 /**
  * ERC-20 Token Withdrawal Dialog Component
  * 

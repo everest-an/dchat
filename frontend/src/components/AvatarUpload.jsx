@@ -2,15 +2,13 @@ import { useState, useRef } from 'react'
 import { Camera, Upload, X, Loader2, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import ipfsService from '../services/ipfsService'
-import { useLanguage } from '../contexts/LanguageContext'
 
 /**
  * AvatarTODO: Translate '上传组件'
  * TODO: Translate '支持图片选择'、TODO: Translate '预览'、TODO: Translate '裁剪和'IPFSTODO: Translate '上传'
  * TODO: Translate '完整的多语言支持'
  */
-const AvatarUpload = ({ currentAvatar, onAvatarUpdate, userAddress }) => {
-  const { t } = useLanguage()
+const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
   const fileInputRef = useRef(null)
   
   const [isUploading, setIsUploading] = useState(false)

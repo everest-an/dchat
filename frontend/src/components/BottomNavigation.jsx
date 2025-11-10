@@ -1,10 +1,8 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { MessageCircle, Briefcase, Target, Wallet, User } from 'lucide-react'
-import { useLanguage } from '../contexts/LanguageContext'
 
 
 const BottomNavigation = () => {
-  const { t } = useLanguage()
 
   const navigate = useNavigate()
   const location = useLocation()
