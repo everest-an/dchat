@@ -4,10 +4,24 @@
 export const CHAIN_ID = 11155111; // Sepolia
 export const NETWORK_NAME = 'sepolia';
 
+// Contract addresses from deployment files (backend source of truth)
+// Last updated: 2025-11-04
 export const CONTRACT_ADDRESSES = {
-  MessageStorage: '0x5a7f2f9538D6a5044142123c12A254F73bf77F6f',
+  // Core contracts (deployment-v2-addresses.json)
+  UserIdentity: '0x6BCF16f82F8d3A37b7b6fd59DeE9adf95B1BA5a1',  // UserIdentityV2
+  MessageStorage: '0x906626694a065bEECf51F2C776f272bDB67Ce174',  // MessageStorageV2
+  
+  // Group functionality contracts (deployment-group-contracts.json)
+  GroupChat: '0x4f93AEaAE5981fd6C95cFA8096D31D3d92ae2F28',  // GroupChatV2
+  GroupPayment: '0x788Ba6e9B0EB746F58E4bab891B9c0add8359541',  // GroupPayment
+  RedPacket: '0x0354fCfB243639d37F84E8d00031422655219f75',  // RedPacket
+  
+  // Subscription contracts (deployment-subscription-contracts.json)
+  SubscriptionManager: '0x5d154C1A6DE2B10aFcCd139A4aBa3bbCfd8A31c8',  // SubscriptionManager
+  NFTAvatarManager: '0xF91E0E6afF5A93831F67838539245a44Ca384187',  // NFTAvatarManager
+  
+  // Legacy contracts (deprecated)
   PaymentEscrow: '0xB71fD2eD9a15A2Bef002b1206A97e9Bddd7436d6',
-  UserIdentity: '0x32a75De07Cd3FE59A8437445BE37D0546B4Bb17a',
   ProjectCollaboration: '0x09668e0764B43E8093a65d33620DeAd9BDa1d85c',
 };
 

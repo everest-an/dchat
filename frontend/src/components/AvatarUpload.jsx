@@ -9,7 +9,7 @@ import { useLanguage } from '../contexts/LanguageContext'
  * TODO: Translate '支持图片选择'、TODO: Translate '预览'、TODO: Translate '裁剪和'IPFSTODO: Translate '上传'
  * TODO: Translate '完整的多语言支持'
  */
-const AvatarUpload = ({ currentAvatar, onAvatarUpdate, userAddress }) => {
+const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
   const { t } = useLanguage()
   const fileInputRef = useRef(null)
   

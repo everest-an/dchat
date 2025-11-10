@@ -12,15 +12,10 @@ import CreateGroupDialog from './dialogs/CreateGroupDialog'
 import NewChatDialog from './NewChatDialog'
 import StatusBadge from './StatusBadge'
 import presenceService from '../services/PresenceService'
-import { useLanguage } from '../contexts/LanguageContext'
-
-
 const ChatList = ({ user }) => {
-  const { t } = useLanguage()
-
   const navigate = useNavigate()
-  const { account, disconnect } = useWeb3()
-  const { success, error: showError } = useToast()
+  const { account } = useWeb3()
+  const { success } = useToast()
   
   // useWeb3 accountTODO: Translate {t('or_option')}user.walletAddress
   const userAddress = account || user?.walletAddress
@@ -32,7 +27,6 @@ const ChatList = ({ user }) => {
   const [showScan, setShowScan] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
   const [showNewChat, setShowNewChat] = useState(false)
-  const [newChatAddress, setNewChatAddress] = useState('')
   const [showCreateGroup, setShowCreateGroup] = useState(false)
   const [myProfile, setMyProfile] = useState(null)
 
@@ -111,31 +105,6 @@ const ChatList = ({ user }) => {
     )
     setFilteredConversations(filtered)
   }, [searchQuery, conversations])
-
-  // TODO: Translate {t('create_new_chat')}
-  const handleNewChat = () => {
-    if (!newChatAddress.trim()) {
-      showError('Error', 'Please enter a wallet address')
-      return
-    }
-
-    // TODO: Translate {t('validate_address_format')}
-    if (!/^0x[a-fA-F0-9]{40}$/.test(newChatAddress)) {
-      showError('Error', 'Invalid Ethereum address')
-      return
-    }
-
-    // TODO: Translate {t('check_own_address')}
-    if (newChatAddress.toLowerCase() === userAddress.toLowerCase()) {
-      showError('Error', 'Cannot chat with yourself')
-      return
-    }
-
-    // TODO: Translate {t('navigate_to_chat_page')}
-    navigate(`/chat/${newChatAddress}`)
-    setShowNewChat(false)
-    setNewChatAddress('')
-  }
 
   // Handle start chat from NewChatDialog
   const handleStartChat = (chatData) => {

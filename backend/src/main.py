@@ -10,6 +10,8 @@ from src.routes.user import user_bp
 from src.routes.auth import auth_bp
 from src.routes.messages import messages_bp
 from src.routes.projects import projects_bp
+from src.routes.files import files_bp
+from src.middleware.api_logger import init_api_logging
 
 # 导入新增的路由
 try:
@@ -20,6 +22,31 @@ try:
 except ImportError:
     HAS_NEW_ROUTES = False
     print("⚠️  新路由模块未找到，使用基础版本")
+
+# 导入 Web3 路由
+try:
+    from src.routes.groups_web3 import groups_web3_bp
+    from src.routes.payments_web3 import payments_web3_bp
+    from src.routes.webrtc import webrtc_bp
+    from src.routes.search import search_bp
+    from src.routes.stickers import stickers_bp
+    from src.routes.reactions import reactions_bp
+    HAS_WEB3_ROUTES = True
+except ImportError:
+    HAS_WEB3_ROUTES = False
+    print("⚠️  Web3 路由模块未找到")
+
+# 导入订阅和 NFT 头像路由
+try:
+    from src.routes.subscription import subscription_bp
+    from src.routes.nft_avatar import nft_avatar_bp
+    from src.routes.custodial_wallet import custodial_wallet_bp
+    from src.routes.user_profile import user_profile_bp
+    from src.routes.chat_transfer import chat_transfer_bp
+    HAS_SUBSCRIPTION_ROUTES = True
+except ImportError:
+    HAS_SUBSCRIPTION_ROUTES = False
+    print("⚠️  订阅路由模块未找到")
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 
@@ -46,11 +73,19 @@ app.config['SQLALCHEMY_ECHO'] = os.environ.get('DEBUG', 'False') == 'True'
 # 初始化数据库
 db.init_app(app)
 
+# 初始化 API 日志
+init_api_logging(app)
+
 # 创建数据库表
 with app.app_context():
     # 导入所有模型以确保表被创建
     from src.models.message import Message
     from src.models.project import Project, Moment
+    # 导入订阅模型
+    try:
+        from src.models.subscription import Subscription, NFTMembership, NFTAvatar, SubscriptionFeatureUsage
+    except ImportError:
+        pass
     db.create_all()
     print("✅ 数据库表创建成功")
 
@@ -59,6 +94,7 @@ app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(messages_bp, url_prefix='/api/messages')
 app.register_blueprint(projects_bp, url_prefix='/api')
+app.register_blueprint(files_bp, url_prefix='/api/files')
 
 # 注册新增蓝图
 if HAS_NEW_ROUTES:
@@ -68,6 +104,25 @@ if HAS_NEW_ROUTES:
     print("✅ 所有API路由已注册（包含新功能）")
 else:
     print("✅ 基础API路由已注册")
+
+# 注册 Web3 蓝图
+if HAS_WEB3_ROUTES:
+    app.register_blueprint(groups_web3_bp, url_prefix='/api/web3/groups')
+    app.register_blueprint(payments_web3_bp, url_prefix='/api/web3/payments')
+    app.register_blueprint(webrtc_bp)
+    app.register_blueprint(search_bp)
+    app.register_blueprint(stickers_bp)
+    app.register_blueprint(reactions_bp)
+    print("✅ Web3 API路由已注册（智能合约 + WebRTC + 搜索 + 表情包 + 消息反应）")
+
+# 注册订阅和 NFT 头像蓝图
+if HAS_SUBSCRIPTION_ROUTES:
+    app.register_blueprint(subscription_bp, url_prefix='/api/subscriptions')
+    app.register_blueprint(nft_avatar_bp, url_prefix='/api/avatars/nft')
+    app.register_blueprint(custodial_wallet_bp)
+    app.register_blueprint(user_profile_bp)
+    app.register_blueprint(chat_transfer_bp, url_prefix='/api/chat-transfer')
+    print("✅ 订阅、NFT 头像、托管钱包和用户资料 API 路由已注册")
 
 # 全局错误处理
 @app.errorhandler(400)
@@ -136,6 +191,18 @@ def health_check():
             'linkedin': '/api/linkedin'
         })
     
+    if HAS_WEB3_ROUTES:
+        endpoints.update({
+            'web3_groups': '/api/web3/groups',
+            'web3_payments': '/api/web3/payments'
+        })
+    
+    if HAS_SUBSCRIPTION_ROUTES:
+        endpoints.update({
+            'subscriptions': '/api/subscriptions',
+            'nft_avatars': '/api/avatars/nft'
+        })
+    
     return jsonify({
         'status': 'ok',
         'message': 'Dchat API is running',
@@ -172,6 +239,12 @@ def api_docs():
                 'GET /messages/conversations': '获取对话列表',
                 'GET /messages/conversations/:user_id': '获取与特定用户的消息',
                 'POST /messages/send': '发送消息'
+            },
+            'files': {
+                'POST /files/upload': '上传文件到IPFS',
+                'GET /files/download/:ipfs_hash': '获取文件下载链接',
+                'GET /files/metadata/:ipfs_hash': '获取文件元数据',
+                'DELETE /files/unpin/:ipfs_hash': '删除IPFS文件'
             },
             'projects': {
                 'GET /projects': '获取项目列表',
@@ -220,8 +293,16 @@ if __name__ == '__main__':
     print(f"   Debug: {debug}")
     print(f"   Database: {database_url}")
     print(f"   Version: 2.0.0")
+    features = []
     if HAS_NEW_ROUTES:
-        print(f"   Features: Enhanced (Groups, Notifications, LinkedIn OAuth)")
+        features.append("Groups, Notifications, LinkedIn OAuth")
+    if HAS_WEB3_ROUTES:
+        features.append("Web3 Smart Contracts")
+    if HAS_SUBSCRIPTION_ROUTES:
+        features.append("Subscription & NFT Avatars")
+    
+    if features:
+        print(f"   Features: Enhanced ({', '.join(features)})")
     else:
         print(f"   Features: Basic")
     print(f"\n📚 API Documentation: http://localhost:{port}/api/docs")

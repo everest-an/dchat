@@ -13,6 +13,7 @@ class SocketService {
     this.messageHandlers = new Set();
     this.statusHandlers = new Set();
     this.typingHandlers = new Set();
+    this.messageStatusHandlers = new Set();
   }
 
   /**
@@ -132,6 +133,21 @@ class SocketService {
     this.socket.on('room_joined', (data) => {
       console.log('Joined room:', data.room_id);
     });
+
+    // Message status updates (delivered/read)
+    this.socket.on('message_status', (data) => {
+      console.log('Message status update:', data);
+      this.messageStatusHandlers.forEach(handler => handler(data));
+    });
+
+    // All messages read notification
+    this.socket.on('all_messages_read', (data) => {
+      console.log('All messages read:', data);
+      this.messageStatusHandlers.forEach(handler => handler({
+        ...data,
+        status: 'all_read'
+      }));
+    });
   }
 
   /**
@@ -248,6 +264,61 @@ class SocketService {
   onStatus(handler) {
     this.statusHandlers.add(handler);
     return () => this.statusHandlers.delete(handler);
+  }
+
+  /**
+   * Mark message as delivered
+   * @param {string} messageId - Message ID
+   * @param {string} roomId - Room ID
+   */
+  markMessageDelivered(messageId, roomId) {
+    if (!this.socket || !this.connected) {
+      return;
+    }
+
+    this.socket.emit('message_delivered', {
+      message_id: messageId,
+      room_id: roomId
+    });
+  }
+
+  /**
+   * Mark message as read
+   * @param {string} messageId - Message ID
+   * @param {string} roomId - Room ID
+   */
+  markMessageRead(messageId, roomId) {
+    if (!this.socket || !this.connected) {
+      return;
+    }
+
+    this.socket.emit('message_read', {
+      message_id: messageId,
+      room_id: roomId
+    });
+  }
+
+  /**
+   * Mark all messages in a room as read
+   * @param {string} roomId - Room ID
+   */
+  markAllRead(roomId) {
+    if (!this.socket || !this.connected) {
+      return;
+    }
+
+    this.socket.emit('mark_all_read', {
+      room_id: roomId
+    });
+  }
+
+  /**
+   * Register a message status handler
+   * @param {Function} handler - Callback function for message status updates
+   */
+  onMessageStatus(handler) {
+    this.messageStatusHandlers.add(handler);
+    return () => this.messageStatusHandlers.delete(handler);
   }
 
   /**
