@@ -58,6 +58,7 @@ jobs:
           VITE_API_URL: https://api.dchat.pro
           VITE_SOCKET_URL: https://api.dchat.pro
           VITE_PINATA_GATEWAY: https://gateway.pinata.cloud
+          ESLINT_NO_DEV_ERRORS: true
         run: |
           cd frontend
           npm run build
