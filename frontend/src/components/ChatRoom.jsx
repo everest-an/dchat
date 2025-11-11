@@ -11,6 +11,7 @@ import { subscriptionService } from '../services/SubscriptionService'
 import UpgradeDialog from './dialogs/UpgradeDialog'
 import PaymentDialog from './dialogs/PaymentDialog'
 import socketService from '../services/socketService'
+import readReceiptService from '../services/ReadReceiptService'
 
 
 const ChatRoom = () => {
@@ -83,9 +84,9 @@ const ChatRoom = () => {
   }, [messageService, account, recipientAddress])
 
   // TODO: Translate {t('mark_message_read')}
-  const markMessagesAsRead = (msgs) => {
-    const unreadCount = msgs.filter(m => m.sender === 'other' && !m.isRead).length
-    if (unreadCount > 0) {
+  const markMessagesAsRead = async (msgs) => {
+    const unreadMessages = msgs.filter(m => m.sender === 'other' && !m.isRead)
+    if (unreadMessages.length > 0) {
       // TODO: Translate {t('update_local_storage')}
       const updatedMessages = msgs.map(m => 
         m.sender === 'other' ? { ...m, isRead: true } : m
@@ -93,6 +94,11 @@ const ChatRoom = () => {
       const storageKey = `dchat_messages_${account}_${recipientAddress}`
       localStorage.setItem(storageKey, JSON.stringify(updatedMessages))
       setMessages(updatedMessages)
+      
+      // Mark as read via API
+      const conversationId = [account, recipientAddress].sort().join('_')
+      const messageIds = unreadMessages.map(m => m.id)
+      await readReceiptService.markAllMessagesAsRead(conversationId, messageIds)
       
       // TODO: Translate {t('update_unread_count')}
       updateUnreadCount()

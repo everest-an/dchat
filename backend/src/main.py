@@ -31,6 +31,8 @@ try:
     from src.routes.search import search_bp
     from src.routes.stickers import stickers_bp
     from src.routes.reactions import reactions_bp
+    from src.routes.read_receipts import read_receipts_bp
+    from src.routes.push_notifications import push_notifications_bp
     HAS_WEB3_ROUTES = True
 except ImportError:
     HAS_WEB3_ROUTES = False
@@ -113,7 +115,9 @@ if HAS_WEB3_ROUTES:
     app.register_blueprint(search_bp)
     app.register_blueprint(stickers_bp)
     app.register_blueprint(reactions_bp)
-    print("✅ Web3 API路由已注册（智能合约 + WebRTC + 搜索 + 表情包 + 消息反应）")
+    app.register_blueprint(read_receipts_bp)
+    app.register_blueprint(push_notifications_bp)
+    print("✅ Web3 API路由已注册（智能合约 + WebRTC + 搜索 + 表情包 + 消息反应 + 已读回执 + 推送通知）")
 
 # 注册订阅和 NFT 头像蓝图
 if HAS_SUBSCRIPTION_ROUTES:
