@@ -52,7 +52,7 @@ class RedisService:
     
     # ============= Basic Operations =============
     
-    def set(self, key: str, value: Any, expire: Optional[int] = None) -> bool:
+    def set_value(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
         """
         Set a key-value pair
         
@@ -72,8 +72,8 @@ class RedisService:
             if not isinstance(value, str):
                 value = json.dumps(value)
             
-            if expire:
-                self.redis_client.setex(key, expire, value)
+            if ttl:
+                self.redis_client.setex(key, ttl, value)
             else:
                 self.redis_client.set(key, value)
             
@@ -82,7 +82,7 @@ class RedisService:
             logger.error(f"Redis SET error: {e}")
             return False
     
-    def get(self, key: str, default: Any = None) -> Any:
+    def get_value(self, key: str, default: Any = None) -> Any:
         """
         Get value by key
         
@@ -111,7 +111,7 @@ class RedisService:
             logger.error(f"Redis GET error: {e}")
             return default
     
-    def delete(self, *keys: str) -> int:
+    def delete_value(self, *keys: str) -> int:
         """
         Delete one or more keys
         
@@ -167,17 +167,17 @@ class RedisService:
             True if successful
         """
         key = f"session:{session_id}"
-        return self.set(key, user_data, expire)
+        return self.set_value(key, user_data, expire)
     
     def get_session(self, session_id: str) -> Optional[dict]:
         """Get user session data"""
         key = f"session:{session_id}"
-        return self.get(key)
+        return self.get_value(key)
     
     def delete_session(self, session_id: str) -> int:
         """Delete user session"""
         key = f"session:{session_id}"
-        return self.delete(key)
+        return self.delete_value(key)
     
     # ============= Online Users =============
     
@@ -193,12 +193,12 @@ class RedisService:
             True if successful
         """
         key = f"online:{user_id}"
-        return self.set(key, "1", expire)
+        return self.set_value(key, "1", expire)
     
     def remove_online_user(self, user_id: str) -> int:
         """Mark user as offline"""
         key = f"online:{user_id}"
-        return self.delete(key)
+        return self.delete_value(key)
     
     def is_user_online(self, user_id: str) -> bool:
         """Check if user is online"""
@@ -270,22 +270,22 @@ class RedisService:
             True if successful
         """
         key = f"user:{user_id}"
-        return self.set(key, user_data, expire)
+        return self.set_value(key, user_data, expire)
     
     def get_cached_user(self, user_id: str) -> Optional[dict]:
         """Get cached user data"""
         key = f"user:{user_id}"
-        return self.get(key)
+        return self.get_value(key)
     
     def cache_group(self, group_id: str, group_data: dict, expire: int = 600) -> bool:
         """Cache group data"""
         key = f"group:{group_id}"
-        return self.set(key, group_data, expire)
+        return self.set_value(key, group_data, expire)
     
     def get_cached_group(self, group_id: str) -> Optional[dict]:
         """Get cached group data"""
         key = f"group:{group_id}"
-        return self.get(key)
+        return self.get_value(key)
     
     # ============= Nonce Management =============
     
@@ -302,17 +302,17 @@ class RedisService:
             True if successful
         """
         key = f"nonce:{address}"
-        return self.set(key, nonce, expire)
+        return self.set_value(key, nonce, expire)
     
     def get_nonce(self, address: str) -> Optional[str]:
         """Get authentication nonce"""
         key = f"nonce:{address}"
-        return self.get(key)
+        return self.get_value(key)
     
     def delete_nonce(self, address: str) -> int:
         """Delete authentication nonce"""
         key = f"nonce:{address}"
-        return self.delete(key)
+        return self.delete_value(key)
     
     # ============= Cleanup =============
     

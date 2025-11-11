@@ -20,6 +20,7 @@ import WagmiWeb3Provider from './components/Web3Provider'
 import { ToastProvider } from './contexts/ToastContext'
 import { Toaster } from './components/ui/toaster'
 import authService from './services/AuthService'
+import pushNotificationService from './services/PushNotificationService'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -71,12 +72,22 @@ function App() {
     authService.setupAutoRefresh()
   }, [])
 
-  const handleLogin = (userData, rememberMe = true) => {
+  const handleLogin = async (userData, rememberMe = true) => {
     setIsAuthenticated(true)
     setUser(userData)
     
     // Use AuthService to save session (default 30 days)
     authService.saveSession(userData, undefined, rememberMe)
+    
+    // Initialize push notifications
+    try {
+      const initialized = await pushNotificationService.initialize()
+      if (initialized) {
+        console.log('✅ Push notifications initialized')
+      }
+    } catch (error) {
+      console.error('❌ Failed to initialize push notifications:', error)
+    }
     
     console.log('✅ User logged in successfully', {
       username: userData.username || userData.email,

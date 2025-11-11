@@ -12,6 +12,7 @@ import UpgradeDialog from './dialogs/UpgradeDialog'
 import PaymentDialog from './dialogs/PaymentDialog'
 import socketService from '../services/socketService'
 import readReceiptService from '../services/ReadReceiptService'
+import MessageReactions from './MessageReactions'
 
 
 const ChatRoom = () => {
@@ -416,6 +417,12 @@ const ChatRoom = () => {
                 <span className="text-xs text-blue-500">✓✓</span>
               )}
             </div>
+            {/* Message Reactions */}
+            <MessageReactions 
+              messageId={msg.id}
+              currentUserId={account}
+              initialReactions={msg.reactions || []}
+            />
           </div>
         </div>
       )
