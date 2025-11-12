@@ -58,6 +58,14 @@ except ImportError:
     HAS_MATCHING_ROUTES = False
     print("⚠️  机会匹配路由模块未找到")
 
+# 导入 LiveKit 路由
+try:
+    from src.routes.livekit_routes import livekit_bp
+    HAS_LIVEKIT_ROUTES = True
+except ImportError:
+    HAS_LIVEKIT_ROUTES = False
+    print("⚠️  LiveKit 路由模块未找到")
+
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 
 # 配置
@@ -145,6 +153,11 @@ if HAS_SUBSCRIPTION_ROUTES:
 if HAS_MATCHING_ROUTES:
     app.register_blueprint(matching_bp)
     print("✅ 机会匹配 API 路由已注册")
+
+# 注册 LiveKit 蓝图
+if HAS_LIVEKIT_ROUTES:
+    app.register_blueprint(livekit_bp)
+    print("✅ LiveKit API 路由已注册")
 
 # 全局错误处理
 @app.errorhandler(400)
