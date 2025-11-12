@@ -50,6 +50,14 @@ except ImportError:
     HAS_SUBSCRIPTION_ROUTES = False
     print("⚠️  订阅路由模块未找到")
 
+# 导入机会匹配路由
+try:
+    from src.routes.matching import matching_bp
+    HAS_MATCHING_ROUTES = True
+except ImportError:
+    HAS_MATCHING_ROUTES = False
+    print("⚠️  机会匹配路由模块未找到")
+
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 
 # 配置
@@ -86,6 +94,11 @@ with app.app_context():
     # 导入订阅模型
     try:
         from src.models.subscription import Subscription, NFTMembership, NFTAvatar, SubscriptionFeatureUsage
+    except ImportError:
+        pass
+    # 导入匹配模型
+    try:
+        from src.models.matching import MatchingRequest, MatchingResult, MatchingFeedback, SkillRelation
     except ImportError:
         pass
     db.create_all()
@@ -127,6 +140,11 @@ if HAS_SUBSCRIPTION_ROUTES:
     app.register_blueprint(user_profile_bp)
     app.register_blueprint(chat_transfer_bp, url_prefix='/api/chat-transfer')
     print("✅ 订阅、NFT 头像、托管钱包和用户资料 API 路由已注册")
+
+# 注册机会匹配蓝图
+if HAS_MATCHING_ROUTES:
+    app.register_blueprint(matching_bp)
+    print("✅ 机会匹配 API 路由已注册")
 
 # 全局错误处理
 @app.errorhandler(400)
