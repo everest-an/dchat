@@ -5,6 +5,12 @@ import jwt
 import json
 import os
 
+# Enhanced middleware for production
+from ..middleware.auth import require_auth, optional_auth, require_role
+from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
+
+
+
 projects_bp = Blueprint('projects', __name__)
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'dchat-secret-key')
@@ -26,7 +32,9 @@ def verify_token_helper(token):
         return None, '无效的token'
 
 @projects_bp.route('/projects', methods=['GET'])
-def get_projects():
+def get_projects():@handle_errors
+@projects_bp.route('/projects', methods=['GET'])
+
     """获取项目列表"""
     try:
         token = request.headers.get('Authorization')
@@ -51,7 +59,9 @@ def get_projects():
         return jsonify({'error': str(e)}), 500
 
 @projects_bp.route('/projects', methods=['POST'])
-def create_project():
+def create_project():@handle_errors
+@projects_bp.route('/projects', methods=['POST'])
+
     """创建新项目"""
     try:
         token = request.headers.get('Authorization')
@@ -87,7 +97,9 @@ def create_project():
         return jsonify({'error': str(e)}), 500
 
 @projects_bp.route('/projects/<int:project_id>', methods=['PUT'])
-def update_project(project_id):
+def update_project(project_id):@handle_errors
+@projects_bp.route('/projects/<int:project_id>', methods=['PUT'])
+
     """更新项目"""
     try:
         token = request.headers.get('Authorization')
@@ -122,7 +134,9 @@ def update_project(project_id):
         return jsonify({'error': str(e)}), 500
 
 @projects_bp.route('/moments', methods=['GET'])
-def get_moments():
+def get_moments():@handle_errors
+@projects_bp.route('/moments', methods=['GET'])
+
     """获取朋友圈动态"""
     try:
         token = request.headers.get('Authorization')
@@ -142,7 +156,9 @@ def get_moments():
         return jsonify({'error': str(e)}), 500
 
 @projects_bp.route('/moments', methods=['POST'])
-def create_moment():
+def create_moment():@handle_errors
+@projects_bp.route('/moments', methods=['POST'])
+
     """发布朋友圈动态"""
     try:
         token = request.headers.get('Authorization')
@@ -171,7 +187,9 @@ def create_moment():
         return jsonify({'error': str(e)}), 500
 
 @projects_bp.route('/moments/<int:moment_id>/like', methods=['POST'])
-def like_moment(moment_id):
+def like_moment(moment_id):@handle_errors
+@projects_bp.route('/moments/<int:moment_id>/like', methods=['POST'])
+
     """点赞动态"""
     try:
         token = request.headers.get('Authorization')

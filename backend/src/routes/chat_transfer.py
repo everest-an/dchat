@@ -23,6 +23,11 @@ from ..models.custodial_wallet import CustodialWallet, CustodialTransaction
 from ..models.chat_transfer import ChatTransfer
 from ..database import db
 
+# Enhanced middleware for production
+from ..middleware.auth import require_auth, optional_auth, require_role
+from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
+
+
 chat_transfer_bp = Blueprint('chat_transfer', __name__)
 
 def token_required(f):
@@ -56,7 +61,10 @@ def token_required(f):
 
 @chat_transfer_bp.route('/create', methods=['POST'])
 @token_required
-def create_transfer(current_user):
+def create_transfer(current_user):@handle_errors
+@chat_transfer_bp.route('/create', methods=['POST'])
+@token_required
+
     """
     Create a new chat transfer
     
@@ -170,7 +178,10 @@ def create_transfer(current_user):
 
 @chat_transfer_bp.route('/claim/<transfer_id>', methods=['POST'])
 @token_required
-def claim_transfer(current_user, transfer_id):
+def claim_transfer(current_user, transfer_id):@handle_errors
+@chat_transfer_bp.route('/claim/<transfer_id>', methods=['POST'])
+@token_required
+
     """
     Claim a pending transfer
     
@@ -211,6 +222,7 @@ def claim_transfer(current_user, transfer_id):
         if not recipient_wallet:
             # Auto-create wallet for recipient
             from ..services.custodial_wallet_service import CustodialWalletService
+
             wallet_service = CustodialWalletService()
             recipient_wallet = wallet_service.create_wallet(current_user.id)
         
@@ -256,7 +268,10 @@ def claim_transfer(current_user, transfer_id):
 
 @chat_transfer_bp.route('/cancel/<transfer_id>', methods=['POST'])
 @token_required
-def cancel_transfer(current_user, transfer_id):
+def cancel_transfer(current_user, transfer_id):@handle_errors
+@chat_transfer_bp.route('/cancel/<transfer_id>', methods=['POST'])
+@token_required
+
     """
     Cancel a pending transfer (sender only)
     
@@ -329,7 +344,10 @@ def cancel_transfer(current_user, transfer_id):
 
 @chat_transfer_bp.route('/status/<transfer_id>', methods=['GET'])
 @token_required
-def get_transfer_status(current_user, transfer_id):
+def get_transfer_status(current_user, transfer_id):@handle_errors
+@chat_transfer_bp.route('/status/<transfer_id>', methods=['GET'])
+@token_required
+
     """
     Get transfer status
     
@@ -378,7 +396,10 @@ def get_transfer_status(current_user, transfer_id):
 
 @chat_transfer_bp.route('/my-transfers', methods=['GET'])
 @token_required
-def get_my_transfers(current_user):
+def get_my_transfers(current_user):@handle_errors
+@chat_transfer_bp.route('/my-transfers', methods=['GET'])
+@token_required
+
     """
     Get user's transfers (sent and received)
     

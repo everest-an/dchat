@@ -12,8 +12,14 @@ from flask import Blueprint, request, jsonify, g
 from datetime import datetime
 from ..services.nft_avatar_service import nft_avatar_service
 from ..models.subscription import NFTAvatar, db
+
+# Enhanced middleware for production
+from ..middleware.auth import require_auth, optional_auth, require_role
+from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
+
 from ..middleware.auth_middleware import authenticate
 from ..middleware.subscription_middleware import (
+
     get_current_user_address,
     require_subscription
 )
@@ -26,7 +32,11 @@ nft_avatar_bp = Blueprint('nft_avatar', __name__)
 @nft_avatar_bp.route('/set', methods=['POST'])
 @authenticate
 @require_subscription('PRO')  # NFT avatars require Pro or Enterprise
-def set_nft_avatar():
+def set_nft_avatar():@handle_errors
+@nft_avatar_bp.route('/set', methods=['POST'])
+@authenticate
+@require_subscription('PRO')  # NFT avatars require Pro or Enterprise
+
     """
     Set NFT as user's avatar
     
@@ -106,7 +116,10 @@ def set_nft_avatar():
 
 @nft_avatar_bp.route('/me', methods=['GET'])
 @authenticate
-def get_my_nft_avatar():
+def get_my_nft_avatar():@handle_errors
+@nft_avatar_bp.route('/me', methods=['GET'])
+@authenticate
+
     """
     Get current user's NFT avatar
     
@@ -168,7 +181,9 @@ def get_my_nft_avatar():
 
 
 @nft_avatar_bp.route('/<user_address>', methods=['GET'])
-def get_user_nft_avatar(user_address):
+def get_user_nft_avatar(user_address):@handle_errors
+@nft_avatar_bp.route('/<user_address>', methods=['GET'])
+
     """
     Get any user's NFT avatar (public endpoint)
     
@@ -212,7 +227,10 @@ def get_user_nft_avatar(user_address):
 
 @nft_avatar_bp.route('/remove', methods=['DELETE'])
 @authenticate
-def remove_nft_avatar():
+def remove_nft_avatar():@handle_errors
+@nft_avatar_bp.route('/remove', methods=['DELETE'])
+@authenticate
+
     """
     Remove current NFT avatar
     
@@ -262,7 +280,10 @@ def remove_nft_avatar():
 
 @nft_avatar_bp.route('/history', methods=['GET'])
 @authenticate
-def get_avatar_history():
+def get_avatar_history():@handle_errors
+@nft_avatar_bp.route('/history', methods=['GET'])
+@authenticate
+
     """
     Get user's NFT avatar history
     
@@ -311,7 +332,9 @@ def get_avatar_history():
 
 
 @nft_avatar_bp.route('/verify/<user_address>', methods=['GET'])
-def verify_avatar_ownership(user_address):
+def verify_avatar_ownership(user_address):@handle_errors
+@nft_avatar_bp.route('/verify/<user_address>', methods=['GET'])
+
     """
     Verify if user still owns their NFT avatar
     
@@ -366,7 +389,10 @@ def verify_avatar_ownership(user_address):
 
 @nft_avatar_bp.route('/sync', methods=['POST'])
 @authenticate
-def sync_avatar_from_blockchain():
+def sync_avatar_from_blockchain():@handle_errors
+@nft_avatar_bp.route('/sync', methods=['POST'])
+@authenticate
+
     """
     Manually sync avatar from blockchain to database
     

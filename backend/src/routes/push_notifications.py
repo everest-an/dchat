@@ -15,7 +15,7 @@ Author: Manus AI
 Date: 2024-11-12
 """
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import logging
 from datetime import datetime
@@ -26,6 +26,11 @@ import json
 from ..models.user import db
 from ..config.redis_config import RedisService
 
+# Enhanced middleware for production
+from ..middleware.auth import require_auth, optional_auth, require_role
+from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
+
+
 logger = logging.getLogger(__name__)
 
 push_notifications_bp = Blueprint('push_notifications', __name__, url_prefix='/api/push-notifications')
@@ -35,6 +40,7 @@ redis_service = RedisService()
 try:
     import firebase_admin
     from firebase_admin import credentials, messaging
+
     
     # Try to initialize Firebase Admin SDK
     firebase_credentials_path = os.environ.get('FIREBASE_CREDENTIALS_PATH')
@@ -52,7 +58,9 @@ except ImportError:
 
 
 @push_notifications_bp.route('/health', methods=['GET'])
-def health_check():
+def health_check():@handle_errors
+@push_notifications_bp.route('/health', methods=['GET'])
+
     """
     Health check endpoint for push notifications service.
     
@@ -68,8 +76,11 @@ def health_check():
 
 
 @push_notifications_bp.route('/register-token', methods=['POST'])
-@jwt_required()
-def register_device_token():
+@require_auth
+def register_device_token():@handle_errors
+@push_notifications_bp.route('/register-token', methods=['POST'])
+@require_auth
+
     """
     Register a device token for push notifications.
     
@@ -84,7 +95,7 @@ def register_device_token():
         JSON response confirming registration
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         data = request.get_json()
         
         if not data or 'token' not in data:
@@ -136,8 +147,11 @@ def register_device_token():
 
 
 @push_notifications_bp.route('/unregister-token', methods=['POST'])
-@jwt_required()
-def unregister_device_token():
+@require_auth
+def unregister_device_token():@handle_errors
+@push_notifications_bp.route('/unregister-token', methods=['POST'])
+@require_auth
+
     """
     Unregister a device token.
     
@@ -150,7 +164,7 @@ def unregister_device_token():
         JSON response confirming unregistration
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         data = request.get_json()
         
         if not data or 'token' not in data:
@@ -185,8 +199,11 @@ def unregister_device_token():
 
 
 @push_notifications_bp.route('/send', methods=['POST'])
-@jwt_required()
-def send_notification():
+@require_auth
+def send_notification():@handle_errors
+@push_notifications_bp.route('/send', methods=['POST'])
+@require_auth
+
     """
     Send a push notification to a user.
     
@@ -207,7 +224,7 @@ def send_notification():
         JSON response with notification status
     """
     try:
-        sender_id = get_jwt_identity()
+        sender_id = g.user_id
         data = request.get_json()
         
         if not data or 'recipient_id' not in data:
@@ -314,8 +331,11 @@ def send_notification():
 
 
 @push_notifications_bp.route('/preferences', methods=['GET'])
-@jwt_required()
-def get_notification_preferences():
+@require_auth
+def get_notification_preferences():@handle_errors
+@push_notifications_bp.route('/preferences', methods=['GET'])
+@require_auth
+
     """
     Get user's notification preferences.
     
@@ -323,7 +343,7 @@ def get_notification_preferences():
         JSON response with notification preferences
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         
         # Get preferences from Redis
         prefs_key = f"notification_prefs:{user_id}"
@@ -355,8 +375,11 @@ def get_notification_preferences():
 
 
 @push_notifications_bp.route('/preferences', methods=['PUT'])
-@jwt_required()
-def update_notification_preferences():
+@require_auth
+def update_notification_preferences():@handle_errors
+@push_notifications_bp.route('/preferences', methods=['PUT'])
+@require_auth
+
     """
     Update user's notification preferences.
     
@@ -376,7 +399,7 @@ def update_notification_preferences():
         JSON response confirming update
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         data = request.get_json()
         
         if not data:
@@ -400,8 +423,11 @@ def update_notification_preferences():
 
 
 @push_notifications_bp.route('/test', methods=['POST'])
-@jwt_required()
-def send_test_notification():
+@require_auth
+def send_test_notification():@handle_errors
+@push_notifications_bp.route('/test', methods=['POST'])
+@require_auth
+
     """
     Send a test notification to the current user.
     
@@ -409,7 +435,7 @@ def send_test_notification():
         JSON response with test notification status
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         
         # Get user's device tokens
         user_tokens_key = f"user_tokens:{user_id}"

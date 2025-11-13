@@ -15,7 +15,7 @@ Author: Manus AI
 Date: 2024-11-05
 """
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import logging
 from datetime import datetime
@@ -25,6 +25,12 @@ from ..models.user import db
 from ..config.redis_config import RedisService
 import json
 
+# Enhanced middleware for production
+from ..middleware.auth import require_auth, optional_auth, require_role
+from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
+
+
+
 logger = logging.getLogger(__name__)
 
 reactions_bp = Blueprint('reactions', __name__, url_prefix='/api/reactions')
@@ -32,7 +38,9 @@ redis_service = RedisService()
 
 
 @reactions_bp.route('/health', methods=['GET'])
-def health_check():
+def health_check():@handle_errors
+@reactions_bp.route('/health', methods=['GET'])
+
     """
     Health check endpoint for reactions service.
     
@@ -47,8 +55,11 @@ def health_check():
 
 
 @reactions_bp.route('/message/<message_id>', methods=['POST'])
-@jwt_required()
-def add_reaction(message_id):
+@require_auth
+def add_reaction(message_id):@handle_errors
+@reactions_bp.route('/message/<message_id>', methods=['POST'])
+@require_auth
+
     """
     Add a reaction to a message.
     
@@ -65,7 +76,7 @@ def add_reaction(message_id):
         JSON response with reaction details
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         data = request.get_json()
         
         if not data or 'emoji' not in data:
@@ -132,8 +143,11 @@ def add_reaction(message_id):
 
 
 @reactions_bp.route('/message/<message_id>/emoji/<emoji>', methods=['DELETE'])
-@jwt_required()
-def remove_reaction(message_id, emoji):
+@require_auth
+def remove_reaction(message_id, emoji):@handle_errors
+@reactions_bp.route('/message/<message_id>/emoji/<emoji>', methods=['DELETE'])
+@require_auth
+
     """
     Remove a reaction from a message.
     
@@ -145,7 +159,7 @@ def remove_reaction(message_id, emoji):
         JSON response confirming removal
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         
         # Get current reactions from Redis
         reactions_key = f"reactions:{message_id}"
@@ -205,8 +219,11 @@ def remove_reaction(message_id, emoji):
 
 
 @reactions_bp.route('/message/<message_id>', methods=['GET'])
-@jwt_required()
-def get_message_reactions(message_id):
+@require_auth
+def get_message_reactions(message_id):@handle_errors
+@reactions_bp.route('/message/<message_id>', methods=['GET'])
+@require_auth
+
     """
     Get all reactions for a message.
     
@@ -261,8 +278,11 @@ def get_message_reactions(message_id):
 
 
 @reactions_bp.route('/message/<message_id>/emoji/<emoji>/users', methods=['GET'])
-@jwt_required()
-def get_reaction_users(message_id, emoji):
+@require_auth
+def get_reaction_users(message_id, emoji):@handle_errors
+@reactions_bp.route('/message/<message_id>/emoji/<emoji>/users', methods=['GET'])
+@require_auth
+
     """
     Get users who reacted with a specific emoji.
     
@@ -327,8 +347,11 @@ def get_reaction_users(message_id, emoji):
 
 
 @reactions_bp.route('/user/<user_id>/reactions', methods=['GET'])
-@jwt_required()
-def get_user_reactions(user_id):
+@require_auth
+def get_user_reactions(user_id):@handle_errors
+@reactions_bp.route('/user/<user_id>/reactions', methods=['GET'])
+@require_auth
+
     """
     Get all reactions by a user.
     
@@ -343,7 +366,7 @@ def get_user_reactions(user_id):
         JSON response with user's reactions
     """
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = g.user_id
         
         # Only allow users to see their own reactions (privacy)
         if user_id != current_user_id:
@@ -382,8 +405,11 @@ def get_user_reactions(user_id):
 
 
 @reactions_bp.route('/popular', methods=['GET'])
-@jwt_required()
-def get_popular_reactions():
+@require_auth
+def get_popular_reactions():@handle_errors
+@reactions_bp.route('/popular', methods=['GET'])
+@require_auth
+
     """
     Get popular reactions (most used emoji).
     
@@ -431,8 +457,11 @@ def get_popular_reactions():
 
 
 @reactions_bp.route('/stats', methods=['GET'])
-@jwt_required()
-def get_reaction_stats():
+@require_auth
+def get_reaction_stats():@handle_errors
+@reactions_bp.route('/stats', methods=['GET'])
+@require_auth
+
     """
     Get reaction statistics.
     
@@ -440,7 +469,7 @@ def get_reaction_stats():
         JSON response with reaction stats
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         
         # Get stats from Redis
         stats_key = f"reactions:stats:{user_id}"

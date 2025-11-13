@@ -17,7 +17,7 @@ Author: Manus AI
 Date: 2024-11-05
 """
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import logging
 from datetime import datetime, timedelta
@@ -28,6 +28,11 @@ from ..models.user import db, User
 from ..models.message import Message
 from ..config.redis_config import RedisService
 
+# Enhanced middleware for production
+from ..middleware.auth import require_auth, optional_auth, require_role
+from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
+
+
 logger = logging.getLogger(__name__)
 
 search_bp = Blueprint('search', __name__, url_prefix='/api/search')
@@ -35,7 +40,9 @@ redis_service = RedisService()
 
 
 @search_bp.route('/health', methods=['GET'])
-def health_check():
+def health_check():@handle_errors
+@search_bp.route('/health', methods=['GET'])
+
     """
     Health check endpoint for search service.
     
@@ -50,8 +57,11 @@ def health_check():
 
 
 @search_bp.route('/messages', methods=['GET'])
-@jwt_required()
-def search_messages():
+@require_auth
+def search_messages():@handle_errors
+@search_bp.route('/messages', methods=['GET'])
+@require_auth
+
     """
     Search messages with full-text search and filters.
     
@@ -68,7 +78,7 @@ def search_messages():
         JSON response with search results
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         query = request.args.get('q', '').strip()
         
         if not query:
@@ -179,8 +189,11 @@ def search_messages():
 
 
 @search_bp.route('/users', methods=['GET'])
-@jwt_required()
-def search_users():
+@require_auth
+def search_users():@handle_errors
+@search_bp.route('/users', methods=['GET'])
+@require_auth
+
     """
     Search users by name, email, or wallet address.
     
@@ -193,7 +206,7 @@ def search_users():
         JSON response with search results
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         query = request.args.get('q', '').strip()
         
         if not query:
@@ -263,8 +276,11 @@ def search_users():
 
 
 @search_bp.route('/all', methods=['GET'])
-@jwt_required()
-def search_all():
+@require_auth
+def search_all():@handle_errors
+@search_bp.route('/all', methods=['GET'])
+@require_auth
+
     """
     Search across all content types (messages, users, files, groups).
     
@@ -278,7 +294,7 @@ def search_all():
         JSON response with search results grouped by type
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         query = request.args.get('q', '').strip()
         
         if not query:
@@ -362,8 +378,11 @@ def search_all():
 
 
 @search_bp.route('/suggestions', methods=['GET'])
-@jwt_required()
-def get_search_suggestions():
+@require_auth
+def get_search_suggestions():@handle_errors
+@search_bp.route('/suggestions', methods=['GET'])
+@require_auth
+
     """
     Get search suggestions based on partial query.
     
@@ -375,7 +394,7 @@ def get_search_suggestions():
         JSON response with search suggestions
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         query = request.args.get('q', '').strip()
         
         if not query:
@@ -443,8 +462,11 @@ def get_search_suggestions():
 
 
 @search_bp.route('/history', methods=['GET'])
-@jwt_required()
-def get_search_history():
+@require_auth
+def get_search_history():@handle_errors
+@search_bp.route('/history', methods=['GET'])
+@require_auth
+
     """
     Get user's search history.
     
@@ -455,7 +477,7 @@ def get_search_history():
         JSON response with search history
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         limit = min(request.args.get('limit', 20, type=int), 100)
         
         # Get from Redis
@@ -480,8 +502,11 @@ def get_search_history():
 
 
 @search_bp.route('/history', methods=['DELETE'])
-@jwt_required()
-def clear_search_history():
+@require_auth
+def clear_search_history():@handle_errors
+@search_bp.route('/history', methods=['DELETE'])
+@require_auth
+
     """
     Clear user's search history.
     
@@ -489,7 +514,7 @@ def clear_search_history():
         JSON response confirming deletion
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         
         # Delete from Redis
         history_key = f"search:history:{user_id}"
@@ -522,6 +547,7 @@ def _highlight_text(text: str, query: str, max_length: int = 200) -> str:
         Highlighted text with <mark> tags
     """
     import re
+
     
     # Find query position
     pattern = re.compile(re.escape(query), re.IGNORECASE)

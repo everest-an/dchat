@@ -15,7 +15,7 @@ Author: Manus AI
 Date: 2024-11-12
 """
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import logging
 from datetime import datetime
@@ -26,6 +26,12 @@ from ..models.message import Message
 from ..config.redis_config import RedisService
 import json
 
+# Enhanced middleware for production
+from ..middleware.auth import require_auth, optional_auth, require_role
+from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
+
+
+
 logger = logging.getLogger(__name__)
 
 read_receipts_bp = Blueprint('read_receipts', __name__, url_prefix='/api/read-receipts')
@@ -33,7 +39,9 @@ redis_service = RedisService()
 
 
 @read_receipts_bp.route('/health', methods=['GET'])
-def health_check():
+def health_check():@handle_errors
+@read_receipts_bp.route('/health', methods=['GET'])
+
     """
     Health check endpoint for read receipts service.
     
@@ -48,8 +56,11 @@ def health_check():
 
 
 @read_receipts_bp.route('/mark-read', methods=['POST'])
-@jwt_required()
-def mark_message_read():
+@require_auth
+def mark_message_read():@handle_errors
+@read_receipts_bp.route('/mark-read', methods=['POST'])
+@require_auth
+
     """
     Mark a message as read.
     
@@ -63,7 +74,7 @@ def mark_message_read():
         JSON response confirming read status
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         data = request.get_json()
         
         if not data or 'message_id' not in data:
@@ -114,8 +125,11 @@ def mark_message_read():
 
 
 @read_receipts_bp.route('/mark-all-read', methods=['POST'])
-@jwt_required()
-def mark_all_messages_read():
+@require_auth
+def mark_all_messages_read():@handle_errors
+@read_receipts_bp.route('/mark-all-read', methods=['POST'])
+@require_auth
+
     """
     Mark all messages in a conversation as read.
     
@@ -129,7 +143,7 @@ def mark_all_messages_read():
         JSON response confirming read status
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         data = request.get_json()
         
         if not data or 'conversation_id' not in data:
@@ -200,8 +214,11 @@ def mark_all_messages_read():
 
 
 @read_receipts_bp.route('/status/<message_id>', methods=['GET'])
-@jwt_required()
-def get_read_status(message_id):
+@require_auth
+def get_read_status(message_id):@handle_errors
+@read_receipts_bp.route('/status/<message_id>', methods=['GET'])
+@require_auth
+
     """
     Get read status for a message.
     
@@ -254,8 +271,11 @@ def get_read_status(message_id):
 
 
 @read_receipts_bp.route('/conversation/<conversation_id>', methods=['GET'])
-@jwt_required()
-def get_conversation_read_status(conversation_id):
+@require_auth
+def get_conversation_read_status(conversation_id):@handle_errors
+@read_receipts_bp.route('/conversation/<conversation_id>', methods=['GET'])
+@require_auth
+
     """
     Get read status for all messages in a conversation.
     

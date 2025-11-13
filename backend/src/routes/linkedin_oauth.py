@@ -12,6 +12,12 @@ import jwt
 import datetime
 import os
 
+# Enhanced middleware for production
+from ..middleware.auth import require_auth, optional_auth, require_role
+from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
+
+
+
 linkedin_bp = Blueprint('linkedin', __name__)
 
 # LinkedIn OAuth配置
@@ -27,7 +33,9 @@ LINKEDIN_PROFILE_URL = 'https://api.linkedin.com/v2/me'
 LINKEDIN_EMAIL_URL = 'https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))'
 
 @linkedin_bp.route('/auth/url', methods=['GET'])
-def get_auth_url():
+def get_auth_url():@handle_errors
+@linkedin_bp.route('/auth/url', methods=['GET'])
+
     """
     获取LinkedIn OAuth授权URL
     """
@@ -63,7 +71,10 @@ def get_auth_url():
 
 @linkedin_bp.route('/callback', methods=['GET'])
 @rate_limit(max_requests=10, window_seconds=60)
-def linkedin_callback():
+def linkedin_callback():@handle_errors
+@linkedin_bp.route('/callback', methods=['GET'])
+@rate_limit(max_requests=10, window_seconds=60)
+
     """
     LinkedIn OAuth回调处理
     """
@@ -168,7 +179,10 @@ def linkedin_callback():
 
 @linkedin_bp.route('/profile', methods=['GET'])
 @require_auth
-def get_profile():
+def get_profile():@handle_errors
+@linkedin_bp.route('/profile', methods=['GET'])
+@require_auth
+
     """
     获取当前用户的LinkedIn资料
     """
@@ -203,7 +217,11 @@ def get_profile():
 @linkedin_bp.route('/sync', methods=['POST'])
 @require_auth
 @rate_limit(max_requests=5, window_seconds=60)
-def sync_profile():
+def sync_profile():@handle_errors
+@linkedin_bp.route('/sync', methods=['POST'])
+@require_auth
+@rate_limit(max_requests=5, window_seconds=60)
+
     """
     手动同步LinkedIn资料
     """
@@ -234,7 +252,11 @@ def sync_profile():
 @linkedin_bp.route('/unlink', methods=['POST'])
 @require_auth
 @rate_limit(max_requests=5, window_seconds=60)
-def unlink_linkedin():
+def unlink_linkedin():@handle_errors
+@linkedin_bp.route('/unlink', methods=['POST'])
+@require_auth
+@rate_limit(max_requests=5, window_seconds=60)
+
     """
     解除LinkedIn账号绑定
     """

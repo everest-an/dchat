@@ -11,6 +11,12 @@ from web3 import Web3
 from datetime import datetime
 import json
 
+# Enhanced middleware for production
+from ..middleware.auth import require_auth, optional_auth, require_role
+from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
+
+
+
 groups_web3_bp = Blueprint('groups_web3', __name__)
 
 # Load environment variables

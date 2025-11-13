@@ -22,7 +22,13 @@ import jwt
 import os
 from src.services.custodial_wallet_service import CustodialWalletService
 from src.models.custodial_wallet import db
+
+# Enhanced middleware for production
+from ..middleware.auth import require_auth, optional_auth, require_role
+from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
+
 from src.middleware.security_middleware import rate_limit
+
 
 custodial_wallet_bp = Blueprint('custodial_wallet', __name__)
 
@@ -52,7 +58,11 @@ def require_auth(f):
 @custodial_wallet_bp.route('/api/wallets/custodial/create', methods=['POST'])
 @require_auth
 @rate_limit(max_requests=5, window_seconds=60)
-def create_custodial_wallet():
+def create_custodial_wallet():@handle_errors
+@custodial_wallet_bp.route('/api/wallets/custodial/create', methods=['POST'])
+@require_auth
+@rate_limit(max_requests=5, window_seconds=60)
+
     """
     Create a new custodial wallet for the authenticated user
     
@@ -81,7 +91,10 @@ def create_custodial_wallet():
 
 @custodial_wallet_bp.route('/api/wallets/custodial/me', methods=['GET'])
 @require_auth
-def get_my_custodial_wallet():
+def get_my_custodial_wallet():@handle_errors
+@custodial_wallet_bp.route('/api/wallets/custodial/me', methods=['GET'])
+@require_auth
+
     """
     Get authenticated user's custodial wallet
     
@@ -109,7 +122,11 @@ def get_my_custodial_wallet():
 @custodial_wallet_bp.route('/api/wallets/custodial/deposit', methods=['POST'])
 @require_auth
 @rate_limit(max_requests=20, window_seconds=60)
-def process_deposit():
+def process_deposit():@handle_errors
+@custodial_wallet_bp.route('/api/wallets/custodial/deposit', methods=['POST'])
+@require_auth
+@rate_limit(max_requests=20, window_seconds=60)
+
     """
     Process a deposit to custodial wallet
     
@@ -165,7 +182,11 @@ def process_deposit():
 @custodial_wallet_bp.route('/api/wallets/custodial/withdraw', methods=['POST'])
 @require_auth
 @rate_limit(max_requests=10, window_seconds=60)
-def process_withdrawal():
+def process_withdrawal():@handle_errors
+@custodial_wallet_bp.route('/api/wallets/custodial/withdraw', methods=['POST'])
+@require_auth
+@rate_limit(max_requests=10, window_seconds=60)
+
     """
     Process a withdrawal from custodial wallet
     
@@ -222,7 +243,11 @@ def process_withdrawal():
 @custodial_wallet_bp.route('/api/wallets/custodial/transfer', methods=['POST'])
 @require_auth
 @rate_limit(max_requests=30, window_seconds=60)
-def process_transfer():
+def process_transfer():@handle_errors
+@custodial_wallet_bp.route('/api/wallets/custodial/transfer', methods=['POST'])
+@require_auth
+@rate_limit(max_requests=30, window_seconds=60)
+
     """
     Transfer funds to another wallet
     
@@ -276,7 +301,10 @@ def process_transfer():
 
 @custodial_wallet_bp.route('/api/wallets/custodial/transactions', methods=['GET'])
 @require_auth
-def get_transaction_history():
+def get_transaction_history():@handle_errors
+@custodial_wallet_bp.route('/api/wallets/custodial/transactions', methods=['GET'])
+@require_auth
+
     """
     Get custodial wallet transaction history
     
@@ -312,7 +340,10 @@ def get_transaction_history():
 
 @custodial_wallet_bp.route('/api/wallets/custodial/sync', methods=['POST'])
 @require_auth
-def sync_balance():
+def sync_balance():@handle_errors
+@custodial_wallet_bp.route('/api/wallets/custodial/sync', methods=['POST'])
+@require_auth
+
     """
     Sync wallet balance with blockchain
     

@@ -15,7 +15,7 @@ Author: Manus AI
 Date: 2024-11-05
 """
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import logging
 import requests
@@ -26,6 +26,12 @@ from typing import List, Dict, Optional
 from ..models.user import db
 from ..config.redis_config import RedisService
 import json
+
+# Enhanced middleware for production
+from ..middleware.auth import require_auth, optional_auth, require_role
+from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +44,9 @@ TENOR_API_URL = 'https://tenor.googleapis.com/v2'
 
 
 @stickers_bp.route('/health', methods=['GET'])
-def health_check():
+def health_check():@handle_errors
+@stickers_bp.route('/health', methods=['GET'])
+
     """
     Health check endpoint for stickers service.
     
@@ -54,8 +62,11 @@ def health_check():
 
 
 @stickers_bp.route('/gifs/search', methods=['GET'])
-@jwt_required()
-def search_gifs():
+@require_auth
+def search_gifs():@handle_errors
+@stickers_bp.route('/gifs/search', methods=['GET'])
+@require_auth
+
     """
     Search GIFs using Tenor API.
     
@@ -138,8 +149,11 @@ def search_gifs():
 
 
 @stickers_bp.route('/gifs/trending', methods=['GET'])
-@jwt_required()
-def get_trending_gifs():
+@require_auth
+def get_trending_gifs():@handle_errors
+@stickers_bp.route('/gifs/trending', methods=['GET'])
+@require_auth
+
     """
     Get trending GIFs from Tenor.
     
@@ -212,8 +226,11 @@ def get_trending_gifs():
 
 
 @stickers_bp.route('/gifs/categories', methods=['GET'])
-@jwt_required()
-def get_gif_categories():
+@require_auth
+def get_gif_categories():@handle_errors
+@stickers_bp.route('/gifs/categories', methods=['GET'])
+@require_auth
+
     """
     Get GIF categories from Tenor.
     
@@ -271,8 +288,11 @@ def get_gif_categories():
 
 
 @stickers_bp.route('/favorites', methods=['GET'])
-@jwt_required()
-def get_favorite_stickers():
+@require_auth
+def get_favorite_stickers():@handle_errors
+@stickers_bp.route('/favorites', methods=['GET'])
+@require_auth
+
     """
     Get user's favorite stickers and GIFs.
     
@@ -280,7 +300,7 @@ def get_favorite_stickers():
         JSON response with favorite stickers
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         
         # Get from Redis
         favorites_key = f"stickers:favorites:{user_id}"
@@ -302,8 +322,11 @@ def get_favorite_stickers():
 
 
 @stickers_bp.route('/favorites', methods=['POST'])
-@jwt_required()
-def add_favorite_sticker():
+@require_auth
+def add_favorite_sticker():@handle_errors
+@stickers_bp.route('/favorites', methods=['POST'])
+@require_auth
+
     """
     Add sticker or GIF to favorites.
     
@@ -320,7 +343,7 @@ def add_favorite_sticker():
         JSON response confirming addition
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         data = request.get_json()
         
         if not data or 'id' not in data or 'url' not in data:
@@ -370,8 +393,11 @@ def add_favorite_sticker():
 
 
 @stickers_bp.route('/favorites/<sticker_id>', methods=['DELETE'])
-@jwt_required()
-def remove_favorite_sticker(sticker_id):
+@require_auth
+def remove_favorite_sticker(sticker_id):@handle_errors
+@stickers_bp.route('/favorites/<sticker_id>', methods=['DELETE'])
+@require_auth
+
     """
     Remove sticker or GIF from favorites.
     
@@ -382,7 +408,7 @@ def remove_favorite_sticker(sticker_id):
         JSON response confirming removal
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         
         # Get current favorites
         favorites_key = f"stickers:favorites:{user_id}"
@@ -412,8 +438,11 @@ def remove_favorite_sticker(sticker_id):
 
 
 @stickers_bp.route('/recent', methods=['GET'])
-@jwt_required()
-def get_recent_stickers():
+@require_auth
+def get_recent_stickers():@handle_errors
+@stickers_bp.route('/recent', methods=['GET'])
+@require_auth
+
     """
     Get user's recently used stickers and GIFs.
     
@@ -424,7 +453,7 @@ def get_recent_stickers():
         JSON response with recent stickers
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         limit = min(request.args.get('limit', 20, type=int), 50)
         
         # Get from Redis
@@ -447,8 +476,11 @@ def get_recent_stickers():
 
 
 @stickers_bp.route('/recent', methods=['POST'])
-@jwt_required()
-def add_recent_sticker():
+@require_auth
+def add_recent_sticker():@handle_errors
+@stickers_bp.route('/recent', methods=['POST'])
+@require_auth
+
     """
     Add sticker or GIF to recent history.
     
@@ -465,7 +497,7 @@ def add_recent_sticker():
         JSON response confirming addition
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         data = request.get_json()
         
         if not data or 'id' not in data or 'url' not in data:
@@ -512,8 +544,11 @@ def add_recent_sticker():
 
 
 @stickers_bp.route('/emoji/search', methods=['GET'])
-@jwt_required()
-def search_emoji():
+@require_auth
+def search_emoji():@handle_errors
+@stickers_bp.route('/emoji/search', methods=['GET'])
+@require_auth
+
     """
     Search emoji by keyword.
     

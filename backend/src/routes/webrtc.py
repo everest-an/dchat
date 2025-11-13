@@ -15,7 +15,7 @@ Author: Manus AI
 Date: 2024-11-05
 """
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import logging
 from datetime import datetime
@@ -23,6 +23,12 @@ from typing import Dict, List, Optional
 import json
 
 from ..config.redis_config import RedisService
+
+# Enhanced middleware for production
+from ..middleware.auth import require_auth, optional_auth, require_role
+from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +43,9 @@ user_calls: Dict[str, str] = {}
 
 
 @webrtc_bp.route('/health', methods=['GET'])
-def health_check():
+def health_check():@handle_errors
+@webrtc_bp.route('/health', methods=['GET'])
+
     """
     Health check endpoint for WebRTC service.
     
@@ -53,8 +61,11 @@ def health_check():
 
 
 @webrtc_bp.route('/call/initiate', methods=['POST'])
-@jwt_required()
-def initiate_call():
+@require_auth
+def initiate_call():@handle_errors
+@webrtc_bp.route('/call/initiate', methods=['POST'])
+@require_auth
+
     """
     Initiate a new call (1-on-1 or group).
     
@@ -69,7 +80,7 @@ def initiate_call():
         JSON response with call details
     """
     try:
-        caller_id = get_jwt_identity()
+        caller_id = g.user_id
         data = request.get_json()
         
         call_type = data.get('type', 'audio')  # audio or video
@@ -130,8 +141,11 @@ def initiate_call():
 
 
 @webrtc_bp.route('/call/<call_id>/answer', methods=['POST'])
-@jwt_required()
-def answer_call(call_id: str):
+@require_auth
+def answer_call(call_id: str):@handle_errors
+@webrtc_bp.route('/call/<call_id>/answer', methods=['POST'])
+@require_auth
+
     """
     Answer an incoming call.
     
@@ -147,7 +161,7 @@ def answer_call(call_id: str):
         JSON response with call status
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         data = request.get_json()
         
         answer = data.get('answer', False)
@@ -189,8 +203,11 @@ def answer_call(call_id: str):
 
 
 @webrtc_bp.route('/call/<call_id>/end', methods=['POST'])
-@jwt_required()
-def end_call(call_id: str):
+@require_auth
+def end_call(call_id: str):@handle_errors
+@webrtc_bp.route('/call/<call_id>/end', methods=['POST'])
+@require_auth
+
     """
     End an active call.
     
@@ -201,7 +218,7 @@ def end_call(call_id: str):
         JSON response with call summary
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         
         # Get call data
         call_data = active_calls.get(call_id)
@@ -253,8 +270,11 @@ def end_call(call_id: str):
 
 
 @webrtc_bp.route('/call/<call_id>', methods=['GET'])
-@jwt_required()
-def get_call(call_id: str):
+@require_auth
+def get_call(call_id: str):@handle_errors
+@webrtc_bp.route('/call/<call_id>', methods=['GET'])
+@require_auth
+
     """
     Get call details.
     
@@ -265,7 +285,7 @@ def get_call(call_id: str):
         JSON response with call details
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         
         # Get call data
         call_data = active_calls.get(call_id)
@@ -292,8 +312,11 @@ def get_call(call_id: str):
 
 
 @webrtc_bp.route('/calls/active', methods=['GET'])
-@jwt_required()
-def get_active_calls():
+@require_auth
+def get_active_calls():@handle_errors
+@webrtc_bp.route('/calls/active', methods=['GET'])
+@require_auth
+
     """
     Get all active calls for the current user.
     
@@ -301,7 +324,7 @@ def get_active_calls():
         JSON response with list of active calls
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         
         # Get user's active call
         call_id = user_calls.get(user_id)
@@ -329,8 +352,11 @@ def get_active_calls():
 
 
 @webrtc_bp.route('/calls/history', methods=['GET'])
-@jwt_required()
-def get_call_history():
+@require_auth
+def get_call_history():@handle_errors
+@webrtc_bp.route('/calls/history', methods=['GET'])
+@require_auth
+
     """
     Get call history for the current user.
     
@@ -342,7 +368,7 @@ def get_call_history():
         JSON response with list of past calls
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         limit = request.args.get('limit', 20, type=int)
         offset = request.args.get('offset', 0, type=int)
         
@@ -381,8 +407,11 @@ def get_call_history():
 
 
 @webrtc_bp.route('/call/<call_id>/quality', methods=['POST'])
-@jwt_required()
-def report_call_quality(call_id: str):
+@require_auth
+def report_call_quality(call_id: str):@handle_errors
+@webrtc_bp.route('/call/<call_id>/quality', methods=['POST'])
+@require_auth
+
     """
     Report call quality metrics.
     
@@ -401,7 +430,7 @@ def report_call_quality(call_id: str):
         JSON response confirming quality report
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = g.user_id
         data = request.get_json()
         
         # Get call data

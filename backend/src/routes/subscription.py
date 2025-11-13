@@ -12,8 +12,14 @@ from flask import Blueprint, request, jsonify, g
 from datetime import datetime
 from ..services.subscription_service import subscription_service
 from ..models.subscription import Subscription, db
+
+# Enhanced middleware for production
+from ..middleware.auth import require_auth, optional_auth, require_role
+from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
+
 from ..middleware.auth_middleware import authenticate
 from ..middleware.subscription_middleware import get_current_user_address
+
 
 
 # Create blueprint
@@ -21,7 +27,9 @@ subscription_bp = Blueprint('subscription', __name__)
 
 
 @subscription_bp.route('/plans', methods=['GET'])
-def get_subscription_plans():
+def get_subscription_plans():@handle_errors
+@subscription_bp.route('/plans', methods=['GET'])
+
     """
     Get available subscription plans with pricing
     
@@ -148,7 +156,10 @@ def get_subscription_plans():
 
 @subscription_bp.route('/me', methods=['GET'])
 @authenticate
-def get_current_subscription():
+def get_current_subscription():@handle_errors
+@subscription_bp.route('/me', methods=['GET'])
+@authenticate
+
     """
     Get current user's subscription
     
@@ -218,7 +229,10 @@ def get_current_subscription():
 
 @subscription_bp.route('/create', methods=['POST'])
 @authenticate
-def create_subscription():
+def create_subscription():@handle_errors
+@subscription_bp.route('/create', methods=['POST'])
+@authenticate
+
     """
     Create a new subscription (sync from blockchain)
     
@@ -293,7 +307,10 @@ def create_subscription():
 
 @subscription_bp.route('/cancel', methods=['POST'])
 @authenticate
-def cancel_subscription():
+def cancel_subscription():@handle_errors
+@subscription_bp.route('/cancel', methods=['POST'])
+@authenticate
+
     """
     Cancel current subscription
     
@@ -336,7 +353,10 @@ def cancel_subscription():
 
 @subscription_bp.route('/renew', methods=['POST'])
 @authenticate
-def renew_subscription():
+def renew_subscription():@handle_errors
+@subscription_bp.route('/renew', methods=['POST'])
+@authenticate
+
     """
     Renew subscription (sync from blockchain)
     
@@ -410,7 +430,10 @@ def renew_subscription():
 
 @subscription_bp.route('/history', methods=['GET'])
 @authenticate
-def get_subscription_history():
+def get_subscription_history():@handle_errors
+@subscription_bp.route('/history', methods=['GET'])
+@authenticate
+
     """
     Get user's subscription history
     
@@ -452,7 +475,10 @@ def get_subscription_history():
 
 @subscription_bp.route('/tier', methods=['GET'])
 @authenticate
-def get_user_tier():
+def get_user_tier():@handle_errors
+@subscription_bp.route('/tier', methods=['GET'])
+@authenticate
+
     """
     Get user's current subscription tier
     
@@ -496,7 +522,9 @@ def get_user_tier():
 
 
 @subscription_bp.route('/pricing/<tier>', methods=['GET'])
-def get_tier_pricing(tier):
+def get_tier_pricing(tier):@handle_errors
+@subscription_bp.route('/pricing/<tier>', methods=['GET'])
+
     """
     Get pricing for a specific tier
     

@@ -10,9 +10,12 @@ from ..services.matching_service import MatchingService
 from ..models.matching import MatchingRequest, MatchingResult, MatchingFeedback
 from ..models.user import User
 from ..middleware.auth import require_auth
-from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
 from ..schemas.matching_schemas import CreateMatchingRequestSchema, MatchingFeedbackSchema
 from marshmallow import ValidationError as MarshmallowValidationError
+
+# Enhanced middleware for production
+from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
+
 
 logger = logging.getLogger(__name__)
 
