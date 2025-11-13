@@ -15,7 +15,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import webrtcService from '../services/WebRTCService';
+import webrtcService from '../services/webrtc';
 
 const VideoCall = ({ callData, onEndCall }) => {
   const [isMuted, setIsMuted] = useState(false);
