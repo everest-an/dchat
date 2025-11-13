@@ -76,55 +76,75 @@ export const SUPPORTED_TOKENS = [
   },
 ];
 
+// Theme colors (matching Web app - Tailwind + Radix UI style)
 export const COLORS = {
-  // Primary colors
-  primary: '#007AFF',
-  primaryDark: '#0051D5',
-  primaryLight: '#4DA3FF',
+  // Primary colors (Indigo - matching Web)
+  primary: '#4F46E5',      // indigo-600
+  primaryDark: '#3730A3',  // indigo-800
+  primaryLight: '#818CF8', // indigo-400
   
-  // Secondary colors
-  secondary: '#5856D6',
-  secondaryDark: '#3634A3',
-  secondaryLight: '#8E8CD8',
+  // Secondary colors (Emerald - matching Web)
+  secondary: '#10B981',    // emerald-500
+  secondaryDark: '#059669',  // emerald-600
+  secondaryLight: '#34D399', // emerald-400
+  
+  // Accent colors (Amber - matching Web)
+  accent: '#F59E0B',       // amber-500
+  accentDark: '#D97706',   // amber-600
+  accentLight: '#FCD34D',  // amber-300
   
   // Status colors
-  success: '#34C759',
-  warning: '#FF9500',
-  error: '#FF3B30',
-  info: '#5AC8FA',
+  success: '#10B981',      // emerald-500
+  warning: '#F59E0B',      // amber-500
+  error: '#EF4444',        // red-500
+  info: '#3B82F6',         // blue-500
   
-  // Neutral colors
+  // Neutral colors (Tailwind gray scale)
   black: '#000000',
   white: '#FFFFFF',
-  gray1: '#1C1C1E',
-  gray2: '#3A3A3C',
-  gray3: '#48484A',
-  gray4: '#636366',
-  gray5: '#8E8E93',
-  gray6: '#C7C7CC',
-  gray7: '#E5E5EA',
-  gray8: '#F2F2F7',
+  gray1: '#F9FAFB',        // gray-50
+  gray2: '#F3F4F6',        // gray-100
+  gray3: '#E5E7EB',        // gray-200
+  gray4: '#D1D5DB',        // gray-300
+  gray5: '#9CA3AF',        // gray-400
+  gray6: '#6B7280',        // gray-500
+  gray7: '#4B5563',        // gray-600
+  gray8: '#374151',        // gray-700
+  gray9: '#1F2937',        // gray-800
   
   // Background colors
   background: '#FFFFFF',
-  backgroundSecondary: '#F2F2F7',
-  backgroundTertiary: '#FFFFFF',
+  backgroundSecondary: '#F9FAFB',  // gray-50
+  backgroundTertiary: '#F3F4F6',   // gray-100
+  surface: '#FFFFFF',
+  surfaceHover: '#F9FAFB',
   
   // Text colors
-  textPrimary: '#000000',
-  textSecondary: '#3A3A3C',
-  textTertiary: '#8E8E93',
-  textPlaceholder: '#C7C7CC',
+  textPrimary: '#111827',  // gray-900
+  textSecondary: '#6B7280', // gray-500
+  textTertiary: '#9CA3AF',  // gray-400
+  textPlaceholder: '#D1D5DB', // gray-300
+  textDisabled: '#E5E7EB', // gray-200
   
   // Border colors
-  border: '#E5E5EA',
-  borderLight: '#F2F2F7',
+  border: '#E5E7EB',       // gray-200
+  borderLight: '#F3F4F6',  // gray-100
+  borderDark: '#D1D5DB',   // gray-300
+  divider: '#F3F4F6',      // gray-100
   
-  // Chat colors
-  messageSent: '#007AFF',
-  messageReceived: '#E5E5EA',
+  // Chat colors (matching Web @chatscope theme)
+  messageSent: '#4F46E5',      // primary indigo
+  messageReceived: '#F3F4F6',  // gray-100
   messageText: '#FFFFFF',
-  messageTextReceived: '#000000',
+  messageTextReceived: '#111827', // gray-900
+  
+  // Avatar colors (matching Web ui-avatars)
+  avatarIndigo: '#4F46E5',
+  avatarEmerald: '#10B981',
+  avatarAmber: '#F59E0B',
+  avatarBlue: '#3B82F6',
+  avatarRed: '#EF4444',
+  avatarPurple: '#8B5CF6',
 };
 
 export const FONTS = {
