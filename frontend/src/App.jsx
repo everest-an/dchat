@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import './App.css'
 
 // Import components
+import ErrorBoundary from './components/ErrorBoundary'
 import LoginScreen from './components/LoginScreen'
 import MainApp from './components/MainApp'
 import LandingPage from './components/LandingPage'
@@ -119,11 +120,12 @@ function App() {
   }
 
   return (
-    <WagmiWeb3Provider>
-    <Web3Provider>
-      <ToastProvider>
-        <LanguageProvider>
-        <Router>
+    <ErrorBoundary>
+      <WagmiWeb3Provider>
+      <Web3Provider>
+        <ToastProvider>
+          <LanguageProvider>
+          <Router>
           <ResponsiveContainer>
             <Routes>
               {/* Landing Page - for unauthenticated users */}
@@ -177,11 +179,12 @@ function App() {
             </Routes>
           </ResponsiveContainer>
           <Toaster />
-        </Router>
-        </LanguageProvider>
-      </ToastProvider>
-    </Web3Provider>
-    </WagmiWeb3Provider>
+          </Router>
+          </LanguageProvider>
+        </ToastProvider>
+      </Web3Provider>
+      </WagmiWeb3Provider>
+    </ErrorBoundary>
   )
 }
 
