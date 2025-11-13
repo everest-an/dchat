@@ -9,8 +9,10 @@ import logging
 from ..services.matching_service import MatchingService
 from ..models.matching import MatchingRequest, MatchingResult, MatchingFeedback
 from ..models.user import User
-from ..middleware.auth_middleware import require_auth
-from ..middleware.input_validation import validate_json
+from ..middleware.auth import require_auth
+from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
+from ..schemas.matching_schemas import CreateMatchingRequestSchema, MatchingFeedbackSchema
+from marshmallow import ValidationError as MarshmallowValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +21,8 @@ matching_bp = Blueprint('matching', __name__, url_prefix='/api/matching')
 
 @matching_bp.route('/create', methods=['POST'])
 @require_auth
-@validate_json
+@handle_errors
+@validate_request_json(['title', 'required_skills'])
 def create_matching_request():
     """
     Create a new matching request
@@ -42,16 +45,17 @@ def create_matching_request():
     Returns:
         JSON response with request ID and initial matches
     """
+    data = request.json
+    
+    # Validate input with Marshmallow schema
+    schema = CreateMatchingRequestSchema()
     try:
-        data = request.json
-        user_address = request.user_address
-        
-        # Validate required fields
-        if not data.get('title'):
-            return jsonify({'error': 'Title is required'}), 400
-        
-        if not data.get('required_skills') or not isinstance(data['required_skills'], list):
-            return jsonify({'error': 'Required skills must be a non-empty array'}), 400
+        validated_data = schema.load(data)
+    except MarshmallowValidationError as e:
+        raise ValidationError("Invalid input data", payload={'errors': e.messages})
+    
+    from flask import g
+    user_address = g.wallet_address
         
         # Create matching request
         matching_request = MatchingRequest(
