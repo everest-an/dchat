@@ -8,12 +8,15 @@ Author: Manus AI
 Date: 2024-11-13
 """
 
-from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask import Blueprint, request, jsonify, g
 import logging
 from datetime import datetime
 
 from ..services.livekit_service import get_livekit_service
+from ..middleware.auth import require_auth, optional_auth
+from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
+from ..schemas.livekit_schemas import CreateTokenSchema, CreateCallTokenSchema
+from marshmallow import ValidationError as MarshmallowValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +24,7 @@ livekit_bp = Blueprint('livekit', __name__, url_prefix='/api/livekit')
 
 
 @livekit_bp.route('/health', methods=['GET'])
+@handle_errors
 def health_check():
     """
     Health check for LiveKit service.
@@ -28,27 +32,21 @@ def health_check():
     Returns:
         JSON response with service status
     """
-    try:
-        service = get_livekit_service()
-        details = service.get_connection_details()
-        
-        return jsonify({
-            'status': 'healthy',
-            'service': 'livekit',
-            'details': details,
-            'timestamp': datetime.utcnow().isoformat()
-        }), 200
-        
-    except Exception as e:
-        logger.error(f"LiveKit health check failed: {str(e)}")
-        return jsonify({
-            'status': 'unhealthy',
-            'error': str(e)
-        }), 503
+    service = get_livekit_service()
+    details = service.get_connection_details()
+    
+    return jsonify({
+        'status': 'healthy',
+        'service': 'livekit',
+        'details': details,
+        'timestamp': datetime.utcnow().isoformat()
+    })
 
 
 @livekit_bp.route('/token', methods=['POST'])
-@jwt_required()
+@require_auth
+@handle_errors
+@validate_request_json(['room_name'])
 def create_token():
     """
     Create a LiveKit access token.
@@ -66,49 +64,48 @@ def create_token():
     Returns:
         JSON response with token and connection details
     """
+    data = request.json
+    
+    # Validate with schema
+    schema = CreateTokenSchema()
     try:
-        user_id = get_jwt_identity()
-        data = request.get_json()
+        validated_data = schema.load(data)
+    except MarshmallowValidationError as e:
+        raise ValidationError("Invalid input", payload={'errors': e.messages})
+    
+    user_id = str(g.user_id)
+    room_name = validated_data['room_name']
         
-        # Validate required fields
-        room_name = data.get('room_name')
-        if not room_name:
-            return jsonify({'error': 'room_name is required'}), 400
-        
-        # Get optional parameters
-        participant_name = data.get('participant_name', user_id)
-        metadata = data.get('metadata')
-        can_publish = data.get('can_publish', True)
-        can_subscribe = data.get('can_subscribe', True)
-        valid_for = data.get('valid_for', 3600)
-        
-        # Create token
-        service = get_livekit_service()
-        token = service.create_token(
-            room_name=room_name,
-            participant_identity=user_id,
-            participant_name=participant_name,
-            metadata=metadata,
-            can_publish=can_publish,
-            can_subscribe=can_subscribe,
-            valid_for=valid_for
-        )
-        
-        return jsonify({
-            'success': True,
-            'token': token,
-            'url': service.url,
-            'room_name': room_name,
-            'participant_identity': user_id
-        }), 200
-        
-    except Exception as e:
-        logger.error(f"Failed to create token: {str(e)}")
-        return jsonify({'error': 'Failed to create token'}), 500
+    # Get optional parameters
+    participant_name = validated_data.get('participant_name', user_id)
+    can_publish = validated_data.get('can_publish', True)
+    can_subscribe = validated_data.get('can_subscribe', True)
+    
+    # Create token
+    service = get_livekit_service()
+    token = service.create_token(
+        room_name=room_name,
+        participant_identity=user_id,
+        participant_name=participant_name,
+        metadata=None,
+        can_publish=can_publish,
+        can_subscribe=can_subscribe,
+        valid_for=3600
+    )
+    
+    return jsonify({
+        'success': True,
+        'token': token,
+        'url': service.url,
+        'room_name': room_name,
+        'participant_identity': user_id
+    })
 
 
 @livekit_bp.route('/call/token', methods=['POST'])
-@jwt_required()
+@require_auth
+@handle_errors
+@validate_request_json(['call_id', 'call_type'])
 def create_call_token():
     """
     Create a LiveKit token specifically for a Dchat call.
@@ -164,7 +161,8 @@ def create_call_token():
 
 
 @livekit_bp.route('/rooms/<room_name>/participants', methods=['GET'])
-@jwt_required()
+@require_auth
+@handle_errors
 def get_room_participants(room_name: str):
     """
     Get list of participants in a room.
@@ -197,6 +195,7 @@ def get_room_participants(room_name: str):
 
 
 @livekit_bp.route('/config', methods=['GET'])
+@handle_errors
 def get_config():
     """
     Get LiveKit client configuration.
@@ -223,29 +222,4 @@ def get_config():
         return jsonify({'error': 'Failed to get configuration'}), 500
 
 
-# Error handlers
-@livekit_bp.errorhandler(400)
-def bad_request(error):
-    return jsonify({
-        'success': False,
-        'error': 'Bad request',
-        'message': str(error)
-    }), 400
-
-
-@livekit_bp.errorhandler(401)
-def unauthorized(error):
-    return jsonify({
-        'success': False,
-        'error': 'Unauthorized',
-        'message': 'Authentication required'
-    }), 401
-
-
-@livekit_bp.errorhandler(500)
-def internal_error(error):
-    return jsonify({
-        'success': False,
-        'error': 'Internal server error',
-        'message': str(error)
-    }), 500
+# Error handlers are now handled globally by error_handler middleware
