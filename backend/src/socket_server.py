@@ -5,8 +5,10 @@ Handles real-time messaging, online status, and typing indicators
 
 import socketio
 import asyncio
-from typing import Dict, Set
+from typing import Dict, Set, Optional
 import logging
+import jwt
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -65,18 +67,34 @@ async def disconnect(sid):
 @sio.event
 async def authenticate(sid, data):
     """
-    Authenticate user and set up session
+    Authenticate user and set up session with JWT token validation
     
     Args:
         data: {
-            'user_id': str,
-            'token': str (optional)
+            'token': str (required) - JWT authentication token
         }
     """
-    user_id = data.get('user_id')
+    token = data.get('token')
     
-    if not user_id:
-        await sio.emit('error', {'message': 'User ID required'}, room=sid)
+    if not token:
+        await sio.emit('error', {'message': 'Authentication token required'}, room=sid)
+        return
+    
+    # Verify JWT token
+    try:
+        secret_key = os.environ.get('SECRET_KEY', 'dchat-secret-key')
+        payload = jwt.decode(token, secret_key, algorithms=['HS256'])
+        user_id = str(payload.get('user_id'))
+        
+        if not user_id:
+            await sio.emit('error', {'message': 'Invalid token: missing user_id'}, room=sid)
+            return
+        
+    except jwt.ExpiredSignatureError:
+        await sio.emit('error', {'message': 'Token expired'}, room=sid)
+        return
+    except jwt.InvalidTokenError as e:
+        await sio.emit('error', {'message': f'Invalid token: {str(e)}'}, room=sid)
         return
     
     # Store session
@@ -87,7 +105,7 @@ async def authenticate(sid, data):
     if user_id not in user_rooms:
         user_rooms[user_id] = set()
     
-    logger.info(f"User authenticated: {user_id} (sid: {sid})")
+    logger.info(f"User authenticated via JWT: {user_id} (sid: {sid})")
     
     await sio.emit('authenticated', {'user_id': user_id}, room=sid)
 
