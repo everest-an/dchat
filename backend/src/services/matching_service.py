@@ -230,7 +230,13 @@ class MatchingService:
             # Direct match
             for prov_skill in provider_skills:
                 prov_name = prov_skill.get('name', '').lower()
-                prov_prof = prov_skill.get('proficiency', 1)
+                prov_prof_raw = prov_skill.get('proficiency', 1)
+                
+                # Convert proficiency to numeric if it's a string
+                if isinstance(prov_prof_raw, str):
+                    prov_prof = self._proficiency_to_numeric(prov_prof_raw)
+                else:
+                    prov_prof = prov_prof_raw
                 
                 if req_name == prov_name:
                     # Proficiency match score
@@ -588,3 +594,23 @@ class MatchingService:
         
         # Return top matches
         return matches[:limit]
+
+    def _proficiency_to_numeric(self, proficiency: str) -> int:
+        """
+        Convert string proficiency level to numeric value
+        
+        Args:
+            proficiency: String proficiency level
+            
+        Returns:
+            Numeric proficiency (1-5)
+        """
+        proficiency_map = {
+            'beginner': 1,
+            'intermediate': 2,
+            'advanced': 3,
+            'expert': 4,
+            'master': 5
+        }
+        
+        return proficiency_map.get(proficiency.lower(), 1)
