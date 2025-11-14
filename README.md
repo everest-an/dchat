@@ -1,6 +1,6 @@
 # Dchat - Web3 Business Communication Platform
 
-> **🌐 Live Demo**: [https://dchat.pro](https://dchat.pro)  
+> **🌐 Live Demo**: [https://dchat.pro](https://dchat.pro) | [Short Link](https://tinyurl.com/2apne32a)  
 > **📝 Team**: Everest  
 > **🏆 ETHShanghai 2025 Hackathon Project**
 
@@ -9,6 +9,7 @@
 ## 🚀 Quick Links
 
 - **🌐 Official Website**: [https://dchat.pro](https://dchat.pro)
+- **🔗 Short Link**: [https://tinyurl.com/2apne32a](https://tinyurl.com/2apne32a)
 - **📜 Smart Contracts**: [View Contracts](#-smart-contracts)
 - **📖 Documentation**: [Full Documentation](./docs/)
 - **🎥 Demo Video**: [Coming Soon]
@@ -267,7 +268,8 @@ See [TESTING_GUIDE.md](./TESTING_GUIDE.md) for comprehensive testing procedures.
 
 ## 🌐 Live Demo
 
-**Visit our live demo**: [https://dchat.pro](https://dchat.pro)
+**Visit our live demo**: [https://dchat.pro](https://dchat.pro)  
+**Quick Access**: [https://tinyurl.com/2apne32a](https://tinyurl.com/2apne32a)
 
 **Test Features**:
 - ✅ Wallet connection (MetaMask)
