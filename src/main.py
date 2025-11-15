@@ -11,9 +11,7 @@ from src.routes.auth import auth_bp
 from src.routes.messages import messages_bp
 from src.routes.projects import projects_bp
 from src.routes.files import files_bp
-# from src.middleware.api_logger import init_api_logging
-
-# 导入新增的路由
+# from src.middleware.api_logger i# 导入新增的路由
 try:
     from src.routes.groups import groups_bp
     from src.routes.notifications import notifications_bp
@@ -21,7 +19,9 @@ try:
     HAS_NEW_ROUTES = True
 except ImportError:
     HAS_NEW_ROUTES = False
-    print("⚠️  新路由模块# 导入 Web3 路由
+    print("⚠️  新路由模块未找到，使用基础版本")
+
+# 导入 Web3 路由
 try:
     from src.routes.groups_web3 import groups_web3_bp
     from src.routes.payments_web3 import payments_web3_bp
@@ -38,7 +38,9 @@ except ImportError:
     HAS_WEB3_ROUTES = False
     print("⚠️  Web3 路由模块未找到")
 
-# 导入订阅和 NFT 头像路由mport subscription_bp
+# 导入订阅和 NFT 头像路由
+try:
+    from src.routes.subscription import subscription_bp
     from src.routes.nft_avatar import nft_avatar_bp
     from src.routes.custodial_wallet import custodial_wallet_bp
     from src.routes.user_profile import user_profile_bp
@@ -47,21 +49,18 @@ except ImportError:
     from src.routes.transfers import transfers_bp
     HAS_SUBSCRIPTION_ROUTES = True
 except ImportError:
-    HAS_SUBSCRIPTION_ROUTES = False
-    print("⚠️  订阅路由模块未找到")
+    HAS_SUBSCRIPTION_ROUTES = 53	    print("⚠️  订阅路由模块未找到")
 
 # 导入机会匹配路由
 try:
     from src.routes.matching import matching_bp
     HAS_MATCHING_ROUTES = True
 except ImportError:
-    HAS_MATCHING_ROUTES = False
-    print("⚠️  机会匹配路由模块未找到")
+    HAS_MATCHING_ROUTES =60	    print("⚠️  机会匹配路由模块未找到")
 
 # 导入 LiveKit 路由
 try:
-    from src.routes.livekit_routes import livekit_bp
-    HAS_LIVEKIT_ROUTES = True
+    from src.routes.livekit_routes import livekit_bp   HAS_LIVEKIT_ROUTES = True
 except ImportError:
     HAS_LIVEKIT_ROUTES = False
     print("⚠️  LiveKit 路由模块未找到")
