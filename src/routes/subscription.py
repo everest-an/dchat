@@ -470,9 +470,8 @@ def get_subscription_history():
 
 @subscription_bp.route('/tier', methods=['GET'])
 @authenticate
-def get_user_tier():@handle_errors
-@subscription_bp.route('/tier', methods=['GET'])
-@authenticate
+@handle_errors
+def get_user_tier():
 
     """
     Get user's current subscription tier
