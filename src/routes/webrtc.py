@@ -402,9 +402,8 @@ def get_call_history():
 
 @webrtc_bp.route('/call/<call_id>/quality', methods=['POST'])
 @require_auth
-def report_call_quality(call_id: str):@handle_errors
-@webrtc_bp.route('/call/<call_id>/quality', methods=['POST'])
-@require_auth
+@handle_errors
+def report_call_quality(call_id: str):
 
     """
     Report call quality metrics.
