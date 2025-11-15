@@ -516,7 +516,8 @@ def get_user_tier():
 
 
 @subscription_bp.route('/pricing/<tier>', methods=['GET'])
-def get_tier_pricing(tier):@handle_errors
+@handle_errors
+def get_tier_pricing(tier):
 @subscription_bp.route('/pricing/<tier>', methods=['GET'])
 
     """
