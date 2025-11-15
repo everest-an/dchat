@@ -8,7 +8,6 @@ from ..middleware.auth import require_auth, optional_auth, require_role
 from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
 
 
-
 files_bp = Blueprint('files', __name__)
 
 PINATA_API_KEY = os.environ.get('PINATA_API_KEY')
@@ -33,9 +32,8 @@ def verify_token_from_request():
         return None, 'Invalid token'
 
 @files_bp.route('/upload', methods=['POST'])
-def upload_file():@handle_errors
-@files_bp.route('/upload', methods=['POST'])
-
+@handle_errors
+def upload_file():
     """上传文件到 IPFS (Pinata)"""
     try:
         # 验证用户身份
@@ -115,9 +113,8 @@ def upload_file():@handle_errors
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @files_bp.route('/download/<ipfs_hash>', methods=['GET'])
-def download_file(ipfs_hash):@handle_errors
-@files_bp.route('/download/<ipfs_hash>', methods=['GET'])
-
+@handle_errors
+def download_file(ipfs_hash):
     """获取 IPFS 文件的下载链接"""
     try:
         # 验证用户身份
@@ -138,9 +135,8 @@ def download_file(ipfs_hash):@handle_errors
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @files_bp.route('/metadata/<ipfs_hash>', methods=['GET'])
-def get_file_metadata(ipfs_hash):@handle_errors
-@files_bp.route('/metadata/<ipfs_hash>', methods=['GET'])
-
+@handle_errors
+def get_file_metadata(ipfs_hash):
     """获取文件元数据"""
     try:
         # 验证用户身份
@@ -192,9 +188,8 @@ def get_file_metadata(ipfs_hash):@handle_errors
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @files_bp.route('/unpin/<ipfs_hash>', methods=['DELETE'])
-def unpin_file(ipfs_hash):@handle_errors
-@files_bp.route('/unpin/<ipfs_hash>', methods=['DELETE'])
-
+@handle_errors
+def unpin_file(ipfs_hash):
     """从 Pinata 删除文件"""
     try:
         # 验证用户身份

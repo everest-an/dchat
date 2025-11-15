@@ -11,7 +11,7 @@ from src.routes.auth import auth_bp
 from src.routes.messages import messages_bp
 from src.routes.projects import projects_bp
 from src.routes.files import files_bp
-from src.middleware.api_logger import init_api_logging
+# from src.middleware.api_logger import init_api_logging
 
 # 导入新增的路由
 try:
@@ -34,7 +34,7 @@ try:
     from src.routes.reactions import reactions_bp
     from src.routes.read_receipts import read_receipts_bp
     from src.routes.push_notifications import push_notifications_bp
-    from src.routes.tokens import tokens_bp
+from src.routes.tokens import tokens_bp
     HAS_WEB3_ROUTES = True
 except ImportError:
     HAS_WEB3_ROUTES = False
@@ -96,7 +96,7 @@ app.config['SQLALCHEMY_ECHO'] = os.environ.get('DEBUG', 'False') == 'True'
 db.init_app(app)
 
 # 初始化 API 日志
-init_api_logging(app)
+# init_api_logging(app)
 
 # 创建数据库表
 with app.app_context():

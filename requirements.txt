@@ -32,3 +32,4 @@ requests==2.31.0
 livekit==0.17.4
 livekit-api==0.7.0
 substrate-interface==1.7.11
+marshmallow==3.21.3

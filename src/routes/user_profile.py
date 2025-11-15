@@ -24,7 +24,6 @@ from ..middleware.auth import require_auth, optional_auth, require_role
 from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
 
 
-
 user_profile_bp = Blueprint('user_profile', __name__)
 
 JWT_SECRET = os.getenv('JWT_SECRET', 'your-secret-key-change-in-production')
@@ -54,11 +53,7 @@ def require_auth(f):
 @user_profile_bp.route('/api/profile/projects', methods=['GET'])
 @require_auth
 @rate_limit(max_requests=100, window_seconds=60)
-def get_projects():@handle_errors
-@user_profile_bp.route('/api/profile/projects', methods=['GET'])
-@require_auth
-@rate_limit(max_requests=100, window_seconds=60)
-
+def get_projects():
     """Get user's projects"""
     try:
         projects = UserProject.query.filter_by(user_id=request.user_id).all()
@@ -73,11 +68,7 @@ def get_projects():@handle_errors
 @user_profile_bp.route('/api/profile/projects', methods=['POST'])
 @require_auth
 @rate_limit(max_requests=30, window_seconds=60)
-def create_project():@handle_errors
-@user_profile_bp.route('/api/profile/projects', methods=['POST'])
-@require_auth
-@rate_limit(max_requests=30, window_seconds=60)
-
+def create_project():
     """Create new project"""
     try:
         data = request.json
@@ -105,10 +96,7 @@ def create_project():@handle_errors
 
 @user_profile_bp.route('/api/profile/projects/<int:project_id>', methods=['PUT'])
 @require_auth
-def update_project(project_id):@handle_errors
-@user_profile_bp.route('/api/profile/projects/<int:project_id>', methods=['PUT'])
-@require_auth
-
+def update_project(project_id):
     """Update project"""
     try:
         project = UserProject.query.filter_by(id=project_id, user_id=request.user_id).first()
@@ -141,10 +129,7 @@ def update_project(project_id):@handle_errors
 
 @user_profile_bp.route('/api/profile/projects/<int:project_id>', methods=['DELETE'])
 @require_auth
-def delete_project(project_id):@handle_errors
-@user_profile_bp.route('/api/profile/projects/<int:project_id>', methods=['DELETE'])
-@require_auth
-
+def delete_project(project_id):
     """Delete project"""
     try:
         project = UserProject.query.filter_by(id=project_id, user_id=request.user_id).first()
@@ -167,11 +152,7 @@ def delete_project(project_id):@handle_errors
 @user_profile_bp.route('/api/profile/skills', methods=['GET'])
 @require_auth
 @rate_limit(max_requests=100, window_seconds=60)
-def get_skills():@handle_errors
-@user_profile_bp.route('/api/profile/skills', methods=['GET'])
-@require_auth
-@rate_limit(max_requests=100, window_seconds=60)
-
+def get_skills():
     """Get user's skills"""
     try:
         skills = UserSkill.query.filter_by(user_id=request.user_id).all()
@@ -186,11 +167,7 @@ def get_skills():@handle_errors
 @user_profile_bp.route('/api/profile/skills', methods=['POST'])
 @require_auth
 @rate_limit(max_requests=30, window_seconds=60)
-def create_skill():@handle_errors
-@user_profile_bp.route('/api/profile/skills', methods=['POST'])
-@require_auth
-@rate_limit(max_requests=30, window_seconds=60)
-
+def create_skill():
     """Create new skill"""
     try:
         data = request.json
@@ -217,10 +194,7 @@ def create_skill():@handle_errors
 
 @user_profile_bp.route('/api/profile/skills/<int:skill_id>', methods=['PUT'])
 @require_auth
-def update_skill(skill_id):@handle_errors
-@user_profile_bp.route('/api/profile/skills/<int:skill_id>', methods=['PUT'])
-@require_auth
-
+def update_skill(skill_id):
     """Update skill"""
     try:
         skill = UserSkill.query.filter_by(id=skill_id, user_id=request.user_id).first()
@@ -251,10 +225,7 @@ def update_skill(skill_id):@handle_errors
 
 @user_profile_bp.route('/api/profile/skills/<int:skill_id>', methods=['DELETE'])
 @require_auth
-def delete_skill(skill_id):@handle_errors
-@user_profile_bp.route('/api/profile/skills/<int:skill_id>', methods=['DELETE'])
-@require_auth
-
+def delete_skill(skill_id):
     """Delete skill"""
     try:
         skill = UserSkill.query.filter_by(id=skill_id, user_id=request.user_id).first()
@@ -276,10 +247,7 @@ def delete_skill(skill_id):@handle_errors
 
 @user_profile_bp.route('/api/profile/resources', methods=['GET'])
 @require_auth
-def get_resources():@handle_errors
-@user_profile_bp.route('/api/profile/resources', methods=['GET'])
-@require_auth
-
+def get_resources():
     """Get user's resources"""
     try:
         resources = UserResource.query.filter_by(user_id=request.user_id).all()
@@ -293,10 +261,7 @@ def get_resources():@handle_errors
 
 @user_profile_bp.route('/api/profile/resources', methods=['POST'])
 @require_auth
-def create_resource():@handle_errors
-@user_profile_bp.route('/api/profile/resources', methods=['POST'])
-@require_auth
-
+def create_resource():
     """Create new resource"""
     try:
         data = request.json
@@ -323,10 +288,7 @@ def create_resource():@handle_errors
 
 @user_profile_bp.route('/api/profile/resources/<int:resource_id>', methods=['PUT'])
 @require_auth
-def update_resource(resource_id):@handle_errors
-@user_profile_bp.route('/api/profile/resources/<int:resource_id>', methods=['PUT'])
-@require_auth
-
+def update_resource(resource_id):
     """Update resource"""
     try:
         resource = UserResource.query.filter_by(id=resource_id, user_id=request.user_id).first()
@@ -357,10 +319,7 @@ def update_resource(resource_id):@handle_errors
 
 @user_profile_bp.route('/api/profile/resources/<int:resource_id>', methods=['DELETE'])
 @require_auth
-def delete_resource(resource_id):@handle_errors
-@user_profile_bp.route('/api/profile/resources/<int:resource_id>', methods=['DELETE'])
-@require_auth
-
+def delete_resource(resource_id):
     """Delete resource"""
     try:
         resource = UserResource.query.filter_by(id=resource_id, user_id=request.user_id).first()
@@ -382,10 +341,7 @@ def delete_resource(resource_id):@handle_errors
 
 @user_profile_bp.route('/api/profile/seeking', methods=['GET'])
 @require_auth
-def get_seeking():@handle_errors
-@user_profile_bp.route('/api/profile/seeking', methods=['GET'])
-@require_auth
-
+def get_seeking():
     """Get user's seeking opportunities"""
     try:
         seeking = UserSeeking.query.filter_by(user_id=request.user_id).all()
@@ -399,10 +355,7 @@ def get_seeking():@handle_errors
 
 @user_profile_bp.route('/api/profile/seeking', methods=['POST'])
 @require_auth
-def create_seeking():@handle_errors
-@user_profile_bp.route('/api/profile/seeking', methods=['POST'])
-@require_auth
-
+def create_seeking():
     """Create new seeking opportunity"""
     try:
         data = request.json
@@ -430,10 +383,7 @@ def create_seeking():@handle_errors
 
 @user_profile_bp.route('/api/profile/seeking/<int:seeking_id>', methods=['PUT'])
 @require_auth
-def update_seeking(seeking_id):@handle_errors
-@user_profile_bp.route('/api/profile/seeking/<int:seeking_id>', methods=['PUT'])
-@require_auth
-
+def update_seeking(seeking_id):
     """Update seeking opportunity"""
     try:
         seeking = UserSeeking.query.filter_by(id=seeking_id, user_id=request.user_id).first()
@@ -466,10 +416,7 @@ def update_seeking(seeking_id):@handle_errors
 
 @user_profile_bp.route('/api/profile/seeking/<int:seeking_id>', methods=['DELETE'])
 @require_auth
-def delete_seeking(seeking_id):@handle_errors
-@user_profile_bp.route('/api/profile/seeking/<int:seeking_id>', methods=['DELETE'])
-@require_auth
-
+def delete_seeking(seeking_id):
     """Delete seeking opportunity"""
     try:
         seeking = UserSeeking.query.filter_by(id=seeking_id, user_id=request.user_id).first()

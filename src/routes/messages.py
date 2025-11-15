@@ -31,9 +31,8 @@ def verify_token_helper(token):
         return None, '无效的token'
 
 @messages_bp.route('/conversations', methods=['GET'])
-def get_conversations():@handle_errors
-@messages_bp.route('/conversations', methods=['GET'])
-
+@handle_errors
+def get_conversations():
     """获取用户的对话列表"""
     try:
         token = request.headers.get('Authorization')
@@ -77,9 +76,8 @@ def get_conversations():@handle_errors
         return jsonify({'error': str(e)}), 500
 
 @messages_bp.route('/conversations/<int:user_id>', methods=['GET'])
-def get_conversation_messages(user_id):@handle_errors
-@messages_bp.route('/conversations/<int:user_id>', methods=['GET'])
-
+@handle_errors
+def get_conversation_messages(user_id):
     """获取与特定用户的对话消息"""
     try:
         token = request.headers.get('Authorization')
@@ -124,9 +122,8 @@ def get_conversation_messages(user_id):@handle_errors
         return jsonify({'error': str(e)}), 500
 
 @messages_bp.route('/send', methods=['POST'])
-def send_message():@handle_errors
-@messages_bp.route('/send', methods=['POST'])
-
+@handle_errors
+def send_message():
     """发送消息"""
     try:
         token = request.headers.get('Authorization')
@@ -175,9 +172,8 @@ def send_message():@handle_errors
         return jsonify({'error': str(e)}), 500
 
 @messages_bp.route('/encrypt', methods=['POST'])
-def encrypt_message():@handle_errors
-@messages_bp.route('/encrypt', methods=['POST'])
-
+@handle_errors
+def encrypt_message():
     """端到端加密消息（模拟）"""
     try:
         data = request.get_json()
@@ -201,9 +197,8 @@ def encrypt_message():@handle_errors
         return jsonify({'error': str(e)}), 500
 
 @messages_bp.route('/decrypt', methods=['POST'])
-def decrypt_message():@handle_errors
-@messages_bp.route('/decrypt', methods=['POST'])
-
+@handle_errors
+def decrypt_message():
     """解密消息（模拟）"""
     try:
         data = request.get_json()
@@ -229,4 +224,3 @@ def decrypt_message():@handle_errors
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
