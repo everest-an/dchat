@@ -43,8 +43,8 @@ user_calls: Dict[str, str] = {}
 
 
 @webrtc_bp.route('/health', methods=['GET'])
-def health_check():@handle_errors
-@webrtc_bp.route('/health', methods=['GET'])
+@handle_errors
+def health_check():
 
     """
     Health check endpoint for WebRTC service.
@@ -62,9 +62,8 @@ def health_check():@handle_errors
 
 @webrtc_bp.route('/call/initiate', methods=['POST'])
 @require_auth
-def initiate_call():@handle_errors
-@webrtc_bp.route('/call/initiate', methods=['POST'])
-@require_auth
+@handle_errors
+def initiate_call():
 
     """
     Initiate a new call (1-on-1 or group).
@@ -142,9 +141,8 @@ def initiate_call():@handle_errors
 
 @webrtc_bp.route('/call/<call_id>/answer', methods=['POST'])
 @require_auth
-def answer_call(call_id: str):@handle_errors
-@webrtc_bp.route('/call/<call_id>/answer', methods=['POST'])
-@require_auth
+@handle_errors
+def answer_call(call_id: str):
 
     """
     Answer an incoming call.
@@ -204,9 +202,8 @@ def answer_call(call_id: str):@handle_errors
 
 @webrtc_bp.route('/call/<call_id>/end', methods=['POST'])
 @require_auth
-def end_call(call_id: str):@handle_errors
-@webrtc_bp.route('/call/<call_id>/end', methods=['POST'])
-@require_auth
+@handle_errors
+def end_call(call_id: str):
 
     """
     End an active call.
@@ -271,9 +268,8 @@ def end_call(call_id: str):@handle_errors
 
 @webrtc_bp.route('/call/<call_id>', methods=['GET'])
 @require_auth
-def get_call(call_id: str):@handle_errors
-@webrtc_bp.route('/call/<call_id>', methods=['GET'])
-@require_auth
+@handle_errors
+def get_call(call_id: str):
 
     """
     Get call details.
@@ -313,9 +309,8 @@ def get_call(call_id: str):@handle_errors
 
 @webrtc_bp.route('/calls/active', methods=['GET'])
 @require_auth
-def get_active_calls():@handle_errors
-@webrtc_bp.route('/calls/active', methods=['GET'])
-@require_auth
+@handle_errors
+def get_active_calls():
 
     """
     Get all active calls for the current user.
