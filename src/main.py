@@ -1,4 +1,4 @@
-import os
+'''import os
 import sys
 # DON'T CHANGE THIS !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -11,7 +11,9 @@ from src.routes.auth import auth_bp
 from src.routes.messages import messages_bp
 from src.routes.projects import projects_bp
 from src.routes.files import files_bp
-# from src.middleware.api_logger i# 导入新增的路由
+# from src.middleware.api_logger import init_api_logging
+
+# 导入新增的路由
 try:
     from src.routes.groups import groups_bp
     from src.routes.notifications import notifications_bp
@@ -49,18 +51,21 @@ try:
     from src.routes.transfers import transfers_bp
     HAS_SUBSCRIPTION_ROUTES = True
 except ImportError:
-    HAS_SUBSCRIPTION_ROUTES = 53	    print("⚠️  订阅路由模块未找到")
+    HAS_SUBSCRIPTION_ROUTES = False
+    print("⚠️  订阅路由模块未找到")
 
 # 导入机会匹配路由
 try:
     from src.routes.matching import matching_bp
     HAS_MATCHING_ROUTES = True
 except ImportError:
-    HAS_MATCHING_ROUTES =60	    print("⚠️  机会匹配路由模块未找到")
+    HAS_MATCHING_ROUTES = False
+    print("⚠️  机会匹配路由模块未找到")
 
 # 导入 LiveKit 路由
 try:
-    from src.routes.livekit_routes import livekit_bp   HAS_LIVEKIT_ROUTES = True
+    from src.routes.livekit_routes import livekit_bp
+    HAS_LIVEKIT_ROUTES = True
 except ImportError:
     HAS_LIVEKIT_ROUTES = False
     print("⚠️  LiveKit 路由模块未找到")
@@ -85,7 +90,9 @@ database_url = os.environ.get(
 )
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ECHO'] = os.environ.get('DEBUG', 'False') == 'True'# 初始化数据库
+app.config['SQLALCHEMY_ECHO'] = os.environ.get('DEBUG', 'False') == 'True'
+
+# 初始化数据库
 def init_db(app):
     db.init_app(app)
     with app.app_context():
@@ -111,7 +118,9 @@ def init_db(app):
         print("✅ 数据库表创建成功")
 
 # 初始化 API 日志
-# init_api_logging(app)refix='/api')
+# init_api_logging(app)
+
+app.register_blueprint(user_bp, url_prefix='/api/users')
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(messages_bp, url_prefix='/api/messages')
 app.register_blueprint(projects_bp, url_prefix='/api')
@@ -254,7 +263,7 @@ def api_docs():
     return jsonify({
         'title': 'Dchat API Documentation',
         'version': '2.0.0',
-        'base_url': request.host_url + 'api',
+        'base_url': '/api',
         'authentication': {
             'type': 'JWT Bearer Token',
             'header': 'Authorization: Bearer <token>'
@@ -349,3 +358,4 @@ if __name__ == '__main__':
     print(f"💚 Health Check: http://localhost:{port}/api/health\n")
     
     app.run(host='0.0.0.0', port=port, debug=debug)
+'''
