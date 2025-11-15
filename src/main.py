@@ -21,9 +21,7 @@ try:
     HAS_NEW_ROUTES = True
 except ImportError:
     HAS_NEW_ROUTES = False
-    print("⚠️  新路由模块未找到，使用基础版本")
-
-# 导入 Web3 路由
+    print("⚠️  新路由模块# 导入 Web3 路由
 try:
     from src.routes.groups_web3 import groups_web3_bp
     from src.routes.payments_web3 import payments_web3_bp
@@ -34,15 +32,13 @@ try:
     from src.routes.reactions import reactions_bp
     from src.routes.read_receipts import read_receipts_bp
     from src.routes.push_notifications import push_notifications_bp
-from src.routes.tokens import tokens_bp
+    from src.routes.tokens import tokens_bp
     HAS_WEB3_ROUTES = True
 except ImportError:
     HAS_WEB3_ROUTES = False
     print("⚠️  Web3 路由模块未找到")
 
-# 导入订阅和 NFT 头像路由
-try:
-    from src.routes.subscription import subscription_bp
+# 导入订阅和 NFT 头像路由mport subscription_bp
     from src.routes.nft_avatar import nft_avatar_bp
     from src.routes.custodial_wallet import custodial_wallet_bp
     from src.routes.user_profile import user_profile_bp
