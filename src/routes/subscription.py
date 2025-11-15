@@ -27,8 +27,8 @@ subscription_bp = Blueprint('subscription', __name__)
 
 
 @subscription_bp.route('/plans', methods=['GET'])
-def get_subscription_plans():@handle_errors
-@subscription_bp.route('/plans', methods=['GET'])
+@handle_errors
+def get_subscription_plans():
 
     """
     Get available subscription plans with pricing
@@ -156,9 +156,8 @@ def get_subscription_plans():@handle_errors
 
 @subscription_bp.route('/me', methods=['GET'])
 @authenticate
-def get_current_subscription():@handle_errors
-@subscription_bp.route('/me', methods=['GET'])
-@authenticate
+@handle_errors
+def get_current_subscription():
 
     """
     Get current user's subscription
@@ -229,9 +228,8 @@ def get_current_subscription():@handle_errors
 
 @subscription_bp.route('/create', methods=['POST'])
 @authenticate
-def create_subscription():@handle_errors
-@subscription_bp.route('/create', methods=['POST'])
-@authenticate
+@handle_errors
+def create_subscription():
 
     """
     Create a new subscription (sync from blockchain)
@@ -307,9 +305,8 @@ def create_subscription():@handle_errors
 
 @subscription_bp.route('/cancel', methods=['POST'])
 @authenticate
-def cancel_subscription():@handle_errors
-@subscription_bp.route('/cancel', methods=['POST'])
-@authenticate
+@handle_errors
+def cancel_subscription():
 
     """
     Cancel current subscription
