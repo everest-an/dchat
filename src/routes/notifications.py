@@ -21,9 +21,8 @@ notifications_store = {}
 
 @notifications_bp.route('/', methods=['GET'])
 @require_auth
-def get_notifications():@handle_errors
-@notifications_bp.route('/', methods=['GET'])
-@require_auth
+@handle_errors
+def get_notifications():
 
     """获取用户的通知列表"""
     try:
@@ -62,10 +61,8 @@ def get_notifications():@handle_errors
 @notifications_bp.route('/<notification_id>/read', methods=['PUT'])
 @require_auth
 @rate_limit(max_requests=30, window_seconds=60)
-def mark_notification_read(notification_id):@handle_errors
-@notifications_bp.route('/<notification_id>/read', methods=['PUT'])
-@require_auth
-@rate_limit(max_requests=30, window_seconds=60)
+@handle_errors
+def mark_notification_read(notification_id):
 
     """标记通知为已读"""
     try:
@@ -101,10 +98,8 @@ def mark_notification_read(notification_id):@handle_errors
 @notifications_bp.route('/read-all', methods=['PUT'])
 @require_auth
 @rate_limit(max_requests=10, window_seconds=60)
-def mark_all_read():@handle_errors
-@notifications_bp.route('/read-all', methods=['PUT'])
-@require_auth
-@rate_limit(max_requests=10, window_seconds=60)
+@handle_errors
+def mark_all_read():
 
     """标记所有通知为已读"""
     try:
@@ -131,10 +126,8 @@ def mark_all_read():@handle_errors
 @notifications_bp.route('/<notification_id>', methods=['DELETE'])
 @require_auth
 @rate_limit(max_requests=20, window_seconds=60)
-def delete_notification(notification_id):@handle_errors
-@notifications_bp.route('/<notification_id>', methods=['DELETE'])
-@require_auth
-@rate_limit(max_requests=20, window_seconds=60)
+@handle_errors
+def delete_notification(notification_id):
 
     """删除通知"""
     try:
@@ -168,10 +161,8 @@ def delete_notification(notification_id):@handle_errors
 @notifications_bp.route('/clear', methods=['DELETE'])
 @require_auth
 @rate_limit(max_requests=5, window_seconds=60)
-def clear_notifications():@handle_errors
-@notifications_bp.route('/clear', methods=['DELETE'])
-@require_auth
-@rate_limit(max_requests=5, window_seconds=60)
+@handle_errors
+def clear_notifications():
 
     """清空所有通知"""
     try:
