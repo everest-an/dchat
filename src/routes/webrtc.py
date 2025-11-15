@@ -348,9 +348,8 @@ def get_active_calls():
 
 @webrtc_bp.route('/calls/history', methods=['GET'])
 @require_auth
-def get_call_history():@handle_errors
-@webrtc_bp.route('/calls/history', methods=['GET'])
-@require_auth
+@handle_errors
+def get_call_history():
 
     """
     Get call history for the current user.
