@@ -25,10 +25,8 @@ group_messages_store = {}
 @groups_bp.route('/create', methods=['POST'])
 @require_auth
 @rate_limit(max_requests=10, window_seconds=60)
-def create_group():@handle_errors
-@groups_bp.route('/create', methods=['POST'])
-@require_auth
-@rate_limit(max_requests=10, window_seconds=60)
+@handle_errors
+def create_group():
 
     """创建群组"""
     try:
@@ -99,9 +97,8 @@ def create_group():@handle_errors
 
 @groups_bp.route('/<group_id>', methods=['GET'])
 @require_auth
-def get_group(group_id):@handle_errors
-@groups_bp.route('/<group_id>', methods=['GET'])
-@require_auth
+@handle_errors
+def get_group(group_id):
 
     """获取群组信息"""
     try:
@@ -156,9 +153,8 @@ def get_group(group_id):@handle_errors
 
 @groups_bp.route('/<group_id>/messages', methods=['GET'])
 @require_auth
-def get_group_messages(group_id):@handle_errors
-@groups_bp.route('/<group_id>/messages', methods=['GET'])
-@require_auth
+@handle_errors
+def get_group_messages(group_id):
 
     """获取群组消息"""
     try:
@@ -198,10 +194,8 @@ def get_group_messages(group_id):@handle_errors
 @groups_bp.route('/<group_id>/messages', methods=['POST'])
 @require_auth
 @rate_limit(max_requests=30, window_seconds=60)
-def send_group_message(group_id):@handle_errors
-@groups_bp.route('/<group_id>/messages', methods=['POST'])
-@require_auth
-@rate_limit(max_requests=30, window_seconds=60)
+@handle_errors
+def send_group_message(group_id):
 
     """发送群组消息"""
     try:
@@ -271,10 +265,8 @@ def send_group_message(group_id):@handle_errors
 @groups_bp.route('/<group_id>/members', methods=['POST'])
 @require_auth
 @rate_limit(max_requests=10, window_seconds=60)
-def add_group_member(group_id):@handle_errors
-@groups_bp.route('/<group_id>/members', methods=['POST'])
-@require_auth
-@rate_limit(max_requests=10, window_seconds=60)
+@handle_errors
+def add_group_member(group_id):
 
     """添加群组成员"""
     try:
@@ -355,10 +347,8 @@ def add_group_member(group_id):@handle_errors
 @groups_bp.route('/<group_id>/members/<int:member_id>', methods=['DELETE'])
 @require_auth
 @rate_limit(max_requests=10, window_seconds=60)
-def remove_group_member(group_id, member_id):@handle_errors
-@groups_bp.route('/<group_id>/members/<int:member_id>', methods=['DELETE'])
-@require_auth
-@rate_limit(max_requests=10, window_seconds=60)
+@handle_errors
+def remove_group_member(group_id, member_id):
 
     """移除群组成员"""
     try:
@@ -402,9 +392,8 @@ def remove_group_member(group_id, member_id):@handle_errors
 
 @groups_bp.route('/list', methods=['GET'])
 @require_auth
-def list_user_groups():@handle_errors
-@groups_bp.route('/list', methods=['GET'])
-@require_auth
+@handle_errors
+def list_user_groups():
 
     """获取用户的群组列表"""
     try:
