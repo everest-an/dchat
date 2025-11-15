@@ -9,9 +9,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 # 我们需要确保 Flask 应用能够找到 src 目录
 
 # 导入 Flask 应用实例
-from src.main import app
+from src.main import app, init_db
 
 # Vercel Serverless Function 入口
+
+# 在 Vercel 运行时初始化数据库（仅在第一次冷启动时执行）
+init_db(app)
 # Vercel 会自动寻找 api/index.py 中的 app 变量
 # Flask 应用实例 app 已经从 src.main 导入
 # 
@@ -35,4 +38,4 @@ from src.main import app
 # 暂时保留 src.main 中的 db.create_all()，并依赖 Vercel 的部署流程
 # 
 # 最终 Vercel 会使用这个 app 实例来处理请求
-# from src.main import app
+# from src.main import app, init_db

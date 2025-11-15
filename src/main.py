@@ -90,39 +90,33 @@ database_url = os.environ.get(
 )
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ECHO'] = os.environ.get('DEBUG', 'False') == 'True'
-
-# 初始化数据库
-db.init_app(app)
+app.config['SQLALCHEMY_ECHO'] = os.environ.get('DEBUG', 'False') == 'True'# 初始化数据库
+def init_db(app):
+    db.init_app(app)
+    with app.app_context():
+        # 导入所有模型以确保表被创建
+        from src.models.message import Message
+        from src.models.project import Project, Moment
+        # 导入订阅模型
+        try:
+            from src.models.subscription import Subscription, NFTMembership, NFTAvatar, SubscriptionFeatureUsage
+        except ImportError:
+            pass
+        # 导入红包模型
+        try:
+            from src.models.red_packet import RedPacket, RedPacketClaim
+        except ImportError:
+            pass
+        # 导入匹配模型
+        try:
+            from src.models.matching import MatchingRequest, MatchingResult, MatchingFeedback, SkillRelation
+        except ImportError:
+            pass
+        db.create_all()
+        print("✅ 数据库表创建成功")
 
 # 初始化 API 日志
-# init_api_logging(app)
-
-# 创建数据库表
-with app.app_context():
-    # 导入所有模型以确保表被创建
-    from src.models.message import Message
-    from src.models.project import Project, Moment
-    # 导入订阅模型
-    try:
-        from src.models.subscription import Subscription, NFTMembership, NFTAvatar, SubscriptionFeatureUsage
-    except ImportError:
-        pass
-    # 导入红包模型
-    try:
-        from src.models.red_packet import RedPacket, RedPacketClaim
-    except ImportError:
-        pass
-    # 导入匹配模型
-    try:
-        from src.models.matching import MatchingRequest, MatchingResult, MatchingFeedback, SkillRelation
-    except ImportError:
-        pass
-    db.create_all()
-    print("✅ 数据库表创建成功")
-
-# 注册基础蓝图
-app.register_blueprint(user_bp, url_prefix='/api')
+# init_api_logging(app)refix='/api')
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(messages_bp, url_prefix='/api/messages')
 app.register_blueprint(projects_bp, url_prefix='/api')
@@ -332,7 +326,10 @@ def serve(path):
                 'health': '/api/health'
             }), 200
 
+# 延迟初始化数据库
+# init_db(app) # 移除这里的调用，因为在 Vercel 中不需要
 if __name__ == '__main__':
+    init_db(app) # 在本地运行时初始化数据库
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('DEBUG', 'False') == 'True'
     
