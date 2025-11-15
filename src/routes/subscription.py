@@ -426,9 +426,8 @@ def renew_subscription():
 
 @subscription_bp.route('/history', methods=['GET'])
 @authenticate
-def get_subscription_history():@handle_errors
-@subscription_bp.route('/history', methods=['GET'])
-@authenticate
+@handle_errors
+def get_subscription_history():
 
     """
     Get user's subscription history
