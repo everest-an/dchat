@@ -350,9 +350,8 @@ def cancel_subscription():
 
 @subscription_bp.route('/renew', methods=['POST'])
 @authenticate
-def renew_subscription():@handle_errors
-@subscription_bp.route('/renew', methods=['POST'])
-@authenticate
+@handle_errors
+def renew_subscription():
 
     """
     Renew subscription (sync from blockchain)
