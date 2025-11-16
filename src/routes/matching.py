@@ -76,18 +76,18 @@ matching_request = MatchingRequest(
         )
         
         # Save to database
-        from ..main import db
-        db.session.add(matching_request)
-        db.session.commit()
-        
-        # Run matching algorithm
-        matching_service = MatchingService(db.session)
-        
-        # Get candidate profiles from blockchain/database
-        # TODO: Implement proper candidate fetching
-        candidate_profiles = _fetch_candidate_profiles(data['required_skills'])
-        
-        # Calculate matches
+from ..main import db
+db.session.add(matching_request)
+db.session.commit()
+
+# Run matching algorithm
+matching_service = MatchingService(db.session)
+
+# Get candidate profiles from blockchain/database
+# TODO: Implement proper candidate fetching
+candidate_profiles = _fetch_candidate_profiles(data['required_skills'])
+
+# Calculate matches
         matches = matching_service.find_matches(
             seeker_requirements={
                 'required_skills': data['required_skills'],
