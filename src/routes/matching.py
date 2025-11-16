@@ -59,9 +59,8 @@ def create_matching_request():
     
     from flask import g
     user_address = g.wallet_address
-        
-        # Create matching request
-        matching_request = MatchingRequest(
+# Create matching request
+matching_request = MatchingRequest(
             seeker_address=user_address,
             title=data['title'],
             description=data.get('description'),
