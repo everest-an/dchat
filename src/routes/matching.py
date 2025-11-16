@@ -29,38 +29,21 @@ matching_bp = Blueprint('matching', __name__, url_prefix='/api/matching')
 def create_matching_request():
     """
     Create a new matching request
-    
-    Request body:
-    {
-        "title": "Need Solidity Developer",
-        "description": "Looking for experienced Solidity developer...",
-        "category": "Blockchain Development",
-        "required_skills": [
-            {"name": "Solidity", "min_proficiency": 3, "weight": 1.5},
-            {"name": "Smart Contracts", "min_proficiency": 3, "weight": 1.0}
-        ],
-        "budget": {"min": 50, "max": 150},
-        "hours_per_week": 20,
-        "duration_weeks": 8,
-        "start_date": "2025-12-01T00:00:00Z"
-    }
-    
-    Returns:
-        JSON response with request ID and initial matches
     """
-    data = request.json
-    
-    # Validate input with Marshmallow schema
-    schema = CreateMatchingRequestSchema()
     try:
-        validated_data = schema.load(data)
-    except MarshmallowValidationError as e:
-        raise ValidationError("Invalid input data", payload={'errors': e.messages})
-    
-    from flask import g
-    user_address = g.wallet_address
-# Create matching request
-matching_request = MatchingRequest(
+        data = request.json
+        
+        # Validate input with Marshmallow schema
+        schema = CreateMatchingRequestSchema()
+        try:
+            validated_data = schema.load(data)
+        except MarshmallowValidationError as e:
+            raise ValidationError("Invalid input data", payload={'errors': e.messages})
+        
+        from flask import g
+        user_address = g.wallet_address
+        # Create matching request
+        matching_request = MatchingRequest(
             seeker_address=user_address,
             title=data['title'],
             description=data.get('description'),
@@ -76,19 +59,19 @@ matching_request = MatchingRequest(
         )
         
         # Save to database
-from ..main import db
-db.session.add(matching_request)
-db.session.commit()
+        from ..main import db
+        db.session.add(matching_request)
+        db.session.commit()
 
-# Run matching algorithm
-matching_service = MatchingService(db.session)
+        # Run matching algorithm
+        matching_service = MatchingService(db.session)
 
-# Get candidate profiles from blockchain/database
-# TODO: Implement proper candidate fetching
-candidate_profiles = _fetch_candidate_profiles(data['required_skills'])
+        # Get candidate profiles from blockchain/database
+        # TODO: Implement proper candidate fetching
+        candidate_profiles = _fetch_candidate_profiles(data['required_skills'])
 
-# Calculate matches
-matches = matching_service.find_matches(
+        # Calculate matches
+        matches = matching_service.find_matches(
             seeker_requirements={
                 'required_skills': data['required_skills'],
                 'budget': data.get('budget'),
@@ -101,8 +84,8 @@ matches = matching_service.find_matches(
         )
         
         # Save results to database
-for match in matches:
-    result = MatchingResult(
+        for match in matches:
+            result = MatchingResult(
                 request_id=matching_request.id,
                 provider_address=match['provider_address'],
                 total_score=match['total_score'],
@@ -116,9 +99,9 @@ for match in matches:
                 matched_skills=match['matched_skills'],
                 recommendations=match['recommendations']
             )
-    db.session.add(result)
+            db.session.add(result)
         
-db.session.commit()
+        db.session.commit()
         
         logger.info(f"Created matching request {matching_request.id} for {user_address} with {len(matches)} matches")
         
@@ -128,7 +111,7 @@ db.session.commit()
             'matches_found': len(matches),
             'matches': [m for m in matches][:10]  # Return top 10
         }), 201
-        
+            
     except Exception as e:
         logger.error(f"Error creating matching request: {str(e)}")
         return jsonify({'error': 'Failed to create matching request', 'details': str(e)}), 500
@@ -139,14 +122,6 @@ db.session.commit()
 def get_matching_results(request_id):
     """
     Get matching results for a request
-    
-    Query parameters:
-        - min_score: Minimum match score (0-100)
-        - limit: Maximum number of results (default: 20)
-        - offset: Pagination offset (default: 0)
-    
-    Returns:
-        JSON response with matching results
     """
     try:
         user_address = request.user_address
@@ -217,14 +192,6 @@ def get_matching_results(request_id):
 def get_my_requests():
     """
     Get all matching requests created by the user
-    
-    Query parameters:
-        - status: Filter by status (active, completed, cancelled)
-        - limit: Maximum number of results (default: 20)
-        - offset: Pagination offset (default: 0)
-    
-    Returns:
-        JSON response with user's matching requests
     """
     try:
         user_address = request.user_address
@@ -272,77 +239,55 @@ def get_my_requests():
 
 @matching_bp.route('/feedback', methods=['POST'])
 @require_auth
-@validate_json
+@validate_request_json(['result_id', 'rating'])
 def submit_feedback():
     """
     Submit feedback on a match
-    
-    Request body:
-    {
-        "result_id": 123,
-        "rating": 5,
-        "is_successful": true,
-        "feedback_text": "Great match! Highly skilled developer.",
-        "detailed_ratings": {
-            "skill_match": 5,
-            "communication": 5,
-            "professionalism": 5,
-            "value": 4
-        }
-    }
-    
-    Returns:
-        JSON response confirming feedback submission
     """
     try:
         data = request.json
         user_address = request.user_address
         
-        # Validate required fields
-        if not data.get('result_id'):
-            return jsonify({'error': 'Result ID is required'}), 400
-        
-        if not data.get('rating') or not (1 <= data['rating'] <= 5):
-            return jsonify({'error': 'Rating must be between 1 and 5'}), 400
-        
+        # Validate input with Marshmallow schema
+        schema = MatchingFeedbackSchema()
+        try:
+            validated_data = schema.load(data)
+        except MarshmallowValidationError as e:
+            raise ValidationError("Invalid input data", payload={'errors': e.messages})
+
         from ..main import db
         
         # Get the result
-        result = db.session.query(MatchingResult).filter_by(
-            id=data['result_id']
-        ).first()
+        result = db.session.query(MatchingResult).filter_by(id=validated_data['result_id']).first()
         
         if not result:
-            return jsonify({'error': 'Match result not found'}), 404
+            return jsonify({'error': 'Matching result not found'}), 404
         
-        # Verify user is the seeker
-        matching_request = result.request
-        if matching_request.seeker_address != user_address:
+        # Check if user is the seeker
+        if result.request.seeker_address != user_address:
             return jsonify({'error': 'Unauthorized'}), 403
         
-        # Create feedback
+        # Create feedback entry
         feedback = MatchingFeedback(
-            request_id=matching_request.id,
-            result_id=result.id,
+            result_id=validated_data['result_id'],
             user_address=user_address,
-            rating=data['rating'],
-            is_successful=data.get('is_successful'),
-            feedback_text=data.get('feedback_text'),
-            skill_match_rating=data.get('detailed_ratings', {}).get('skill_match'),
-            communication_rating=data.get('detailed_ratings', {}).get('communication'),
-            professionalism_rating=data.get('detailed_ratings', {}).get('professionalism'),
-            value_rating=data.get('detailed_ratings', {}).get('value')
+            rating=validated_data['rating'],
+            is_successful=validated_data.get('is_successful'),
+            feedback_text=validated_data.get('feedback_text'),
+            skill_match_rating=validated_data.get('detailed_ratings', {}).get('skill_match'),
+            communication_rating=validated_data.get('detailed_ratings', {}).get('communication'),
+            professionalism_rating=validated_data.get('detailed_ratings', {}).get('professionalism'),
+            value_rating=validated_data.get('detailed_ratings', {}).get('value')
         )
         
         db.session.add(feedback)
-db.session.commit()
+        db.session.commit()
         
         logger.info(f"Feedback submitted for result {result.id} by {user_address}")
         
         return jsonify({
             'success': True,
-            'feedback_id': feedback.id,
-            'message': 'Thank you for your feedback!'
+            'message': 'Feedback submitted successfully'
         }), 201
         
     except Exception as e:
@@ -350,14 +295,11 @@ db.session.commit()
         return jsonify({'error': 'Failed to submit feedback', 'details': str(e)}), 500
 
 
-@matching_bp.route('/result/<int:result_id>/view', methods=['POST'])
+@matching_bp.route('/results/<int:result_id>/viewed', methods=['POST'])
 @require_auth
 def mark_result_viewed(result_id):
     """
-    Mark a match result as viewed
-    
-    Returns:
-        JSON response confirming the action
+    Mark a matching result as viewed by the seeker
     """
     try:
         user_address = request.user_address
@@ -369,30 +311,26 @@ def mark_result_viewed(result_id):
         if not result:
             return jsonify({'error': 'Result not found'}), 404
         
-        # Verify user is the seeker
         if result.request.seeker_address != user_address:
             return jsonify({'error': 'Unauthorized'}), 403
         
         if not result.viewed:
             result.viewed = True
             result.viewed_at = datetime.utcnow()
-    db.session.commit()
+            db.session.commit()
         
         return jsonify({'success': True}), 200
         
     except Exception as e:
-        logger.error(f"Error marking result viewed: {str(e)}")
-        return jsonify({'error': 'Failed to mark result viewed', 'details': str(e)}), 500
+        logger.error(f"Error marking result as viewed: {str(e)}")
+        return jsonify({'error': 'Failed to mark as viewed', 'details': str(e)}), 500
 
 
-@matching_bp.route('/result/<int:result_id>/contact', methods=['POST'])
+@matching_bp.route('/results/<int:result_id>/contacted', methods=['POST'])
 @require_auth
 def mark_result_contacted(result_id):
     """
-    Mark a match result as contacted
-    
-    Returns:
-        JSON response confirming the action
+    Mark a provider as contacted by the seeker
     """
     try:
         user_address = request.user_address
@@ -404,70 +342,44 @@ def mark_result_contacted(result_id):
         if not result:
             return jsonify({'error': 'Result not found'}), 404
         
-        # Verify user is the seeker
         if result.request.seeker_address != user_address:
             return jsonify({'error': 'Unauthorized'}), 403
         
         if not result.contacted:
             result.contacted = True
             result.contacted_at = datetime.utcnow()
-    db.session.commit()
+            db.session.commit()
         
         return jsonify({'success': True}), 200
         
     except Exception as e:
-        logger.error(f"Error marking result contacted: {str(e)}")
-        return jsonify({'error': 'Failed to mark result contacted', 'details': str(e)}), 500
+        logger.error(f"Error marking result as contacted: {str(e)}")
+        return jsonify({'error': 'Failed to mark as contacted', 'details': str(e)}), 500
 
-
-# Helper functions
 
 def _fetch_candidate_profiles(required_skills):
     """
-    Fetch candidate profiles based on required skills
-    
-    This is a placeholder - in production, this would:
-    1. Query the blockchain for users with matching skills
-    2. Query the database for additional profile data
-    3. Combine and return enriched profiles
-    
-    Args:
-        required_skills: List of required skills
-    
-    Returns:
-        List of candidate profiles
+    Placeholder function to fetch candidate profiles.
+    In a real application, this would query a database or another service.
     """
-    # TODO: Implement proper candidate fetching from blockchain + database
-    # For now, return mock data for testing
-    
-    from ..main import db
-    from ..models.user import User
-    
-    # Get all users with profiles
-    users = db.session.query(User).filter(
-        User.title.isnot(None)
-    ).limit(50).all()
-    
-    candidates = []
-    for user in users:
-        # Mock profile data
-        candidates.append({
-            'address': user.wallet_address,
-            'name': user.name,
-            'title': user.title,
-            'company': user.company,
-            'skills': [
-                {'name': 'Solidity', 'proficiency': 4, 'years': 3},
-                {'name': 'Smart Contracts', 'proficiency': 4, 'years': 3},
-                {'name': 'Web3', 'proficiency': 3, 'years': 2}
-            ],  # TODO: Get from blockchain
-            'hourly_rate': 100.0,  # TODO: Get from blockchain
-            'availability_status': 1,  # PARTIALLY_AVAILABLE
-            'available_hours_per_week': 20,
-            'reputation_score': 85,
-            'response_time_avg': 4.5,
-            'completed_projects': 12,
-            'success_rate': 92
-        })
-    
-    return candidates
+    # TODO: Replace with actual implementation
+    return [
+        {
+            "provider_address": "0x123...",
+            "skills": [{"name": "Solidity", "proficiency": 4}, {"name": "Smart Contracts", "proficiency": 5}],
+            "availability": {"hours_per_week": 30, "start_date": "2025-11-20"},
+            "reputation": {"score": 4.8, "reviews": 50},
+            "rate": {"min": 60, "max": 120},
+            "network_strength": 0.85,
+            "responsiveness": 0.95
+        },
+        {
+            "provider_address": "0x456...",
+            "skills": [{"name": "Solidity", "proficiency": 5}, {"name": "DeFi", "proficiency": 4}],
+            "availability": {"hours_per_week": 40, "start_date": "2025-12-10"},
+            "reputation": {"score": 4.9, "reviews": 80},
+            "rate": {"min": 80, "max": 160},
+            "network_strength": 0.9,
+            "responsiveness": 0.98
+        }
+    ]
