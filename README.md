@@ -2,37 +2,44 @@
 
 This repository contains the backend service for the Dchat decentralized chat application, specifically configured for deployment on Vercel.
 
-Dchat is a feature-rich chat platform built with a focus on Web3 and decentralized technologies. This backend is built using **FastAPI** and provides the core API services.
+Dchat is a feature-rich chat platform built with a focus on Web3 and decentralized technologies. This backend is built using **Flask** (previously planned for FastAPI) and provides the core API services.
 
 ## Development Progress
 
-The project is currently in the active development phase. Key recent activities include:
+The project is currently in the **Pre-Release Testing** phase. All core features have been implemented and are ready for testing.
 
-*   **Refactoring to FastAPI:** The backend framework has been migrated from Flask to FastAPI for improved performance and modern features.
-*   **Vercel Deployment:** The application is being deployed to Vercel. We are actively fixing deployment issues, primarily related to Python dependencies and environment configuration.
-*   **Code Refinements:** The codebase is continuously being improved, with recent fixes for indentation errors and other syntax issues.
+Key recent activities include:
+
+*   **Core Feature Implementation:** Completed LinkedIn OAuth, WebRTC, Polkadot Payments (including Red Packets), MFA, and ML Matching Engine.
+*   **Vercel Deployment:** The application is being deployed to Vercel. We are actively resolving a persistent deployment configuration issue related to the Flask application structure on Vercel's Serverless Functions.
+*   **Testing Framework:** A comprehensive unit and integration testing suite has been added.
 
 For a detailed history of changes, please refer to the [commit history on GitHub](https://github.com/everest-an/SSP/commits/vercel-beta).
 
+## Beta Testing Link
+
+The latest stable deployment is available for testing. **Please note:** Due to Vercel's Preview URL retention policy, this link may become inactive over time.
+
+**Beta API Endpoint:** `https://dchat-backend-vercel-dlpaidatm.vercel.app/`
+
+**Health Check:** `https://dchat-backend-vercel-dlpaidatm.vercel.app/api/health`
+
 ## Key Features
 
-*   **User Management & Authentication:** Secure user registration and login, likely supporting wallet-based authentication (Web3).
+*   **User Management & Authentication:** Secure user registration and login, **LinkedIn OAuth**, and **Multi-Factor Authentication (MFA)**.
 *   **Messaging:** Core chat functionality, including one-on-one and group messaging.
-*   **Group Management:** Creation and management of chat groups.
-*   **File Handling:** API endpoints for file uploads and management (e.g., to IPFS).
+*   **Real-time Communication:** **WebRTC** and LiveKit integration with **Call Quality Monitoring**.
 *   **Web3 Integration:** Support for advanced features like:
-    *   Web3 Groups and Payments
-    *   Polkadot Payments
-    *   Tokens and NFT Avatars
-    *   Subscriptions and Custodial Wallets
-*   **Real-time Communication:** WebRTC and LiveKit integration for potential voice/video calls.
-*   **Error Handling & Security:** Includes custom middleware for authentication, rate limiting, and error handling.
+    *   **Polkadot Payments** and **Red Packet** functionality.
+    *   Subscriptions and Custodial Wallets.
+*   **Smart Matching:** **Machine Learning Matching Engine** for intelligent user pairing.
+*   **System Reliability:** **WebSocket Real-time Notifications**, **Automatic Refund Processor**, and **Structured Logging**.
 
 ## Deployment on Vercel
 
 This project is set up to be deployed as a Serverless Function on Vercel using the `vercel.json` configuration.
 
-The main entry point for the Vercel deployment is `api/index.py`, which imports the main FastAPI application instance (`app`) from `src/main.py`.
+The main entry point for the Vercel deployment is `api/index.py`, which imports the main Flask application instance (`app`) from `src/main.py`.
 
 ### Environment Variables
 
@@ -40,7 +47,7 @@ The following environment variables are required for a successful deployment:
 
 | Variable | Description | Example Value |
 | :--- | :--- | :--- |
-| `SECRET_KEY` | FastAPI application secret key for session management. | `a-strong-secret-key` |
+| `SECRET_KEY` | Application secret key for session management. | `a-strong-secret-key` |
 | `DATABASE_URL` | Connection string for the database (e.g., Vercel Postgres). | `postgresql://user:pass@host:port/db` |
 | `CORS_ORIGINS` | Comma-separated list of allowed origins for CORS. | `https://dchat.app,http://localhost:3000` |
 
