@@ -515,10 +515,9 @@ def get_user_tier():
         }), 500
 
 
-@subscription_bp.route('/pricing/<tier>', methods=['GET'])
+
 @handle_errors
 def get_tier_pricing(tier):
-@subscription_bp.route('/pricing/<tier>', methods=['GET'])
 
     """
     Get pricing for a specific tier
