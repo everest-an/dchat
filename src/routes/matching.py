@@ -101,7 +101,7 @@ matches = matching_service.find_matches(
         )
         
         # Save results to database
-        for match in matches:
+            for match in matches:
             result = MatchingResult(
                 request_id=matching_request.id,
                 provider_address=match['provider_address'],
