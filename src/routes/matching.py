@@ -88,7 +88,7 @@ matching_service = MatchingService(db.session)
 candidate_profiles = _fetch_candidate_profiles(data['required_skills'])
 
 # Calculate matches
-        matches = matching_service.find_matches(
+matches = matching_service.find_matches(
             seeker_requirements={
                 'required_skills': data['required_skills'],
                 'budget': data.get('budget'),
