@@ -78,7 +78,7 @@ matching_request = MatchingRequest(
         # Save to database
 from ..main import db
 db.session.add(matching_request)
-        db.session.commit()
+db.session.commit()
 
 # Run matching algorithm
 matching_service = MatchingService(db.session)
@@ -118,7 +118,7 @@ for match in matches:
             )
     db.session.add(result)
         
-        db.session.commit()
+db.session.commit()
         
         logger.info(f"Created matching request {matching_request.id} for {user_address} with {len(matches)} matches")
         
@@ -335,7 +335,7 @@ def submit_feedback():
         )
         
         db.session.add(feedback)
-        db.session.commit()
+db.session.commit()
         
         logger.info(f"Feedback submitted for result {result.id} by {user_address}")
         
@@ -376,7 +376,7 @@ def mark_result_viewed(result_id):
         if not result.viewed:
             result.viewed = True
             result.viewed_at = datetime.utcnow()
-            db.session.commit()
+    db.session.commit()
         
         return jsonify({'success': True}), 200
         
@@ -411,7 +411,7 @@ def mark_result_contacted(result_id):
         if not result.contacted:
             result.contacted = True
             result.contacted_at = datetime.utcnow()
-            db.session.commit()
+    db.session.commit()
         
         return jsonify({'success': True}), 200
         
