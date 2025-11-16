@@ -303,7 +303,6 @@ def mark_result_viewed(result_id):
     """
     try:
         user_address = request.user_address
-        
         from ..main import db
         
         result = db.session.query(MatchingResult).filter_by(id=result_id).first()
@@ -313,11 +312,9 @@ def mark_result_viewed(result_id):
         
         if result.request.seeker_address != user_address:
             return jsonify({'error': 'Unauthorized'}), 403
-        
-        if not result.viewed:
-            result.viewed = True
-            result.viewed_at = datetime.utcnow()
-            db.session.commit()
+            
+        result.is_viewed = True
+        db.session.commit()
         
         return jsonify({'success': True}), 200
         
@@ -326,60 +323,27 @@ def mark_result_viewed(result_id):
         return jsonify({'error': 'Failed to mark as viewed', 'details': str(e)}), 500
 
 
-@matching_bp.route('/results/<int:result_id>/contacted', methods=['POST'])
-@require_auth
-def mark_result_contacted(result_id):
-    """
-    Mark a provider as contacted by the seeker
-    """
-    try:
-        user_address = request.user_address
-        
-        from ..main import db
-        
-        result = db.session.query(MatchingResult).filter_by(id=result_id).first()
-        
-        if not result:
-            return jsonify({'error': 'Result not found'}), 404
-        
-        if result.request.seeker_address != user_address:
-            return jsonify({'error': 'Unauthorized'}), 403
-        
-        if not result.contacted:
-            result.contacted = True
-            result.contacted_at = datetime.utcnow()
-            db.session.commit()
-        
-        return jsonify({'success': True}), 200
-        
-    except Exception as e:
-        logger.error(f"Error marking result as contacted: {str(e)}")
-        return jsonify({'error': 'Failed to mark as contacted', 'details': str(e)}), 500
-
-
 def _fetch_candidate_profiles(required_skills):
     """
-    Placeholder function to fetch candidate profiles.
+    Placeholder for fetching candidate profiles.
     In a real application, this would query a database or another service.
     """
-    # TODO: Replace with actual implementation
+    # TODO: Replace with actual data source
     return [
         {
-            "provider_address": "0x123...",
-            "skills": [{"name": "Solidity", "proficiency": 4}, {"name": "Smart Contracts", "proficiency": 5}],
-            "availability": {"hours_per_week": 30, "start_date": "2025-11-20"},
-            "reputation": {"score": 4.8, "reviews": 50},
-            "rate": {"min": 60, "max": 120},
-            "network_strength": 0.85,
-            "responsiveness": 0.95
+            'provider_address': '0x123',
+            'skills': ['python', 'flask', 'javascript'],
+            'availability': {'hours_per_week': 30, 'start_date': '2025-12-01'},
+            'reputation': 4.8,
+            'hourly_rate': 75,
+            'past_collaborations': ['0xabc']
         },
         {
-            "provider_address": "0x456...",
-            "skills": [{"name": "Solidity", "proficiency": 5}, {"name": "DeFi", "proficiency": 4}],
-            "availability": {"hours_per_week": 40, "start_date": "2025-12-10"},
-            "reputation": {"score": 4.9, "reviews": 80},
-            "rate": {"min": 80, "max": 160},
-            "network_strength": 0.9,
-            "responsiveness": 0.98
+            'provider_address': '0x456',
+            'skills': ['python', 'fastapi', 'vue'],
+            'availability': {'hours_per_week': 40, 'start_date': '2025-11-20'},
+            'reputation': 4.5,
+            'hourly_rate': 80,
+            'past_collaborations': ['0xdef']
         }
     ]
