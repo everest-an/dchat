@@ -394,7 +394,14 @@ def serve(path):
 # 延迟初始化数据库
 # init_db(app) # 移除这里的调用，因为在 Vercel 中不需要
 if __name__ == '__main__':
-    init_db(app) # 在本地运行时初始化数据库
+    # Skip database initialization in Vercel environment
+    if not os.environ.get('VERCEL'):
+        try:
+            init_db(app) # 在本地运行时初始化数据库
+        except Exception as e:
+            logger.warning(f"Database initialization failed: {e}. Continuing without database...")
+    else:
+        logger.info("Skipping database initialization in Vercel environment")
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('DEBUG', 'False') == 'True'
     
