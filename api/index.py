@@ -16,18 +16,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 # Import Flask application from src.main
-try:
-    from src.main import app
-    print("✅ Successfully imported Flask app from src.main")
-except ImportError as e:
-    print(f"❌ Failed to import Flask app: {str(e)}")
-    # Fallback: Create a minimal Flask app
-    from flask import Flask, jsonify
-    app = Flask(__name__)
-    
-    @app.route('/api/health', methods=['GET'])
-    def health():
-        return jsonify({'status': 'error', 'message': 'Failed to load main app'}), 500
+from src.main import app
 
 # Vercel will use this 'app' variable as the WSGI application
 # No need to call app.run() - Vercel's WSGI adapter handles that
