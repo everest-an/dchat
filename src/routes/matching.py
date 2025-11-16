@@ -101,8 +101,8 @@ matches = matching_service.find_matches(
         )
         
         # Save results to database
-    for match in matches:
-        result = MatchingResult(
+for match in matches:
+    result = MatchingResult(
                 request_id=matching_request.id,
                 provider_address=match['provider_address'],
                 total_score=match['total_score'],
@@ -116,7 +116,7 @@ matches = matching_service.find_matches(
                 matched_skills=match['matched_skills'],
                 recommendations=match['recommendations']
             )
-        db.session.add(result)
+    db.session.add(result)
         
 db.session.commit()
         
