@@ -165,9 +165,9 @@ const LandingPage = () => {
                 <span className="text-white font-bold text-lg">Dchat</span>
               </div>
               <p className="text-sm">
-                Decentralized Signature
+                Web3 Business Chat Platform
                 <br />
-                Secure Business Communication
+                Secure & Decentralized Communication
               </p>
             </div>
 
