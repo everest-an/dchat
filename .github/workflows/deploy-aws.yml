@@ -52,8 +52,15 @@ jobs:
             # 构建前端
             echo "构建前端..."
             cd ../frontend
-            npm install
-            npm run build
+            
+            # 安装 pnpm (如果未安装)
+            if ! command -v pnpm &> /dev/null; then
+              echo "安装 pnpm..."
+              npm install -g pnpm
+            fi
+            
+            pnpm install
+            pnpm build
             
             # 配置 Nginx (如果需要)
             if [ -f /etc/nginx/sites-available/dchat ]; then
