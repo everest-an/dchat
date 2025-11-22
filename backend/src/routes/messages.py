@@ -5,11 +5,6 @@ import jwt
 import datetime
 import os
 
-# Enhanced middleware for production
-from ..middleware.auth import require_auth, optional_auth, require_role
-from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
-
-
 messages_bp = Blueprint('messages', __name__)
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'dchat-secret-key')
@@ -31,9 +26,7 @@ def verify_token_helper(token):
         return None, '无效的token'
 
 @messages_bp.route('/conversations', methods=['GET'])
-def get_conversations():@handle_errors
-@messages_bp.route('/conversations', methods=['GET'])
-
+def get_conversations():
     """获取用户的对话列表"""
     try:
         token = request.headers.get('Authorization')
@@ -77,9 +70,7 @@ def get_conversations():@handle_errors
         return jsonify({'error': str(e)}), 500
 
 @messages_bp.route('/conversations/<int:user_id>', methods=['GET'])
-def get_conversation_messages(user_id):@handle_errors
-@messages_bp.route('/conversations/<int:user_id>', methods=['GET'])
-
+def get_conversation_messages(user_id):
     """获取与特定用户的对话消息"""
     try:
         token = request.headers.get('Authorization')
@@ -124,9 +115,7 @@ def get_conversation_messages(user_id):@handle_errors
         return jsonify({'error': str(e)}), 500
 
 @messages_bp.route('/send', methods=['POST'])
-def send_message():@handle_errors
-@messages_bp.route('/send', methods=['POST'])
-
+def send_message():
     """发送消息"""
     try:
         token = request.headers.get('Authorization')
@@ -175,9 +164,7 @@ def send_message():@handle_errors
         return jsonify({'error': str(e)}), 500
 
 @messages_bp.route('/encrypt', methods=['POST'])
-def encrypt_message():@handle_errors
-@messages_bp.route('/encrypt', methods=['POST'])
-
+def encrypt_message():
     """端到端加密消息（模拟）"""
     try:
         data = request.get_json()
@@ -201,9 +188,7 @@ def encrypt_message():@handle_errors
         return jsonify({'error': str(e)}), 500
 
 @messages_bp.route('/decrypt', methods=['POST'])
-def decrypt_message():@handle_errors
-@messages_bp.route('/decrypt', methods=['POST'])
-
+def decrypt_message():
     """解密消息（模拟）"""
     try:
         data = request.get_json()
@@ -216,7 +201,6 @@ def decrypt_message():@handle_errors
         # 这里应该实现真正的解密
         # 为了演示，我们只是简单地base64解码
         import base64
-
         try:
             decrypted_content = base64.b64decode(encrypted_content.encode()).decode()
         except:

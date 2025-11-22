@@ -1,400 +1,251 @@
-"""
-Authentication API Routes
-Enhanced with comprehensive error handling and validation
-"""
 from flask import Blueprint, request, jsonify
 from src.models.user import db, User
-from web3 import Web3
-from eth_account.messages import encode_defunct
 import hashlib
-import secrets
-import time
+import jwt
+import datetime
 import os
-
-# Import new middleware
-from src.middleware.error_handler import (
-    handle_errors,
-    validate_request_json,
-    ValidationError,
-    AuthenticationError
-)
-from src.middleware.auth import generate_token, require_auth, optional_auth
-from src.config.redis_config import redis_service
 
 auth_bp = Blueprint('auth', __name__)
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'dchat-secret-key')
 
-
-@auth_bp.route('/nonce', methods=['GET'])
-@handle_errors
-def get_nonce():
-    """
-    Get login nonce for wallet signature
-    
-    Query Parameters:
-        address: Ethereum wallet address
-    
-    Returns:
-        JSON with nonce, timestamp, and message to sign
-    """
-    address = request.args.get('address')
-    
-    if not address:
-        raise ValidationError('Address parameter is required')
-    
-    # Validate address format
-    if not Web3.is_address(address):
-        raise ValidationError('Invalid Ethereum address format')
-    
-    # Generate new nonce
-    nonce = secrets.token_hex(16)
-    timestamp = int(time.time())
-    
-    # Store in Redis with 5 minute expiration
-    nonce_data = {
-        'nonce': nonce,
-        'timestamp': timestamp
-    }
-    redis_service.set(f'nonce:{address.lower()}', nonce_data, expire=300)
-    
-    message = (
-        f'Sign in to Dchat\n\n'
-        f'Nonce: {nonce}\n'
-        f'Timestamp: {timestamp}\n\n'
-        f'This request will not trigger a blockchain transaction or cost any gas fees.'
-    )
-    
-    return jsonify({
-        'success': True,
-        'nonce': nonce,
-        'timestamp': timestamp,
-        'message': message
-    })
-
-
-def verify_signature(address, signature):
-    """
-    Verify Web3 signature
-    
-    Args:
-        address: Wallet address
-        signature: Signed message
-    
-    Returns:
-        Tuple of (success: bool, message: str)
-    """
+@auth_bp.route('/connect-wallet', methods=['POST'])
+def connect_wallet():
+    """钱包连接登录"""
     try:
-        # Get nonce from Redis
-        nonce_data = redis_service.get(f'nonce:{address.lower()}')
-        if not nonce_data:
-            return False, 'Nonce not found or expired. Please request a new nonce.'
+        data = request.get_json()
+        wallet_address = data.get('wallet_address')
+        signature = data.get('signature')
         
-        # Construct signed message
-        message = (
-            f"Sign in to Dchat\n\n"
-            f"Nonce: {nonce_data['nonce']}\n"
-            f"Timestamp: {nonce_data['timestamp']}\n\n"
-            f"This request will not trigger a blockchain transaction or cost any gas fees."
-        )
-        encoded_message = encode_defunct(text=message)
+        if not wallet_address:
+            return jsonify({'error': '钱包地址不能为空'}), 400
         
-        # Recover signer address
-        w3 = Web3()
-        recovered_address = w3.eth.account.recover_message(
-            encoded_message,
-            signature=signature
-        )
+        # 查找或创建用户
+        user = User.query.filter_by(wallet_address=wallet_address).first()
+        if not user:
+            user = User(
+                wallet_address=wallet_address,
+                name=f'用户{wallet_address[-6:]}',
+                company='',
+                position='',
+                linkedin_id=None
+            )
+            db.session.add(user)
+            db.session.commit()
         
-        # Verify address matches (case-insensitive)
-        if recovered_address.lower() != address.lower():
-            return False, f'Signature verification failed. Expected {address}, got {recovered_address}'
+        # 生成JWT token
+        token = jwt.encode({
+            'user_id': user.id,
+            'wallet_address': wallet_address,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=30)
+        }, SECRET_KEY, algorithm='HS256')
         
-        # Delete used nonce from Redis (prevent replay attacks)
-        redis_service.delete(f'nonce:{address.lower()}')
-        
-        return True, 'Signature verified successfully'
+        return jsonify({
+            'success': True,
+            'token': token,
+            'user': {
+                'id': user.id,
+                'wallet_address': user.wallet_address,
+                'name': user.name,
+                'company': user.company,
+                'position': user.position,
+                'linkedin_id': user.linkedin_id
+            }
+        })
         
     except Exception as e:
-        return False, f'Signature verification error: {str(e)}'
+        return jsonify({'error': str(e)}), 500
 
-
-@auth_bp.route('/connect-wallet', methods=['POST'])
-@handle_errors
-@validate_request_json(['wallet_address', 'signature'])
-def connect_wallet():
-    """
-    Wallet connection login with signature verification
-    
-    Request Body:
-        {
-            "wallet_address": "0x...",
-            "signature": "0x...",
-            "username": "optional_username",
-            "email": "optional_email"
-        }
-    
-    Returns:
-        JSON with success status, token, and user info
-    """
-    data = request.json
-    wallet_address = data.get('wallet_address') or data.get('address')
-    signature = data.get('signature')
-    
-    if not wallet_address:
-        raise ValidationError('Wallet address is required')
-    
-    if not signature:
-        raise ValidationError('Signature is required')
-    
-    # Validate address format
-    if not Web3.is_address(wallet_address):
-        raise ValidationError('Invalid Ethereum address format')
-    
-    # Verify signature
-    success, message = verify_signature(wallet_address, signature)
-    if not success:
-        raise AuthenticationError(message)
-    
-    # Normalize address to lowercase
-    wallet_address = wallet_address.lower()
-    
-    # Check if user exists
-    user = User.query.filter_by(wallet_address=wallet_address).first()
-    
-    if not user:
-        # Create new user
-        username = data.get('username') or f'user_{wallet_address[:8]}'
-        email = data.get('email')
-        
-        user = User(
-            wallet_address=wallet_address,
-            username=username,
-            email=email
-        )
-        db.session.add(user)
-        db.session.commit()
-        
-        is_new_user = True
-    else:
-        is_new_user = False
-        
-        # Update last login
-        user.last_login = db.func.now()
-        db.session.commit()
-    
-    # Generate JWT token
-    token = generate_token(
-        user_id=user.id,
-        wallet_address=wallet_address,
-        additional_claims={'role': 'user'}
-    )
-    
-    return jsonify({
-        'success': True,
-        'token': token,
-        'user': {
-            'id': user.id,
-            'wallet_address': user.wallet_address,
-            'username': user.username,
-            'email': user.email,
-            'is_new_user': is_new_user
-        }
-    })
-
-
-@auth_bp.route('/verify-token', methods=['GET'])
-@require_auth
-@handle_errors
+@auth_bp.route('/verify-token', methods=['POST'])
 def verify_token():
-    """
-    Verify JWT token validity
-    
-    Headers:
-        Authorization: Bearer <token>
-    
-    Returns:
-        JSON with user info if token is valid
-    """
-    from flask import g
-    
-    user = User.query.get(g.user_id)
-    if not user:
-        raise AuthenticationError('User not found')
-    
-    return jsonify({
-        'success': True,
-        'user': {
-            'id': user.id,
-            'wallet_address': user.wallet_address,
-            'username': user.username,
-            'email': user.email
-        }
-    })
+    """验证JWT token"""
+    try:
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({'error': '未提供认证token'}), 401
+        
+        if token.startswith('Bearer '):
+            token = token[7:]
+        
+        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        user_id = payload['user_id']
+        
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': '用户不存在'}), 404
+        
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': user.id,
+                'wallet_address': user.wallet_address,
+                'name': user.name,
+                'company': user.company,
+                'position': user.position,
+                'linkedin_id': user.linkedin_id
+            }
+        })
+        
+    except jwt.ExpiredSignatureError:
+        return jsonify({'error': 'Token已过期'}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({'error': '无效的token'}), 401
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
+@auth_bp.route('/update-profile', methods=['PUT'])
+def update_profile():
+    """更新用户资料"""
+    try:
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({'error': '未提供认证token'}), 401
+        
+        if token.startswith('Bearer '):
+            token = token[7:]
+        
+        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        user_id = payload['user_id']
+        
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': '用户不存在'}), 404
+        
+        data = request.get_json()
+        
+        # 更新用户信息
+        if 'name' in data:
+            user.name = data['name']
+        if 'company' in data:
+            user.company = data['company']
+        if 'position' in data:
+            user.position = data['position']
+        if 'linkedin_id' in data:
+            user.linkedin_id = data['linkedin_id']
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': user.id,
+                'wallet_address': user.wallet_address,
+                'name': user.name,
+                'company': user.company,
+                'position': user.position,
+                'linkedin_id': user.linkedin_id
+            }
+        })
+        
+    except jwt.ExpiredSignatureError:
+        return jsonify({'error': 'Token已过期'}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({'error': '无效的token'}), 401
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-@auth_bp.route('/refresh-token', methods=['POST'])
-@require_auth
-@handle_errors
-def refresh_token():
-    """
-    Refresh JWT token
-    
-    Headers:
-        Authorization: Bearer <old_token>
-    
-    Returns:
-        JSON with new token
-    """
-    from flask import g
-    
-    # Generate new token
-    new_token = generate_token(
-        user_id=g.user_id,
-        wallet_address=g.wallet_address,
-        additional_claims={'role': 'user'}
-    )
-    
-    return jsonify({
-        'success': True,
-        'token': new_token
-    })
-
-
-@auth_bp.route('/logout', methods=['POST'])
-@require_auth
-@handle_errors
-def logout():
-    """
-    Logout (client should delete token)
-    
-    Headers:
-        Authorization: Bearer <token>
-    
-    Returns:
-        JSON with success status
-    """
-    # In a stateless JWT system, logout is handled client-side
-    # But we can add the token to a blacklist if needed
-    
-    return jsonify({
-        'success': True,
-        'message': 'Logged out successfully'
-    })
 
 
 @auth_bp.route('/register', methods=['POST'])
-@handle_errors
-@validate_request_json(['email', 'password'])
 def register():
-    """
-    Email/Password Registration
-    
-    Request Body:
-        {
-            "email": "user@example.com",
-            "password": "password123",
-            "username": "optional_username"
-        }
-    
-    Returns:
-        JSON with success status, token, and user info
-    """
-    data = request.json
-    email = data.get('email', '').strip().lower()
-    password = data.get('password')
-    username = data.get('username', '').strip()
-    
-    # Validate email format
-    import re
-    email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    if not re.match(email_regex, email):
-        raise ValidationError('Invalid email format')
-    
-    # Validate password length
-    if len(password) < 8:
-        raise ValidationError('Password must be at least 8 characters long')
-    
-    # Check if email already exists
-    existing_user = User.query.filter_by(email=email).first()
-    if existing_user:
-        raise ValidationError('Email already registered')
-    
-    # Create new user
-    user = User(
-        email=email,
-        username=username or email.split('@')[0],
-        name=username or email.split('@')[0]
-    )
-    user.set_password(password)
-    
-    db.session.add(user)
-    db.session.commit()
-    
-    # Generate JWT token
-    token = generate_token(
-        user_id=user.id,
-        wallet_address=user.wallet_address,
-        additional_claims={'email': email, 'role': 'user'}
-    )
-    
-    return jsonify({
-        'success': True,
-        'token': token,
-        'user': {
-            'id': user.id,
-            'email': user.email,
-            'username': user.username,
-            'name': user.name
-        }
-    }), 201
+    """Email/Password Registration"""
+    try:
+        data = request.get_json()
+        email = data.get('email', '').strip().lower()
+        password = data.get('password')
+        username = data.get('username', '').strip()
+        
+        if not email or not password:
+            return jsonify({'success': False, 'error': 'Email and password are required'}), 400
+        
+        # Validate email format
+        import re
+        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_regex, email):
+            return jsonify({'success': False, 'error': 'Invalid email format'}), 400
+        
+        # Validate password length
+        if len(password) < 8:
+            return jsonify({'success': False, 'error': 'Password must be at least 8 characters long'}), 400
+        
+        # Check if email already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            return jsonify({'success': False, 'error': 'Email already registered'}), 400
+        
+        # Create new user
+        user = User(
+            email=email,
+            username=username or email.split('@')[0],
+            name=username or email.split('@')[0],
+            wallet_address=None,
+            company='',
+            position='',
+            linkedin_id=None
+        )
+        user.set_password(password)
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        # Generate JWT token
+        token = jwt.encode({
+            'user_id': user.id,
+            'email': email,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=30)
+        }, SECRET_KEY, algorithm='HS256')
+        
+        return jsonify({
+            'success': True,
+            'token': token,
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'username': user.username,
+                'name': user.name
+            }
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @auth_bp.route('/login', methods=['POST'])
-@handle_errors
-@validate_request_json(['email', 'password'])
 def login():
-    """
-    Email/Password Login
-    
-    Request Body:
-        {
-            "email": "user@example.com",
-            "password": "password123"
-        }
-    
-    Returns:
-        JSON with success status, token, and user info
-    """
-    data = request.json
-    email = data.get('email', '').strip().lower()
-    password = data.get('password')
-    
-    # Find user by email
-    user = User.query.filter_by(email=email).first()
-    
-    if not user or not user.check_password(password):
-        raise AuthenticationError('Invalid email or password')
-    
-    # Update last login
-    user.updated_at = db.func.now()
-    db.session.commit()
-    
-    # Generate JWT token
-    token = generate_token(
-        user_id=user.id,
-        wallet_address=user.wallet_address,
-        additional_claims={'email': email, 'role': 'user'}
-    )
-    
-    return jsonify({
-        'success': True,
-        'token': token,
-        'user': {
-            'id': user.id,
-            'email': user.email,
-            'username': user.username,
-            'name': user.name,
-            'wallet_address': user.wallet_address
-        }
-    })
+    """Email/Password Login"""
+    try:
+        data = request.get_json()
+        email = data.get('email', '').strip().lower()
+        password = data.get('password')
+        
+        if not email or not password:
+            return jsonify({'success': False, 'error': 'Email and password are required'}), 400
+        
+        # Find user by email
+        user = User.query.filter_by(email=email).first()
+        
+        if not user or not user.check_password(password):
+            return jsonify({'success': False, 'error': 'Invalid email or password'}), 400
+        
+        # Generate JWT token
+        token = jwt.encode({
+            'user_id': user.id,
+            'email': email,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=30)
+        }, SECRET_KEY, algorithm='HS256')
+        
+        return jsonify({
+            'success': True,
+            'token': token,
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'username': user.username,
+                'name': user.name,
+                'wallet_address': user.wallet_address
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
