@@ -16,7 +16,7 @@ const EmailPasswordLogin = ({ onLogin, onBack }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://dchat.pro/api';
 
   // Handle login
   const handleLogin = async (e) => {
