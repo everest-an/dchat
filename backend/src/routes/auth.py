@@ -281,3 +281,120 @@ def logout():
         'success': True,
         'message': 'Logged out successfully'
     })
+
+
+@auth_bp.route('/register', methods=['POST'])
+@handle_errors
+@validate_request_json(['email', 'password'])
+def register():
+    """
+    Email/Password Registration
+    
+    Request Body:
+        {
+            "email": "user@example.com",
+            "password": "password123",
+            "username": "optional_username"
+        }
+    
+    Returns:
+        JSON with success status, token, and user info
+    """
+    data = request.json
+    email = data.get('email', '').strip().lower()
+    password = data.get('password')
+    username = data.get('username', '').strip()
+    
+    # Validate email format
+    import re
+    email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if not re.match(email_regex, email):
+        raise ValidationError('Invalid email format')
+    
+    # Validate password length
+    if len(password) < 8:
+        raise ValidationError('Password must be at least 8 characters long')
+    
+    # Check if email already exists
+    existing_user = User.query.filter_by(email=email).first()
+    if existing_user:
+        raise ValidationError('Email already registered')
+    
+    # Create new user
+    user = User(
+        email=email,
+        username=username or email.split('@')[0],
+        name=username or email.split('@')[0]
+    )
+    user.set_password(password)
+    
+    db.session.add(user)
+    db.session.commit()
+    
+    # Generate JWT token
+    token = generate_token(
+        user_id=user.id,
+        wallet_address=user.wallet_address,
+        additional_claims={'email': email, 'role': 'user'}
+    )
+    
+    return jsonify({
+        'success': True,
+        'token': token,
+        'user': {
+            'id': user.id,
+            'email': user.email,
+            'username': user.username,
+            'name': user.name
+        }
+    }), 201
+
+
+@auth_bp.route('/login', methods=['POST'])
+@handle_errors
+@validate_request_json(['email', 'password'])
+def login():
+    """
+    Email/Password Login
+    
+    Request Body:
+        {
+            "email": "user@example.com",
+            "password": "password123"
+        }
+    
+    Returns:
+        JSON with success status, token, and user info
+    """
+    data = request.json
+    email = data.get('email', '').strip().lower()
+    password = data.get('password')
+    
+    # Find user by email
+    user = User.query.filter_by(email=email).first()
+    
+    if not user or not user.check_password(password):
+        raise AuthenticationError('Invalid email or password')
+    
+    # Update last login
+    user.updated_at = db.func.now()
+    db.session.commit()
+    
+    # Generate JWT token
+    token = generate_token(
+        user_id=user.id,
+        wallet_address=user.wallet_address,
+        additional_claims={'email': email, 'role': 'user'}
+    )
+    
+    return jsonify({
+        'success': True,
+        'token': token,
+        'user': {
+            'id': user.id,
+            'email': user.email,
+            'username': user.username,
+            'name': user.name,
+            'wallet_address': user.wallet_address
+        }
+    })
