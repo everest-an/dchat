@@ -39,7 +39,6 @@ redis_service = RedisService()
 
 
 @read_receipts_bp.route('/health', methods=['GET'])
-@read_receipts_bp.route('/health', methods=['GET'])
 @handle_errors
 def health_check():
 
@@ -58,10 +57,8 @@ def health_check():
 
 @read_receipts_bp.route('/mark-read', methods=['POST'])
 @require_auth
-@read_receipts_bp.route('/mark-read', methods=['POST'])
 @handle_errors
 def mark_message_read():
-@require_auth
 
     """
     Mark a message as read.
@@ -128,10 +125,8 @@ def mark_message_read():
 
 @read_receipts_bp.route('/mark-all-read', methods=['POST'])
 @require_auth
-@read_receipts_bp.route('/mark-all-read', methods=['POST'])
 @handle_errors
 def mark_all_messages_read():
-@require_auth
 
     """
     Mark all messages in a conversation as read.
@@ -218,10 +213,8 @@ def mark_all_messages_read():
 
 @read_receipts_bp.route('/status/<message_id>', methods=['GET'])
 @require_auth
-@read_receipts_bp.route('/status/<message_id>', methods=['GET'])
 @handle_errors
 def get_read_status(message_id):
-@require_auth
 
     """
     Get read status for a message.
@@ -276,10 +269,8 @@ def get_read_status(message_id):
 
 @read_receipts_bp.route('/conversation/<conversation_id>', methods=['GET'])
 @require_auth
-@read_receipts_bp.route('/conversation/<conversation_id>', methods=['GET'])
 @handle_errors
 def get_conversation_read_status(conversation_id):
-@require_auth
 
     """
     Get read status for all messages in a conversation.

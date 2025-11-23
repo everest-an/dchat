@@ -43,7 +43,6 @@ user_calls: Dict[str, str] = {}
 
 
 @webrtc_bp.route('/health', methods=['GET'])
-@webrtc_bp.route('/health', methods=['GET'])
 @handle_errors
 def health_check():
 
@@ -63,10 +62,8 @@ def health_check():
 
 @webrtc_bp.route('/call/initiate', methods=['POST'])
 @require_auth
-@webrtc_bp.route('/call/initiate', methods=['POST'])
 @handle_errors
 def initiate_call():
-@require_auth
 
     """
     Initiate a new call (1-on-1 or group).
@@ -144,10 +141,8 @@ def initiate_call():
 
 @webrtc_bp.route('/call/<call_id>/answer', methods=['POST'])
 @require_auth
-@webrtc_bp.route('/call/<call_id>/answer', methods=['POST'])
 @handle_errors
 def answer_call(call_id: str):
-@require_auth
 
     """
     Answer an incoming call.
@@ -207,10 +202,8 @@ def answer_call(call_id: str):
 
 @webrtc_bp.route('/call/<call_id>/end', methods=['POST'])
 @require_auth
-@webrtc_bp.route('/call/<call_id>/end', methods=['POST'])
 @handle_errors
 def end_call(call_id: str):
-@require_auth
 
     """
     End an active call.
@@ -275,10 +268,8 @@ def end_call(call_id: str):
 
 @webrtc_bp.route('/call/<call_id>', methods=['GET'])
 @require_auth
-@webrtc_bp.route('/call/<call_id>', methods=['GET'])
 @handle_errors
 def get_call(call_id: str):
-@require_auth
 
     """
     Get call details.
@@ -318,10 +309,8 @@ def get_call(call_id: str):
 
 @webrtc_bp.route('/calls/active', methods=['GET'])
 @require_auth
-@webrtc_bp.route('/calls/active', methods=['GET'])
 @handle_errors
 def get_active_calls():
-@require_auth
 
     """
     Get all active calls for the current user.
@@ -359,10 +348,8 @@ def get_active_calls():
 
 @webrtc_bp.route('/calls/history', methods=['GET'])
 @require_auth
-@webrtc_bp.route('/calls/history', methods=['GET'])
 @handle_errors
 def get_call_history():
-@require_auth
 
     """
     Get call history for the current user.
@@ -415,10 +402,8 @@ def get_call_history():
 
 @webrtc_bp.route('/call/<call_id>/quality', methods=['POST'])
 @require_auth
-@webrtc_bp.route('/call/<call_id>/quality', methods=['POST'])
 @handle_errors
 def report_call_quality(call_id: str):
-@require_auth
 
     """
     Report call quality metrics.

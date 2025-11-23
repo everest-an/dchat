@@ -27,7 +27,6 @@ subscription_bp = Blueprint('subscription', __name__)
 
 
 @subscription_bp.route('/plans', methods=['GET'])
-@subscription_bp.route('/plans', methods=['GET'])
 @handle_errors
 def get_subscription_plans():
 
@@ -157,10 +156,8 @@ def get_subscription_plans():
 
 @subscription_bp.route('/me', methods=['GET'])
 @authenticate
-@subscription_bp.route('/me', methods=['GET'])
 @handle_errors
 def get_current_subscription():
-@authenticate
 
     """
     Get current user's subscription
@@ -231,10 +228,8 @@ def get_current_subscription():
 
 @subscription_bp.route('/create', methods=['POST'])
 @authenticate
-@subscription_bp.route('/create', methods=['POST'])
 @handle_errors
 def create_subscription():
-@authenticate
 
     """
     Create a new subscription (sync from blockchain)
@@ -310,10 +305,8 @@ def create_subscription():
 
 @subscription_bp.route('/cancel', methods=['POST'])
 @authenticate
-@subscription_bp.route('/cancel', methods=['POST'])
 @handle_errors
 def cancel_subscription():
-@authenticate
 
     """
     Cancel current subscription
@@ -357,10 +350,8 @@ def cancel_subscription():
 
 @subscription_bp.route('/renew', methods=['POST'])
 @authenticate
-@subscription_bp.route('/renew', methods=['POST'])
 @handle_errors
 def renew_subscription():
-@authenticate
 
     """
     Renew subscription (sync from blockchain)
@@ -435,10 +426,8 @@ def renew_subscription():
 
 @subscription_bp.route('/history', methods=['GET'])
 @authenticate
-@subscription_bp.route('/history', methods=['GET'])
 @handle_errors
 def get_subscription_history():
-@authenticate
 
     """
     Get user's subscription history
@@ -481,10 +470,8 @@ def get_subscription_history():
 
 @subscription_bp.route('/tier', methods=['GET'])
 @authenticate
-@subscription_bp.route('/tier', methods=['GET'])
 @handle_errors
 def get_user_tier():
-@authenticate
 
     """
     Get user's current subscription tier
@@ -528,7 +515,6 @@ def get_user_tier():
         }), 500
 
 
-@subscription_bp.route('/pricing/<tier>', methods=['GET'])
 @subscription_bp.route('/pricing/<tier>', methods=['GET'])
 @handle_errors
 def get_tier_pricing(tier):

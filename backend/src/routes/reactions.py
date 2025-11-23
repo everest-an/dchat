@@ -38,7 +38,6 @@ redis_service = RedisService()
 
 
 @reactions_bp.route('/health', methods=['GET'])
-@reactions_bp.route('/health', methods=['GET'])
 @handle_errors
 def health_check():
 
@@ -57,10 +56,8 @@ def health_check():
 
 @reactions_bp.route('/message/<message_id>', methods=['POST'])
 @require_auth
-@reactions_bp.route('/message/<message_id>', methods=['POST'])
 @handle_errors
 def add_reaction(message_id):
-@require_auth
 
     """
     Add a reaction to a message.
@@ -146,10 +143,8 @@ def add_reaction(message_id):
 
 @reactions_bp.route('/message/<message_id>/emoji/<emoji>', methods=['DELETE'])
 @require_auth
-@reactions_bp.route('/message/<message_id>/emoji/<emoji>', methods=['DELETE'])
 @handle_errors
 def remove_reaction(message_id, emoji):
-@require_auth
 
     """
     Remove a reaction from a message.
@@ -223,10 +218,8 @@ def remove_reaction(message_id, emoji):
 
 @reactions_bp.route('/message/<message_id>', methods=['GET'])
 @require_auth
-@reactions_bp.route('/message/<message_id>', methods=['GET'])
 @handle_errors
 def get_message_reactions(message_id):
-@require_auth
 
     """
     Get all reactions for a message.
@@ -283,10 +276,8 @@ def get_message_reactions(message_id):
 
 @reactions_bp.route('/message/<message_id>/emoji/<emoji>/users', methods=['GET'])
 @require_auth
-@reactions_bp.route('/message/<message_id>/emoji/<emoji>/users', methods=['GET'])
 @handle_errors
 def get_reaction_users(message_id, emoji):
-@require_auth
 
     """
     Get users who reacted with a specific emoji.
@@ -353,10 +344,8 @@ def get_reaction_users(message_id, emoji):
 
 @reactions_bp.route('/user/<user_id>/reactions', methods=['GET'])
 @require_auth
-@reactions_bp.route('/user/<user_id>/reactions', methods=['GET'])
 @handle_errors
 def get_user_reactions(user_id):
-@require_auth
 
     """
     Get all reactions by a user.
@@ -412,10 +401,8 @@ def get_user_reactions(user_id):
 
 @reactions_bp.route('/popular', methods=['GET'])
 @require_auth
-@reactions_bp.route('/popular', methods=['GET'])
 @handle_errors
 def get_popular_reactions():
-@require_auth
 
     """
     Get popular reactions (most used emoji).
@@ -465,10 +452,8 @@ def get_popular_reactions():
 
 @reactions_bp.route('/stats', methods=['GET'])
 @require_auth
-@reactions_bp.route('/stats', methods=['GET'])
 @handle_errors
 def get_reaction_stats():
-@require_auth
 
     """
     Get reaction statistics.

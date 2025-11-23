@@ -40,7 +40,6 @@ redis_service = RedisService()
 
 
 @search_bp.route('/health', methods=['GET'])
-@search_bp.route('/health', methods=['GET'])
 @handle_errors
 def health_check():
 
@@ -59,10 +58,8 @@ def health_check():
 
 @search_bp.route('/messages', methods=['GET'])
 @require_auth
-@search_bp.route('/messages', methods=['GET'])
 @handle_errors
 def search_messages():
-@require_auth
 
     """
     Search messages with full-text search and filters.
@@ -192,10 +189,8 @@ def search_messages():
 
 @search_bp.route('/users', methods=['GET'])
 @require_auth
-@search_bp.route('/users', methods=['GET'])
 @handle_errors
 def search_users():
-@require_auth
 
     """
     Search users by name, email, or wallet address.
@@ -280,10 +275,8 @@ def search_users():
 
 @search_bp.route('/all', methods=['GET'])
 @require_auth
-@search_bp.route('/all', methods=['GET'])
 @handle_errors
 def search_all():
-@require_auth
 
     """
     Search across all content types (messages, users, files, groups).
@@ -383,10 +376,8 @@ def search_all():
 
 @search_bp.route('/suggestions', methods=['GET'])
 @require_auth
-@search_bp.route('/suggestions', methods=['GET'])
 @handle_errors
 def get_search_suggestions():
-@require_auth
 
     """
     Get search suggestions based on partial query.
@@ -468,10 +459,8 @@ def get_search_suggestions():
 
 @search_bp.route('/history', methods=['GET'])
 @require_auth
-@search_bp.route('/history', methods=['GET'])
 @handle_errors
 def get_search_history():
-@require_auth
 
     """
     Get user's search history.
@@ -509,10 +498,8 @@ def get_search_history():
 
 @search_bp.route('/history', methods=['DELETE'])
 @require_auth
-@search_bp.route('/history', methods=['DELETE'])
 @handle_errors
 def clear_search_history():
-@require_auth
 
     """
     Clear user's search history.

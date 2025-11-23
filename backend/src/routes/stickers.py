@@ -44,7 +44,6 @@ TENOR_API_URL = 'https://tenor.googleapis.com/v2'
 
 
 @stickers_bp.route('/health', methods=['GET'])
-@stickers_bp.route('/health', methods=['GET'])
 @handle_errors
 def health_check():
 
@@ -64,10 +63,8 @@ def health_check():
 
 @stickers_bp.route('/gifs/search', methods=['GET'])
 @require_auth
-@stickers_bp.route('/gifs/search', methods=['GET'])
 @handle_errors
 def search_gifs():
-@require_auth
 
     """
     Search GIFs using Tenor API.
@@ -152,10 +149,8 @@ def search_gifs():
 
 @stickers_bp.route('/gifs/trending', methods=['GET'])
 @require_auth
-@stickers_bp.route('/gifs/trending', methods=['GET'])
 @handle_errors
 def get_trending_gifs():
-@require_auth
 
     """
     Get trending GIFs from Tenor.
@@ -230,10 +225,8 @@ def get_trending_gifs():
 
 @stickers_bp.route('/gifs/categories', methods=['GET'])
 @require_auth
-@stickers_bp.route('/gifs/categories', methods=['GET'])
 @handle_errors
 def get_gif_categories():
-@require_auth
 
     """
     Get GIF categories from Tenor.
@@ -293,10 +286,8 @@ def get_gif_categories():
 
 @stickers_bp.route('/favorites', methods=['GET'])
 @require_auth
-@stickers_bp.route('/favorites', methods=['GET'])
 @handle_errors
 def get_favorite_stickers():
-@require_auth
 
     """
     Get user's favorite stickers and GIFs.
@@ -328,10 +319,8 @@ def get_favorite_stickers():
 
 @stickers_bp.route('/favorites', methods=['POST'])
 @require_auth
-@stickers_bp.route('/favorites', methods=['POST'])
 @handle_errors
 def add_favorite_sticker():
-@require_auth
 
     """
     Add sticker or GIF to favorites.
@@ -400,10 +389,8 @@ def add_favorite_sticker():
 
 @stickers_bp.route('/favorites/<sticker_id>', methods=['DELETE'])
 @require_auth
-@stickers_bp.route('/favorites/<sticker_id>', methods=['DELETE'])
 @handle_errors
 def remove_favorite_sticker(sticker_id):
-@require_auth
 
     """
     Remove sticker or GIF from favorites.
@@ -446,10 +433,8 @@ def remove_favorite_sticker(sticker_id):
 
 @stickers_bp.route('/recent', methods=['GET'])
 @require_auth
-@stickers_bp.route('/recent', methods=['GET'])
 @handle_errors
 def get_recent_stickers():
-@require_auth
 
     """
     Get user's recently used stickers and GIFs.
@@ -485,10 +470,8 @@ def get_recent_stickers():
 
 @stickers_bp.route('/recent', methods=['POST'])
 @require_auth
-@stickers_bp.route('/recent', methods=['POST'])
 @handle_errors
 def add_recent_sticker():
-@require_auth
 
     """
     Add sticker or GIF to recent history.
@@ -554,10 +537,8 @@ def add_recent_sticker():
 
 @stickers_bp.route('/emoji/search', methods=['GET'])
 @require_auth
-@stickers_bp.route('/emoji/search', methods=['GET'])
 @handle_errors
 def search_emoji():
-@require_auth
 
     """
     Search emoji by keyword.

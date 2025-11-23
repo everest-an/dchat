@@ -32,11 +32,8 @@ nft_avatar_bp = Blueprint('nft_avatar', __name__)
 @nft_avatar_bp.route('/set', methods=['POST'])
 @authenticate
 @require_subscription('PRO')  # NFT avatars require Pro or Enterprise
-@nft_avatar_bp.route('/set', methods=['POST'])
 @handle_errors
 def set_nft_avatar():
-@authenticate
-@require_subscription('PRO')  # NFT avatars require Pro or Enterprise
 
     """
     Set NFT as user's avatar
@@ -117,10 +114,8 @@ def set_nft_avatar():
 
 @nft_avatar_bp.route('/me', methods=['GET'])
 @authenticate
-@nft_avatar_bp.route('/me', methods=['GET'])
 @handle_errors
 def get_my_nft_avatar():
-@authenticate
 
     """
     Get current user's NFT avatar
@@ -183,7 +178,6 @@ def get_my_nft_avatar():
 
 
 @nft_avatar_bp.route('/<user_address>', methods=['GET'])
-@nft_avatar_bp.route('/<user_address>', methods=['GET'])
 @handle_errors
 def get_user_nft_avatar(user_address):
 
@@ -230,10 +224,8 @@ def get_user_nft_avatar(user_address):
 
 @nft_avatar_bp.route('/remove', methods=['DELETE'])
 @authenticate
-@nft_avatar_bp.route('/remove', methods=['DELETE'])
 @handle_errors
 def remove_nft_avatar():
-@authenticate
 
     """
     Remove current NFT avatar
@@ -284,10 +276,8 @@ def remove_nft_avatar():
 
 @nft_avatar_bp.route('/history', methods=['GET'])
 @authenticate
-@nft_avatar_bp.route('/history', methods=['GET'])
 @handle_errors
 def get_avatar_history():
-@authenticate
 
     """
     Get user's NFT avatar history
@@ -336,7 +326,6 @@ def get_avatar_history():
         }), 500
 
 
-@nft_avatar_bp.route('/verify/<user_address>', methods=['GET'])
 @nft_avatar_bp.route('/verify/<user_address>', methods=['GET'])
 @handle_errors
 def verify_avatar_ownership(user_address):
@@ -395,10 +384,8 @@ def verify_avatar_ownership(user_address):
 
 @nft_avatar_bp.route('/sync', methods=['POST'])
 @authenticate
-@nft_avatar_bp.route('/sync', methods=['POST'])
 @handle_errors
 def sync_avatar_from_blockchain():
-@authenticate
 
     """
     Manually sync avatar from blockchain to database

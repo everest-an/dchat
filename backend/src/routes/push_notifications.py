@@ -58,7 +58,6 @@ except ImportError:
 
 
 @push_notifications_bp.route('/health', methods=['GET'])
-@push_notifications_bp.route('/health', methods=['GET'])
 @handle_errors
 def health_check():
 
@@ -78,10 +77,8 @@ def health_check():
 
 @push_notifications_bp.route('/register-token', methods=['POST'])
 @require_auth
-@push_notifications_bp.route('/register-token', methods=['POST'])
 @handle_errors
 def register_device_token():
-@require_auth
 
     """
     Register a device token for push notifications.
@@ -150,10 +147,8 @@ def register_device_token():
 
 @push_notifications_bp.route('/unregister-token', methods=['POST'])
 @require_auth
-@push_notifications_bp.route('/unregister-token', methods=['POST'])
 @handle_errors
 def unregister_device_token():
-@require_auth
 
     """
     Unregister a device token.
@@ -203,10 +198,8 @@ def unregister_device_token():
 
 @push_notifications_bp.route('/send', methods=['POST'])
 @require_auth
-@push_notifications_bp.route('/send', methods=['POST'])
 @handle_errors
 def send_notification():
-@require_auth
 
     """
     Send a push notification to a user.
@@ -336,10 +329,8 @@ def send_notification():
 
 @push_notifications_bp.route('/preferences', methods=['GET'])
 @require_auth
-@push_notifications_bp.route('/preferences', methods=['GET'])
 @handle_errors
 def get_notification_preferences():
-@require_auth
 
     """
     Get user's notification preferences.
@@ -381,10 +372,8 @@ def get_notification_preferences():
 
 @push_notifications_bp.route('/preferences', methods=['PUT'])
 @require_auth
-@push_notifications_bp.route('/preferences', methods=['PUT'])
 @handle_errors
 def update_notification_preferences():
-@require_auth
 
     """
     Update user's notification preferences.
@@ -430,10 +419,8 @@ def update_notification_preferences():
 
 @push_notifications_bp.route('/test', methods=['POST'])
 @require_auth
-@push_notifications_bp.route('/test', methods=['POST'])
 @handle_errors
 def send_test_notification():
-@require_auth
 
     """
     Send a test notification to the current user.
