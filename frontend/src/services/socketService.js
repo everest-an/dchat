@@ -14,6 +14,7 @@ class SocketService {
     this.statusHandlers = new Set();
     this.typingHandlers = new Set();
     this.messageStatusHandlers = new Set();
+    this.pendingListeners = []; // Store listeners registered before socket is ready
   }
 
   /**
@@ -49,6 +50,9 @@ class SocketService {
 
     // Set up event listeners
     this.setupEventListeners();
+
+    // Register any pending listeners
+    this._registerPendingListeners();
 
     // Authenticate after connection
     this.socket.on('connect', () => {
@@ -335,6 +339,46 @@ class SocketService {
    */
   isConnected() {
     return this.connected;
+  }
+
+  /**
+   * Register a generic event listener
+   * @param {string} event - Event name
+   * @param {Function} handler - Event handler
+   */
+  on(event, handler) {
+    if (!this.socket) {
+      // Store listener for later registration
+      this.pendingListeners.push({ event, handler });
+      return;
+    }
+    this.socket.on(event, handler);
+  }
+
+  /**
+   * Register all pending listeners
+   * @private
+   */
+  _registerPendingListeners() {
+    if (!this.socket || this.pendingListeners.length === 0) return;
+    
+    console.log(`Registering ${this.pendingListeners.length} pending socket listeners`);
+    this.pendingListeners.forEach(({ event, handler }) => {
+      this.socket.on(event, handler);
+    });
+    this.pendingListeners = [];
+  }
+
+  /**
+   * Remove an event listener
+   * @param {string} event - Event name
+   * @param {Function} handler - Event handler
+   */
+  off(event, handler) {
+    if (!this.socket) {
+      return;
+    }
+    this.socket.off(event, handler);
   }
 }
 

@@ -18,13 +18,20 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000
 class ReadReceiptService {
   constructor() {
     this.readReceipts = new Map() // message_id -> read_data
-    this.setupSocketListeners()
+    this.socketListenersSetup = false
   }
 
   /**
    * Setup Socket.IO listeners for real-time read receipts
    */
   setupSocketListeners() {
+    if (this.socketListenersSetup) return;
+    if (!socketService.isConnected()) {
+      setTimeout(() => this.setupSocketListeners(), 1000);
+      return;
+    }
+    this.socketListenersSetup = true;
+    
     // Listen for message read events
     socketService.on('message_read', (data) => {
       console.log('Message read event:', data)

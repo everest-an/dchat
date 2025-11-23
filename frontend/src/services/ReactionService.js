@@ -23,9 +23,7 @@ class ReactionService {
     this.cache = new Map();
     this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
     this.listeners = new Map();
-    
-    // Listen for real-time reaction updates
-    this._setupSocketListeners();
+    this.socketListenersSetup = false;
   }
   
   /**
@@ -33,6 +31,15 @@ class ReactionService {
    * @private
    */
   _setupSocketListeners() {
+    if (this.socketListenersSetup) return;
+    if (!socketService.isConnected()) {
+      // Retry after socket connects
+      setTimeout(() => this._setupSocketListeners(), 1000);
+      return;
+    }
+    
+    this.socketListenersSetup = true;
+    
     // Listen for reaction added
     socketService.on('reaction_added', (data) => {
       this._handleReactionAdded(data);
