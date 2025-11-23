@@ -8,12 +8,6 @@ from src.middleware.auth_middleware import require_auth
 from src.middleware.security_middleware import rate_limit
 import datetime
 
-# Enhanced middleware for production
-from ..middleware.auth import require_auth, optional_auth, require_role
-from ..middleware.error_handler import handle_errors, validate_request_json, ValidationError
-
-
-
 notifications_bp = Blueprint('notifications', __name__)
 
 # 简化实现：使用内存存储通知数据（生产环境应使用数据库）
@@ -21,10 +15,7 @@ notifications_store = {}
 
 @notifications_bp.route('/', methods=['GET'])
 @require_auth
-def get_notifications():@handle_errors
-@notifications_bp.route('/', methods=['GET'])
-@require_auth
-
+def get_notifications():
     """获取用户的通知列表"""
     try:
         user_id = request.user_id
@@ -62,11 +53,7 @@ def get_notifications():@handle_errors
 @notifications_bp.route('/<notification_id>/read', methods=['PUT'])
 @require_auth
 @rate_limit(max_requests=30, window_seconds=60)
-def mark_notification_read(notification_id):@handle_errors
-@notifications_bp.route('/<notification_id>/read', methods=['PUT'])
-@require_auth
-@rate_limit(max_requests=30, window_seconds=60)
-
+def mark_notification_read(notification_id):
     """标记通知为已读"""
     try:
         user_id = request.user_id
@@ -101,11 +88,7 @@ def mark_notification_read(notification_id):@handle_errors
 @notifications_bp.route('/read-all', methods=['PUT'])
 @require_auth
 @rate_limit(max_requests=10, window_seconds=60)
-def mark_all_read():@handle_errors
-@notifications_bp.route('/read-all', methods=['PUT'])
-@require_auth
-@rate_limit(max_requests=10, window_seconds=60)
-
+def mark_all_read():
     """标记所有通知为已读"""
     try:
         user_id = request.user_id
@@ -131,11 +114,7 @@ def mark_all_read():@handle_errors
 @notifications_bp.route('/<notification_id>', methods=['DELETE'])
 @require_auth
 @rate_limit(max_requests=20, window_seconds=60)
-def delete_notification(notification_id):@handle_errors
-@notifications_bp.route('/<notification_id>', methods=['DELETE'])
-@require_auth
-@rate_limit(max_requests=20, window_seconds=60)
-
+def delete_notification(notification_id):
     """删除通知"""
     try:
         user_id = request.user_id
@@ -168,11 +147,7 @@ def delete_notification(notification_id):@handle_errors
 @notifications_bp.route('/clear', methods=['DELETE'])
 @require_auth
 @rate_limit(max_requests=5, window_seconds=60)
-def clear_notifications():@handle_errors
-@notifications_bp.route('/clear', methods=['DELETE'])
-@require_auth
-@rate_limit(max_requests=5, window_seconds=60)
-
+def clear_notifications():
     """清空所有通知"""
     try:
         user_id = request.user_id
