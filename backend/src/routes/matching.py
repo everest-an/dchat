@@ -59,80 +59,76 @@ def create_matching_request():
     
     from flask import g
     user_address = g.wallet_address
-        
-        # Create matching request
-        matching_request = MatchingRequest(
-            seeker_address=user_address,
-            title=data['title'],
-            description=data.get('description'),
-            category=data.get('category'),
-            required_skills=data['required_skills'],
-            budget_min=data.get('budget', {}).get('min'),
-            budget_max=data.get('budget', {}).get('max'),
-            hours_per_week=data.get('hours_per_week'),
-            duration_weeks=data.get('duration_weeks'),
-            start_date=datetime.fromisoformat(data['start_date'].replace('Z', '+00:00')) if data.get('start_date') else None,
-            status='active',
-            expires_at=datetime.utcnow() + timedelta(days=30)  # Expire after 30 days
+    
+    # Create matching request
+    matching_request = MatchingRequest(
+        seeker_address=user_address,
+        title=data['title'],
+        description=data.get('description'),
+        category=data.get('category'),
+        required_skills=data['required_skills'],
+        budget_min=data.get('budget', {}).get('min'),
+        budget_max=data.get('budget', {}).get('max'),
+        hours_per_week=data.get('hours_per_week'),
+        duration_weeks=data.get('duration_weeks'),
+        start_date=datetime.fromisoformat(data['start_date'].replace('Z', '+00:00')) if data.get('start_date') else None,
+        status='active',
+        expires_at=datetime.utcnow() + timedelta(days=30)  # Expire after 30 days
+    )
+    
+    # Save to database
+    from ..main import db
+    db.session.add(matching_request)
+    db.session.commit()
+    
+    # Run matching algorithm
+    matching_service = MatchingService(db.session)
+    
+    # Get candidate profiles from blockchain/database
+    # TODO: Implement proper candidate fetching
+    candidate_profiles = _fetch_candidate_profiles(data['required_skills'])
+    
+    # Calculate matches
+    matches = matching_service.find_matches(
+        seeker_requirements={
+            'required_skills': data['required_skills'],
+            'budget': data.get('budget'),
+            'hours_per_week': data.get('hours_per_week'),
+            'duration_weeks': data.get('duration_weeks'),
+            'start_date': data.get('start_date')
+        },
+        candidate_profiles=candidate_profiles,
+        limit=20
+    )
+    
+    # Save results to database
+    for match in matches:
+        result = MatchingResult(
+            request_id=matching_request.id,
+            provider_address=match['provider_address'],
+            total_score=match['total_score'],
+            skill_score=match['dimension_scores']['skill_match'],
+            availability_score=match['dimension_scores']['availability'],
+            reputation_score=match['dimension_scores']['reputation'],
+            price_score=match['dimension_scores']['price'],
+            network_score=match['dimension_scores']['network'],
+            responsiveness_score=match['dimension_scores']['responsiveness'],
+            match_quality=match['match_quality'],
+            matched_skills=match['matched_skills'],
+            recommendations=match['recommendations']
         )
-        
-        # Save to database
-        from ..main import db
-        db.session.add(matching_request)
-        db.session.commit()
-        
-        # Run matching algorithm
-        matching_service = MatchingService(db.session)
-        
-        # Get candidate profiles from blockchain/database
-        # TODO: Implement proper candidate fetching
-        candidate_profiles = _fetch_candidate_profiles(data['required_skills'])
-        
-        # Calculate matches
-        matches = matching_service.find_matches(
-            seeker_requirements={
-                'required_skills': data['required_skills'],
-                'budget': data.get('budget'),
-                'hours_per_week': data.get('hours_per_week'),
-                'duration_weeks': data.get('duration_weeks'),
-                'start_date': data.get('start_date')
-            },
-            candidate_profiles=candidate_profiles,
-            limit=20
-        )
-        
-        # Save results to database
-        for match in matches:
-            result = MatchingResult(
-                request_id=matching_request.id,
-                provider_address=match['provider_address'],
-                total_score=match['total_score'],
-                skill_score=match['dimension_scores']['skill_match'],
-                availability_score=match['dimension_scores']['availability'],
-                reputation_score=match['dimension_scores']['reputation'],
-                price_score=match['dimension_scores']['price'],
-                network_score=match['dimension_scores']['network'],
-                responsiveness_score=match['dimension_scores']['responsiveness'],
-                match_quality=match['match_quality'],
-                matched_skills=match['matched_skills'],
-                recommendations=match['recommendations']
-            )
-            db.session.add(result)
-        
-        db.session.commit()
-        
-        logger.info(f"Created matching request {matching_request.id} for {user_address} with {len(matches)} matches")
-        
-        return jsonify({
-            'success': True,
-            'request_id': matching_request.id,
-            'matches_found': len(matches),
-            'matches': [m for m in matches][:10]  # Return top 10
-        }), 201
-        
-    except Exception as e:
-        logger.error(f"Error creating matching request: {str(e)}")
-        return jsonify({'error': 'Failed to create matching request', 'details': str(e)}), 500
+        db.session.add(result)
+    
+    db.session.commit()
+    
+    logger.info(f"Created matching request {matching_request.id} for {user_address} with {len(matches)} matches")
+    
+    return jsonify({
+        'success': True,
+        'request_id': matching_request.id,
+        'matches_found': len(matches),
+        'matches': [m for m in matches][:10]  # Return top 10
+    }), 201
 
 
 @matching_bp.route('/results/<int:request_id>', methods=['GET'])
