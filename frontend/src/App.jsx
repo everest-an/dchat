@@ -73,12 +73,12 @@ function App() {
     authService.setupAutoRefresh()
   }, [])
 
-  const handleLogin = async (userData, rememberMe = true) => {
+  const handleLogin = async (userData, token, rememberMe = true) => {
     setIsAuthenticated(true)
     setUser(userData)
     
     // Use AuthService to save session (default 30 days)
-    authService.saveSession(userData, undefined, rememberMe)
+    authService.saveSession(userData, token, rememberMe)
     
     // Initialize push notifications
     try {

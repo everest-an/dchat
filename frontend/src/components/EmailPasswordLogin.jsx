@@ -49,11 +49,8 @@ const EmailPasswordLogin = ({ onLogin, onBack }) => {
         throw new Error(data.error || 'Login failed');
       }
 
-      // Store token
-      localStorage.setItem('authToken', data.token);
-
-      // Call onLogin callback
-      onLogin(data.user);
+      // Call onLogin callback with user data and token
+      onLogin(data.user, data.token);
 
     } catch (error) {
       console.error('Login error:', error);
@@ -106,11 +103,8 @@ const EmailPasswordLogin = ({ onLogin, onBack }) => {
         throw new Error(data.error || 'Registration failed');
       }
 
-      // Store token
-      localStorage.setItem('authToken', data.token);
-
-      // Call onLogin callback
-      onLogin(data.user);
+      // Call onLogin callback with user data and token
+      onLogin(data.user, data.token);
 
     } catch (error) {
       console.error('Registration error:', error);
