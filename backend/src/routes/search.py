@@ -40,8 +40,9 @@ redis_service = RedisService()
 
 
 @search_bp.route('/health', methods=['GET'])
-def health_check():@handle_errors
 @search_bp.route('/health', methods=['GET'])
+@handle_errors
+def health_check():
 
     """
     Health check endpoint for search service.
@@ -58,8 +59,9 @@ def health_check():@handle_errors
 
 @search_bp.route('/messages', methods=['GET'])
 @require_auth
-def search_messages():@handle_errors
 @search_bp.route('/messages', methods=['GET'])
+@handle_errors
+def search_messages():
 @require_auth
 
     """
@@ -190,8 +192,9 @@ def search_messages():@handle_errors
 
 @search_bp.route('/users', methods=['GET'])
 @require_auth
-def search_users():@handle_errors
 @search_bp.route('/users', methods=['GET'])
+@handle_errors
+def search_users():
 @require_auth
 
     """
@@ -277,8 +280,9 @@ def search_users():@handle_errors
 
 @search_bp.route('/all', methods=['GET'])
 @require_auth
-def search_all():@handle_errors
 @search_bp.route('/all', methods=['GET'])
+@handle_errors
+def search_all():
 @require_auth
 
     """
@@ -379,8 +383,9 @@ def search_all():@handle_errors
 
 @search_bp.route('/suggestions', methods=['GET'])
 @require_auth
-def get_search_suggestions():@handle_errors
 @search_bp.route('/suggestions', methods=['GET'])
+@handle_errors
+def get_search_suggestions():
 @require_auth
 
     """
@@ -463,8 +468,9 @@ def get_search_suggestions():@handle_errors
 
 @search_bp.route('/history', methods=['GET'])
 @require_auth
-def get_search_history():@handle_errors
 @search_bp.route('/history', methods=['GET'])
+@handle_errors
+def get_search_history():
 @require_auth
 
     """
@@ -503,8 +509,9 @@ def get_search_history():@handle_errors
 
 @search_bp.route('/history', methods=['DELETE'])
 @require_auth
-def clear_search_history():@handle_errors
 @search_bp.route('/history', methods=['DELETE'])
+@handle_errors
+def clear_search_history():
 @require_auth
 
     """

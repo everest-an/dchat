@@ -54,8 +54,9 @@ def require_auth(f):
 @user_profile_bp.route('/api/profile/projects', methods=['GET'])
 @require_auth
 @rate_limit(max_requests=100, window_seconds=60)
-def get_projects():@handle_errors
 @user_profile_bp.route('/api/profile/projects', methods=['GET'])
+@handle_errors
+def get_projects():
 @require_auth
 @rate_limit(max_requests=100, window_seconds=60)
 
@@ -73,8 +74,9 @@ def get_projects():@handle_errors
 @user_profile_bp.route('/api/profile/projects', methods=['POST'])
 @require_auth
 @rate_limit(max_requests=30, window_seconds=60)
-def create_project():@handle_errors
 @user_profile_bp.route('/api/profile/projects', methods=['POST'])
+@handle_errors
+def create_project():
 @require_auth
 @rate_limit(max_requests=30, window_seconds=60)
 
@@ -105,8 +107,9 @@ def create_project():@handle_errors
 
 @user_profile_bp.route('/api/profile/projects/<int:project_id>', methods=['PUT'])
 @require_auth
-def update_project(project_id):@handle_errors
 @user_profile_bp.route('/api/profile/projects/<int:project_id>', methods=['PUT'])
+@handle_errors
+def update_project(project_id):
 @require_auth
 
     """Update project"""
@@ -141,8 +144,9 @@ def update_project(project_id):@handle_errors
 
 @user_profile_bp.route('/api/profile/projects/<int:project_id>', methods=['DELETE'])
 @require_auth
-def delete_project(project_id):@handle_errors
 @user_profile_bp.route('/api/profile/projects/<int:project_id>', methods=['DELETE'])
+@handle_errors
+def delete_project(project_id):
 @require_auth
 
     """Delete project"""
@@ -167,8 +171,9 @@ def delete_project(project_id):@handle_errors
 @user_profile_bp.route('/api/profile/skills', methods=['GET'])
 @require_auth
 @rate_limit(max_requests=100, window_seconds=60)
-def get_skills():@handle_errors
 @user_profile_bp.route('/api/profile/skills', methods=['GET'])
+@handle_errors
+def get_skills():
 @require_auth
 @rate_limit(max_requests=100, window_seconds=60)
 
@@ -186,8 +191,9 @@ def get_skills():@handle_errors
 @user_profile_bp.route('/api/profile/skills', methods=['POST'])
 @require_auth
 @rate_limit(max_requests=30, window_seconds=60)
-def create_skill():@handle_errors
 @user_profile_bp.route('/api/profile/skills', methods=['POST'])
+@handle_errors
+def create_skill():
 @require_auth
 @rate_limit(max_requests=30, window_seconds=60)
 
@@ -217,8 +223,9 @@ def create_skill():@handle_errors
 
 @user_profile_bp.route('/api/profile/skills/<int:skill_id>', methods=['PUT'])
 @require_auth
-def update_skill(skill_id):@handle_errors
 @user_profile_bp.route('/api/profile/skills/<int:skill_id>', methods=['PUT'])
+@handle_errors
+def update_skill(skill_id):
 @require_auth
 
     """Update skill"""
@@ -251,8 +258,9 @@ def update_skill(skill_id):@handle_errors
 
 @user_profile_bp.route('/api/profile/skills/<int:skill_id>', methods=['DELETE'])
 @require_auth
-def delete_skill(skill_id):@handle_errors
 @user_profile_bp.route('/api/profile/skills/<int:skill_id>', methods=['DELETE'])
+@handle_errors
+def delete_skill(skill_id):
 @require_auth
 
     """Delete skill"""
@@ -276,8 +284,9 @@ def delete_skill(skill_id):@handle_errors
 
 @user_profile_bp.route('/api/profile/resources', methods=['GET'])
 @require_auth
-def get_resources():@handle_errors
 @user_profile_bp.route('/api/profile/resources', methods=['GET'])
+@handle_errors
+def get_resources():
 @require_auth
 
     """Get user's resources"""
@@ -293,8 +302,9 @@ def get_resources():@handle_errors
 
 @user_profile_bp.route('/api/profile/resources', methods=['POST'])
 @require_auth
-def create_resource():@handle_errors
 @user_profile_bp.route('/api/profile/resources', methods=['POST'])
+@handle_errors
+def create_resource():
 @require_auth
 
     """Create new resource"""
@@ -323,8 +333,9 @@ def create_resource():@handle_errors
 
 @user_profile_bp.route('/api/profile/resources/<int:resource_id>', methods=['PUT'])
 @require_auth
-def update_resource(resource_id):@handle_errors
 @user_profile_bp.route('/api/profile/resources/<int:resource_id>', methods=['PUT'])
+@handle_errors
+def update_resource(resource_id):
 @require_auth
 
     """Update resource"""
@@ -357,8 +368,9 @@ def update_resource(resource_id):@handle_errors
 
 @user_profile_bp.route('/api/profile/resources/<int:resource_id>', methods=['DELETE'])
 @require_auth
-def delete_resource(resource_id):@handle_errors
 @user_profile_bp.route('/api/profile/resources/<int:resource_id>', methods=['DELETE'])
+@handle_errors
+def delete_resource(resource_id):
 @require_auth
 
     """Delete resource"""
@@ -382,8 +394,9 @@ def delete_resource(resource_id):@handle_errors
 
 @user_profile_bp.route('/api/profile/seeking', methods=['GET'])
 @require_auth
-def get_seeking():@handle_errors
 @user_profile_bp.route('/api/profile/seeking', methods=['GET'])
+@handle_errors
+def get_seeking():
 @require_auth
 
     """Get user's seeking opportunities"""
@@ -399,8 +412,9 @@ def get_seeking():@handle_errors
 
 @user_profile_bp.route('/api/profile/seeking', methods=['POST'])
 @require_auth
-def create_seeking():@handle_errors
 @user_profile_bp.route('/api/profile/seeking', methods=['POST'])
+@handle_errors
+def create_seeking():
 @require_auth
 
     """Create new seeking opportunity"""
@@ -430,8 +444,9 @@ def create_seeking():@handle_errors
 
 @user_profile_bp.route('/api/profile/seeking/<int:seeking_id>', methods=['PUT'])
 @require_auth
-def update_seeking(seeking_id):@handle_errors
 @user_profile_bp.route('/api/profile/seeking/<int:seeking_id>', methods=['PUT'])
+@handle_errors
+def update_seeking(seeking_id):
 @require_auth
 
     """Update seeking opportunity"""
@@ -466,8 +481,9 @@ def update_seeking(seeking_id):@handle_errors
 
 @user_profile_bp.route('/api/profile/seeking/<int:seeking_id>', methods=['DELETE'])
 @require_auth
-def delete_seeking(seeking_id):@handle_errors
 @user_profile_bp.route('/api/profile/seeking/<int:seeking_id>', methods=['DELETE'])
+@handle_errors
+def delete_seeking(seeking_id):
 @require_auth
 
     """Delete seeking opportunity"""

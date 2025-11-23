@@ -32,8 +32,9 @@ nft_avatar_bp = Blueprint('nft_avatar', __name__)
 @nft_avatar_bp.route('/set', methods=['POST'])
 @authenticate
 @require_subscription('PRO')  # NFT avatars require Pro or Enterprise
-def set_nft_avatar():@handle_errors
 @nft_avatar_bp.route('/set', methods=['POST'])
+@handle_errors
+def set_nft_avatar():
 @authenticate
 @require_subscription('PRO')  # NFT avatars require Pro or Enterprise
 
@@ -116,8 +117,9 @@ def set_nft_avatar():@handle_errors
 
 @nft_avatar_bp.route('/me', methods=['GET'])
 @authenticate
-def get_my_nft_avatar():@handle_errors
 @nft_avatar_bp.route('/me', methods=['GET'])
+@handle_errors
+def get_my_nft_avatar():
 @authenticate
 
     """
@@ -181,8 +183,9 @@ def get_my_nft_avatar():@handle_errors
 
 
 @nft_avatar_bp.route('/<user_address>', methods=['GET'])
-def get_user_nft_avatar(user_address):@handle_errors
 @nft_avatar_bp.route('/<user_address>', methods=['GET'])
+@handle_errors
+def get_user_nft_avatar(user_address):
 
     """
     Get any user's NFT avatar (public endpoint)
@@ -227,8 +230,9 @@ def get_user_nft_avatar(user_address):@handle_errors
 
 @nft_avatar_bp.route('/remove', methods=['DELETE'])
 @authenticate
-def remove_nft_avatar():@handle_errors
 @nft_avatar_bp.route('/remove', methods=['DELETE'])
+@handle_errors
+def remove_nft_avatar():
 @authenticate
 
     """
@@ -280,8 +284,9 @@ def remove_nft_avatar():@handle_errors
 
 @nft_avatar_bp.route('/history', methods=['GET'])
 @authenticate
-def get_avatar_history():@handle_errors
 @nft_avatar_bp.route('/history', methods=['GET'])
+@handle_errors
+def get_avatar_history():
 @authenticate
 
     """
@@ -332,8 +337,9 @@ def get_avatar_history():@handle_errors
 
 
 @nft_avatar_bp.route('/verify/<user_address>', methods=['GET'])
-def verify_avatar_ownership(user_address):@handle_errors
 @nft_avatar_bp.route('/verify/<user_address>', methods=['GET'])
+@handle_errors
+def verify_avatar_ownership(user_address):
 
     """
     Verify if user still owns their NFT avatar
@@ -389,8 +395,9 @@ def verify_avatar_ownership(user_address):@handle_errors
 
 @nft_avatar_bp.route('/sync', methods=['POST'])
 @authenticate
-def sync_avatar_from_blockchain():@handle_errors
 @nft_avatar_bp.route('/sync', methods=['POST'])
+@handle_errors
+def sync_avatar_from_blockchain():
 @authenticate
 
     """

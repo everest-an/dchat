@@ -44,8 +44,9 @@ TENOR_API_URL = 'https://tenor.googleapis.com/v2'
 
 
 @stickers_bp.route('/health', methods=['GET'])
-def health_check():@handle_errors
 @stickers_bp.route('/health', methods=['GET'])
+@handle_errors
+def health_check():
 
     """
     Health check endpoint for stickers service.
@@ -63,8 +64,9 @@ def health_check():@handle_errors
 
 @stickers_bp.route('/gifs/search', methods=['GET'])
 @require_auth
-def search_gifs():@handle_errors
 @stickers_bp.route('/gifs/search', methods=['GET'])
+@handle_errors
+def search_gifs():
 @require_auth
 
     """
@@ -150,8 +152,9 @@ def search_gifs():@handle_errors
 
 @stickers_bp.route('/gifs/trending', methods=['GET'])
 @require_auth
-def get_trending_gifs():@handle_errors
 @stickers_bp.route('/gifs/trending', methods=['GET'])
+@handle_errors
+def get_trending_gifs():
 @require_auth
 
     """
@@ -227,8 +230,9 @@ def get_trending_gifs():@handle_errors
 
 @stickers_bp.route('/gifs/categories', methods=['GET'])
 @require_auth
-def get_gif_categories():@handle_errors
 @stickers_bp.route('/gifs/categories', methods=['GET'])
+@handle_errors
+def get_gif_categories():
 @require_auth
 
     """
@@ -289,8 +293,9 @@ def get_gif_categories():@handle_errors
 
 @stickers_bp.route('/favorites', methods=['GET'])
 @require_auth
-def get_favorite_stickers():@handle_errors
 @stickers_bp.route('/favorites', methods=['GET'])
+@handle_errors
+def get_favorite_stickers():
 @require_auth
 
     """
@@ -323,8 +328,9 @@ def get_favorite_stickers():@handle_errors
 
 @stickers_bp.route('/favorites', methods=['POST'])
 @require_auth
-def add_favorite_sticker():@handle_errors
 @stickers_bp.route('/favorites', methods=['POST'])
+@handle_errors
+def add_favorite_sticker():
 @require_auth
 
     """
@@ -394,8 +400,9 @@ def add_favorite_sticker():@handle_errors
 
 @stickers_bp.route('/favorites/<sticker_id>', methods=['DELETE'])
 @require_auth
-def remove_favorite_sticker(sticker_id):@handle_errors
 @stickers_bp.route('/favorites/<sticker_id>', methods=['DELETE'])
+@handle_errors
+def remove_favorite_sticker(sticker_id):
 @require_auth
 
     """
@@ -439,8 +446,9 @@ def remove_favorite_sticker(sticker_id):@handle_errors
 
 @stickers_bp.route('/recent', methods=['GET'])
 @require_auth
-def get_recent_stickers():@handle_errors
 @stickers_bp.route('/recent', methods=['GET'])
+@handle_errors
+def get_recent_stickers():
 @require_auth
 
     """
@@ -477,8 +485,9 @@ def get_recent_stickers():@handle_errors
 
 @stickers_bp.route('/recent', methods=['POST'])
 @require_auth
-def add_recent_sticker():@handle_errors
 @stickers_bp.route('/recent', methods=['POST'])
+@handle_errors
+def add_recent_sticker():
 @require_auth
 
     """
@@ -545,8 +554,9 @@ def add_recent_sticker():@handle_errors
 
 @stickers_bp.route('/emoji/search', methods=['GET'])
 @require_auth
-def search_emoji():@handle_errors
 @stickers_bp.route('/emoji/search', methods=['GET'])
+@handle_errors
+def search_emoji():
 @require_auth
 
     """

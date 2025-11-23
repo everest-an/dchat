@@ -61,8 +61,9 @@ def token_required(f):
 
 @chat_transfer_bp.route('/create', methods=['POST'])
 @token_required
-def create_transfer(current_user):@handle_errors
 @chat_transfer_bp.route('/create', methods=['POST'])
+@handle_errors
+def create_transfer(current_user):
 @token_required
 
     """
@@ -178,8 +179,9 @@ def create_transfer(current_user):@handle_errors
 
 @chat_transfer_bp.route('/claim/<transfer_id>', methods=['POST'])
 @token_required
-def claim_transfer(current_user, transfer_id):@handle_errors
 @chat_transfer_bp.route('/claim/<transfer_id>', methods=['POST'])
+@handle_errors
+def claim_transfer(current_user, transfer_id):
 @token_required
 
     """
@@ -268,8 +270,9 @@ def claim_transfer(current_user, transfer_id):@handle_errors
 
 @chat_transfer_bp.route('/cancel/<transfer_id>', methods=['POST'])
 @token_required
-def cancel_transfer(current_user, transfer_id):@handle_errors
 @chat_transfer_bp.route('/cancel/<transfer_id>', methods=['POST'])
+@handle_errors
+def cancel_transfer(current_user, transfer_id):
 @token_required
 
     """
@@ -344,8 +347,9 @@ def cancel_transfer(current_user, transfer_id):@handle_errors
 
 @chat_transfer_bp.route('/status/<transfer_id>', methods=['GET'])
 @token_required
-def get_transfer_status(current_user, transfer_id):@handle_errors
 @chat_transfer_bp.route('/status/<transfer_id>', methods=['GET'])
+@handle_errors
+def get_transfer_status(current_user, transfer_id):
 @token_required
 
     """
@@ -396,8 +400,9 @@ def get_transfer_status(current_user, transfer_id):@handle_errors
 
 @chat_transfer_bp.route('/my-transfers', methods=['GET'])
 @token_required
-def get_my_transfers(current_user):@handle_errors
 @chat_transfer_bp.route('/my-transfers', methods=['GET'])
+@handle_errors
+def get_my_transfers(current_user):
 @token_required
 
     """

@@ -58,8 +58,9 @@ def require_auth(f):
 @custodial_wallet_bp.route('/api/wallets/custodial/create', methods=['POST'])
 @require_auth
 @rate_limit(max_requests=5, window_seconds=60)
-def create_custodial_wallet():@handle_errors
 @custodial_wallet_bp.route('/api/wallets/custodial/create', methods=['POST'])
+@handle_errors
+def create_custodial_wallet():
 @require_auth
 @rate_limit(max_requests=5, window_seconds=60)
 
@@ -91,8 +92,9 @@ def create_custodial_wallet():@handle_errors
 
 @custodial_wallet_bp.route('/api/wallets/custodial/me', methods=['GET'])
 @require_auth
-def get_my_custodial_wallet():@handle_errors
 @custodial_wallet_bp.route('/api/wallets/custodial/me', methods=['GET'])
+@handle_errors
+def get_my_custodial_wallet():
 @require_auth
 
     """
@@ -122,8 +124,9 @@ def get_my_custodial_wallet():@handle_errors
 @custodial_wallet_bp.route('/api/wallets/custodial/deposit', methods=['POST'])
 @require_auth
 @rate_limit(max_requests=20, window_seconds=60)
-def process_deposit():@handle_errors
 @custodial_wallet_bp.route('/api/wallets/custodial/deposit', methods=['POST'])
+@handle_errors
+def process_deposit():
 @require_auth
 @rate_limit(max_requests=20, window_seconds=60)
 
@@ -182,8 +185,9 @@ def process_deposit():@handle_errors
 @custodial_wallet_bp.route('/api/wallets/custodial/withdraw', methods=['POST'])
 @require_auth
 @rate_limit(max_requests=10, window_seconds=60)
-def process_withdrawal():@handle_errors
 @custodial_wallet_bp.route('/api/wallets/custodial/withdraw', methods=['POST'])
+@handle_errors
+def process_withdrawal():
 @require_auth
 @rate_limit(max_requests=10, window_seconds=60)
 
@@ -243,8 +247,9 @@ def process_withdrawal():@handle_errors
 @custodial_wallet_bp.route('/api/wallets/custodial/transfer', methods=['POST'])
 @require_auth
 @rate_limit(max_requests=30, window_seconds=60)
-def process_transfer():@handle_errors
 @custodial_wallet_bp.route('/api/wallets/custodial/transfer', methods=['POST'])
+@handle_errors
+def process_transfer():
 @require_auth
 @rate_limit(max_requests=30, window_seconds=60)
 
@@ -301,8 +306,9 @@ def process_transfer():@handle_errors
 
 @custodial_wallet_bp.route('/api/wallets/custodial/transactions', methods=['GET'])
 @require_auth
-def get_transaction_history():@handle_errors
 @custodial_wallet_bp.route('/api/wallets/custodial/transactions', methods=['GET'])
+@handle_errors
+def get_transaction_history():
 @require_auth
 
     """
@@ -340,8 +346,9 @@ def get_transaction_history():@handle_errors
 
 @custodial_wallet_bp.route('/api/wallets/custodial/sync', methods=['POST'])
 @require_auth
-def sync_balance():@handle_errors
 @custodial_wallet_bp.route('/api/wallets/custodial/sync', methods=['POST'])
+@handle_errors
+def sync_balance():
 @require_auth
 
     """

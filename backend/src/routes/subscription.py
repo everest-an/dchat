@@ -27,8 +27,9 @@ subscription_bp = Blueprint('subscription', __name__)
 
 
 @subscription_bp.route('/plans', methods=['GET'])
-def get_subscription_plans():@handle_errors
 @subscription_bp.route('/plans', methods=['GET'])
+@handle_errors
+def get_subscription_plans():
 
     """
     Get available subscription plans with pricing
@@ -156,8 +157,9 @@ def get_subscription_plans():@handle_errors
 
 @subscription_bp.route('/me', methods=['GET'])
 @authenticate
-def get_current_subscription():@handle_errors
 @subscription_bp.route('/me', methods=['GET'])
+@handle_errors
+def get_current_subscription():
 @authenticate
 
     """
@@ -229,8 +231,9 @@ def get_current_subscription():@handle_errors
 
 @subscription_bp.route('/create', methods=['POST'])
 @authenticate
-def create_subscription():@handle_errors
 @subscription_bp.route('/create', methods=['POST'])
+@handle_errors
+def create_subscription():
 @authenticate
 
     """
@@ -307,8 +310,9 @@ def create_subscription():@handle_errors
 
 @subscription_bp.route('/cancel', methods=['POST'])
 @authenticate
-def cancel_subscription():@handle_errors
 @subscription_bp.route('/cancel', methods=['POST'])
+@handle_errors
+def cancel_subscription():
 @authenticate
 
     """
@@ -353,8 +357,9 @@ def cancel_subscription():@handle_errors
 
 @subscription_bp.route('/renew', methods=['POST'])
 @authenticate
-def renew_subscription():@handle_errors
 @subscription_bp.route('/renew', methods=['POST'])
+@handle_errors
+def renew_subscription():
 @authenticate
 
     """
@@ -430,8 +435,9 @@ def renew_subscription():@handle_errors
 
 @subscription_bp.route('/history', methods=['GET'])
 @authenticate
-def get_subscription_history():@handle_errors
 @subscription_bp.route('/history', methods=['GET'])
+@handle_errors
+def get_subscription_history():
 @authenticate
 
     """
@@ -475,8 +481,9 @@ def get_subscription_history():@handle_errors
 
 @subscription_bp.route('/tier', methods=['GET'])
 @authenticate
-def get_user_tier():@handle_errors
 @subscription_bp.route('/tier', methods=['GET'])
+@handle_errors
+def get_user_tier():
 @authenticate
 
     """
@@ -522,8 +529,9 @@ def get_user_tier():@handle_errors
 
 
 @subscription_bp.route('/pricing/<tier>', methods=['GET'])
-def get_tier_pricing(tier):@handle_errors
 @subscription_bp.route('/pricing/<tier>', methods=['GET'])
+@handle_errors
+def get_tier_pricing(tier):
 
     """
     Get pricing for a specific tier

@@ -58,8 +58,9 @@ except ImportError:
 
 
 @push_notifications_bp.route('/health', methods=['GET'])
-def health_check():@handle_errors
 @push_notifications_bp.route('/health', methods=['GET'])
+@handle_errors
+def health_check():
 
     """
     Health check endpoint for push notifications service.
@@ -77,8 +78,9 @@ def health_check():@handle_errors
 
 @push_notifications_bp.route('/register-token', methods=['POST'])
 @require_auth
-def register_device_token():@handle_errors
 @push_notifications_bp.route('/register-token', methods=['POST'])
+@handle_errors
+def register_device_token():
 @require_auth
 
     """
@@ -148,8 +150,9 @@ def register_device_token():@handle_errors
 
 @push_notifications_bp.route('/unregister-token', methods=['POST'])
 @require_auth
-def unregister_device_token():@handle_errors
 @push_notifications_bp.route('/unregister-token', methods=['POST'])
+@handle_errors
+def unregister_device_token():
 @require_auth
 
     """
@@ -200,8 +203,9 @@ def unregister_device_token():@handle_errors
 
 @push_notifications_bp.route('/send', methods=['POST'])
 @require_auth
-def send_notification():@handle_errors
 @push_notifications_bp.route('/send', methods=['POST'])
+@handle_errors
+def send_notification():
 @require_auth
 
     """
@@ -332,8 +336,9 @@ def send_notification():@handle_errors
 
 @push_notifications_bp.route('/preferences', methods=['GET'])
 @require_auth
-def get_notification_preferences():@handle_errors
 @push_notifications_bp.route('/preferences', methods=['GET'])
+@handle_errors
+def get_notification_preferences():
 @require_auth
 
     """
@@ -376,8 +381,9 @@ def get_notification_preferences():@handle_errors
 
 @push_notifications_bp.route('/preferences', methods=['PUT'])
 @require_auth
-def update_notification_preferences():@handle_errors
 @push_notifications_bp.route('/preferences', methods=['PUT'])
+@handle_errors
+def update_notification_preferences():
 @require_auth
 
     """
@@ -424,8 +430,9 @@ def update_notification_preferences():@handle_errors
 
 @push_notifications_bp.route('/test', methods=['POST'])
 @require_auth
-def send_test_notification():@handle_errors
 @push_notifications_bp.route('/test', methods=['POST'])
+@handle_errors
+def send_test_notification():
 @require_auth
 
     """

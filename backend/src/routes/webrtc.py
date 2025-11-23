@@ -43,8 +43,9 @@ user_calls: Dict[str, str] = {}
 
 
 @webrtc_bp.route('/health', methods=['GET'])
-def health_check():@handle_errors
 @webrtc_bp.route('/health', methods=['GET'])
+@handle_errors
+def health_check():
 
     """
     Health check endpoint for WebRTC service.
@@ -62,8 +63,9 @@ def health_check():@handle_errors
 
 @webrtc_bp.route('/call/initiate', methods=['POST'])
 @require_auth
-def initiate_call():@handle_errors
 @webrtc_bp.route('/call/initiate', methods=['POST'])
+@handle_errors
+def initiate_call():
 @require_auth
 
     """
@@ -142,8 +144,9 @@ def initiate_call():@handle_errors
 
 @webrtc_bp.route('/call/<call_id>/answer', methods=['POST'])
 @require_auth
-def answer_call(call_id: str):@handle_errors
 @webrtc_bp.route('/call/<call_id>/answer', methods=['POST'])
+@handle_errors
+def answer_call(call_id: str):
 @require_auth
 
     """
@@ -204,8 +207,9 @@ def answer_call(call_id: str):@handle_errors
 
 @webrtc_bp.route('/call/<call_id>/end', methods=['POST'])
 @require_auth
-def end_call(call_id: str):@handle_errors
 @webrtc_bp.route('/call/<call_id>/end', methods=['POST'])
+@handle_errors
+def end_call(call_id: str):
 @require_auth
 
     """
@@ -271,8 +275,9 @@ def end_call(call_id: str):@handle_errors
 
 @webrtc_bp.route('/call/<call_id>', methods=['GET'])
 @require_auth
-def get_call(call_id: str):@handle_errors
 @webrtc_bp.route('/call/<call_id>', methods=['GET'])
+@handle_errors
+def get_call(call_id: str):
 @require_auth
 
     """
@@ -313,8 +318,9 @@ def get_call(call_id: str):@handle_errors
 
 @webrtc_bp.route('/calls/active', methods=['GET'])
 @require_auth
-def get_active_calls():@handle_errors
 @webrtc_bp.route('/calls/active', methods=['GET'])
+@handle_errors
+def get_active_calls():
 @require_auth
 
     """
@@ -353,8 +359,9 @@ def get_active_calls():@handle_errors
 
 @webrtc_bp.route('/calls/history', methods=['GET'])
 @require_auth
-def get_call_history():@handle_errors
 @webrtc_bp.route('/calls/history', methods=['GET'])
+@handle_errors
+def get_call_history():
 @require_auth
 
     """
@@ -408,8 +415,9 @@ def get_call_history():@handle_errors
 
 @webrtc_bp.route('/call/<call_id>/quality', methods=['POST'])
 @require_auth
-def report_call_quality(call_id: str):@handle_errors
 @webrtc_bp.route('/call/<call_id>/quality', methods=['POST'])
+@handle_errors
+def report_call_quality(call_id: str):
 @require_auth
 
     """
