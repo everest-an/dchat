@@ -34,7 +34,7 @@ class CreateMatchingRequestSchema(Schema):
     budget_max = fields.Float(required=False, allow_none=True, validate=validate.Range(min=0))
     availability = fields.Nested(AvailabilitySchema, required=False, allow_none=True)
     location = fields.Str(required=False, allow_none=True, validate=validate.Length(max=200))
-    remote_ok = fields.Bool(required=False, missing=True)
+    remote_ok = fields.Bool(required=False, load_default=True)
     
     @validates('budget_max')
     def validate_budget_max(self, value):
@@ -50,5 +50,5 @@ class MatchingFeedbackSchema(Schema):
     result_id = fields.Int(required=True)
     rating = fields.Int(required=True, validate=validate.Range(min=1, max=5))
     feedback_text = fields.Str(required=False, allow_none=True, validate=validate.Length(max=1000))
-    contacted = fields.Bool(required=False, missing=False)
-    hired = fields.Bool(required=False, missing=False)
+    contacted = fields.Bool(required=False, load_default=False)
+    hired = fields.Bool(required=False, load_default=False)
