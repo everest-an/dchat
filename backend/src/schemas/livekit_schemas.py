@@ -8,9 +8,9 @@ class CreateTokenSchema(Schema):
     """Schema for creating a LiveKit token"""
     room_name = fields.Str(required=True, validate=validate.Length(min=1, max=200))
     participant_name = fields.Str(required=True, validate=validate.Length(min=1, max=100))
-    can_publish = fields.Bool(required=False, missing=True)
-    can_subscribe = fields.Bool(required=False, missing=True)
-    can_publish_data = fields.Bool(required=False, missing=True)
+    can_publish = fields.Bool(required=False, load_default=True)
+    can_subscribe = fields.Bool(required=False, load_default=True)
+    can_publish_data = fields.Bool(required=False, load_default=True)
 
 
 class CreateCallTokenSchema(Schema):
