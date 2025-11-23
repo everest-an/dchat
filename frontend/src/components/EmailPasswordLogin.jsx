@@ -50,7 +50,7 @@ const EmailPasswordLogin = ({ onLogin, onBack }) => {
       }
 
       // Call onLogin callback with user data and token
-      onLogin(data.user, data.token);
+      await onLogin(data.user, data.token);
 
     } catch (error) {
       console.error('Login error:', error);
@@ -104,7 +104,7 @@ const EmailPasswordLogin = ({ onLogin, onBack }) => {
       }
 
       // Call onLogin callback with user data and token
-      onLogin(data.user, data.token);
+      await onLogin(data.user, data.token);
 
     } catch (error) {
       console.error('Registration error:', error);
