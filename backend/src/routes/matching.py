@@ -269,7 +269,7 @@ def get_my_requests():
 
 @matching_bp.route('/feedback', methods=['POST'])
 @require_auth
-@validate_json
+@handle_errors
 def submit_feedback():
     """
     Submit feedback on a match
