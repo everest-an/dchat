@@ -36,6 +36,10 @@ const ScanQRDialog = ({ isOpen, onClose }) => {
         })
         
         success('Contact Added', `Added ${parsed.username}`)
+        
+        // Trigger refresh event
+        window.dispatchEvent(new CustomEvent('contactAdded'))
+        
         navigate(`/chat/${parsed.address}`)
         handleClose()
         return true
@@ -53,6 +57,10 @@ const ScanQRDialog = ({ isOpen, onClose }) => {
         })
         
         success('Contact Added', `Added ${username}`)
+        
+        // Trigger refresh event
+        window.dispatchEvent(new CustomEvent('contactAdded'))
+        
         navigate(`/chat/${data}`)
         handleClose()
         return true

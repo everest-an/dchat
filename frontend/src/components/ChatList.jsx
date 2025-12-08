@@ -14,6 +14,7 @@ import NewChatDialog from './NewChatDialog'
 import StatusBadge from './StatusBadge'
 import presenceService from '../services/PresenceService'
 import ContactImport from './ContactImport'
+import NFCDialog from './NFCDialog'
 import { Dialog, DialogContent, DialogTrigger } from './ui/dialog'
 const ChatList = ({ user }) => {
   const navigate = useNavigate()
@@ -31,6 +32,7 @@ const ChatList = ({ user }) => {
   const [showProfile, setShowProfile] = useState(false)
   const [showNewChat, setShowNewChat] = useState(false)
   const [showCreateGroup, setShowCreateGroup] = useState(false)
+  const [showNFC, setShowNFC] = useState(false)
   const [myProfile, setMyProfile] = useState(null)
 
   // TODO: Translate {t('load_user_profile')}
@@ -67,6 +69,16 @@ const ChatList = ({ user }) => {
     
     window.addEventListener('profileUpdated', handleProfileUpdate)
     return () => window.removeEventListener('profileUpdated', handleProfileUpdate)
+  }, [userAddress])
+
+  // Listen for contact added events to refresh list immediately
+  useEffect(() => {
+    const handleContactAdded = () => {
+      loadConversations()
+    }
+    
+    window.addEventListener('contactAdded', handleContactAdded)
+    return () => window.removeEventListener('contactAdded', handleContactAdded)
   }, [userAddress])
 
   // TODO: Translate {t('load_chat_list')}
@@ -234,6 +246,16 @@ const ChatList = ({ user }) => {
             >
               <User className="w-5 h-5" />
             </button>
+            {/* NFC Button (Hidden on desktop usually, but good for testing) */}
+            {'NDEFReader' in window && (
+              <button
+                onClick={() => setShowNFC(true)}
+                className="p-2 hover:bg-gray-100 rounded-full text-blue-600"
+                title="NFC Add"
+              >
+                <ScanLine className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -347,16 +369,19 @@ const ChatList = ({ user }) => {
         </Dialog>
       </div>
 
-      {/* Dialogs */}
-      <QRCodeDialog
-        isOpen={showQRCode}
-        onClose={() => setShowQRCode(false)}
+       {/* Dialogs */}
+      <QRCodeDialog 
+        isOpen={showQRCode} 
+        onClose={() => setShowQRCode(false)} 
         address={userAddress}
       />
-      
-      <ScanQRDialog
-        isOpen={showScan}
-        onClose={() => setShowScan(false)}
+      <ScanQRDialog 
+        isOpen={showScan} 
+        onClose={() => setShowScan(false)} 
+      />
+      <NFCDialog
+        isOpen={showNFC}
+        onClose={() => setShowNFC(false)}
       />
       
       <EditProfileDialog

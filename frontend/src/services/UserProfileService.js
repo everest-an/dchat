@@ -32,11 +32,37 @@ export class UserProfileService {
     
     localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles))
     
+    // Also update in contacts list if needed
+    const contactsKey = 'dchat_contacts'
+    const contacts = JSON.parse(localStorage.getItem(contactsKey) || '[]')
+    
+    if (!contacts.includes(address.toLowerCase())) {
+      contacts.push(address.toLowerCase())
+      localStorage.setItem(contactsKey, JSON.stringify(contacts))
+    }
+
+    // Add to pending sync queue if offline
+    if (!navigator.onLine) {
+      const syncQueue = JSON.parse(localStorage.getItem('dchat_sync_queue') || '[]')
+      syncQueue.push({
+        type: 'add_contact',
+        address: address,
+        profile: profile,
+        timestamp: Date.now()
+      })
+      localStorage.setItem('dchat_sync_queue', JSON.stringify(syncQueue))
+    }
+    
     console.log('✅ Profile saved:', {
       address: address.toLowerCase(),
       hasAvatar: !!profile.avatar,
       avatarType: profile.avatar?.ipfsHash ? 'IPFS' : profile.avatar?.emoji ? 'Emoji' : 'None'
     })
+    
+    // Dispatch event for UI updates
+    window.dispatchEvent(new CustomEvent('profileUpdated', { 
+      detail: { address } 
+    }))
     
     return true
   }
