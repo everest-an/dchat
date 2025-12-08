@@ -1,10 +1,10 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { X, Camera, Upload } from 'lucide-react'
 import { Button } from './ui/button'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '../contexts/ToastContext'
 import { UserProfileService } from '../services/UserProfileService'
-import QRCode from 'qrcode'
+import jsQR from 'jsqr'
 
 const ScanQRDialog = ({ isOpen, onClose }) => {
   const navigate = useNavigate()
@@ -13,32 +13,80 @@ const ScanQRDialog = ({ isOpen, onClose }) => {
   const fileInputRef = useRef(null)
   const videoRef = useRef(null)
   const [stream, setStream] = useState(null)
+  const animationFrameRef = useRef(null)
+
+  useEffect(() => {
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+      stopCamera()
+    }
+  }, [])
+
+  const processQRCode = (data) => {
+    try {
+      const parsed = JSON.parse(data)
+      if (parsed.type === 'dchat_contact' && parsed.address) {
+        // Save as contact
+        UserProfileService.saveProfile(parsed.address, {
+          username: parsed.username,
+          avatar: parsed.avatar,
+          addedAt: Date.now()
+        })
+        
+        success('Contact Added', `Added ${parsed.username}`)
+        navigate(`/chat/${parsed.address}`)
+        handleClose()
+        return true
+      }
+    } catch (e) {
+      // Try as raw address
+      if (/^0x[a-fA-F0-9]{40}$/.test(data)) {
+        const username = UserProfileService.getDefaultUsername(data)
+        const avatar = UserProfileService.getDefaultAvatar(data)
+        
+        UserProfileService.saveProfile(data, {
+          username,
+          avatar,
+          addedAt: Date.now()
+        })
+        
+        success('Contact Added', `Added ${username}`)
+        navigate(`/chat/${data}`)
+        handleClose()
+        return true
+      }
+    }
+    return false
+  }
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
 
     try {
-      // Read file as data URL
       const reader = new FileReader()
       reader.onload = async (event) => {
         try {
-          // Create image element
           const img = new Image()
-          img.onload = async () => {
-            // Create canvas to process image
+          img.onload = () => {
             const canvas = document.createElement('canvas')
             const ctx = canvas.getContext('2d')
             canvas.width = img.width
             canvas.height = img.height
             ctx.drawImage(img, 0, 0)
 
-            // Get image data
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-            
-            // Use jsQR to decode (we'll use a simpler approach)
-            // For now, let's use a placeholder
-            error('Coming Soon', 'QR code scanning from image will be available soon')
+            const code = jsQR(imageData.data, imageData.width, imageData.height)
+
+            if (code) {
+              if (!processQRCode(code.data)) {
+                error('Invalid QR Code', 'This QR code is not a valid DChat contact')
+              }
+            } else {
+              error('No QR Code', 'Could not find a QR code in this image')
+            }
           }
           img.src = event.target.result
         } catch (err) {
@@ -53,6 +101,26 @@ const ScanQRDialog = ({ isOpen, onClose }) => {
     }
   }
 
+  const scanFrame = () => {
+    if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      canvas.width = videoRef.current.videoWidth
+      canvas.height = videoRef.current.videoHeight
+      ctx.drawImage(videoRef.current, 0, 0)
+      
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+      const code = jsQR(imageData.data, imageData.width, imageData.height)
+
+      if (code) {
+        if (processQRCode(code.data)) {
+          return // Stop scanning if successful
+        }
+      }
+    }
+    animationFrameRef.current = requestAnimationFrame(scanFrame)
+  }
+
   const startCamera = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
@@ -61,6 +129,8 @@ const ScanQRDialog = ({ isOpen, onClose }) => {
       setStream(mediaStream)
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream
+        videoRef.current.play()
+        animationFrameRef.current = requestAnimationFrame(scanFrame)
       }
       setScanning(true)
     } catch (err) {

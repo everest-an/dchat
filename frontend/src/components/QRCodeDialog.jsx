@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { X, Download, Share2, Copy, Check } from 'lucide-react'
-import QRCode from 'qrcode'
+import { QRCodeCanvas } from 'qrcode.react'
 import { Button } from './ui/button'
 import { UserProfileService } from '../services/UserProfileService'
 import { useToast } from '../contexts/ToastContext'
 
 const QRCodeDialog = ({ isOpen, onClose, address }) => {
   const { success } = useToast()
-  const [qrCodeUrl, setQrCodeUrl] = useState('')
   const [copied, setCopied] = useState(false)
   const canvasRef = useRef(null)
   
@@ -15,38 +14,12 @@ const QRCodeDialog = ({ isOpen, onClose, address }) => {
   const displayName = UserProfileService.getDisplayName(address)
   const avatar = UserProfileService.getDisplayAvatar(address)
 
-  useEffect(() => {
-    if (isOpen && address) {
-      generateQRCode()
-    }
-  }, [isOpen, address])
-
-  const generateQRCode = async () => {
-    try {
-      // TODO: Translate '创建包含用户信息的数据'
-      const qrData = JSON.stringify({
-        type: 'dchat_contact',
-        address: address,
-        username: profile?.username || displayName,
-        avatar: avatar,
-        timestamp: Date.now()
-      })
-
-      // TODO: Translate '生成二维码'
-      const url = await QRCode.toDataURL(qrData, {
-        width: 300,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF'
-        }
-      })
-
-      setQrCodeUrl(url)
-    } catch (err) {
-      console.error('Error generating QR code:', err)
-    }
-  }
+  const qrData = JSON.stringify({
+    type: 'dchat_contact',
+    address: address,
+    username: profile?.username || displayName,
+    avatar: avatar
+  })
 
   const handleCopyAddress = async () => {
     try {
@@ -60,20 +33,25 @@ const QRCodeDialog = ({ isOpen, onClose, address }) => {
   }
 
   const handleDownload = () => {
-    if (!qrCodeUrl) return
+    const canvas = canvasRef.current?.querySelector('canvas') || canvasRef.current
+    if (!canvas) return
 
+    const url = canvas.toDataURL('image/png')
     const link = document.createElement('a')
     link.download = `dchat-qr-${address.slice(0, 8)}.png`
-    link.href = qrCodeUrl
+    link.href = url
     link.click()
     success('Downloaded!', 'QR code saved to downloads')
   }
 
   const handleShare = async () => {
+    const canvas = canvasRef.current?.querySelector('canvas') || canvasRef.current
+    if (!canvas) return
+
     if (navigator.share) {
       try {
-        // Convert data URL to blob
-        const response = await fetch(qrCodeUrl)
+        const url = canvas.toDataURL('image/png')
+        const response = await fetch(url)
         const blob = await response.blob()
         const file = new File([blob], 'dchat-qr.png', { type: 'image/png' })
 
@@ -88,7 +66,6 @@ const QRCodeDialog = ({ isOpen, onClose, address }) => {
         }
       }
     } else {
-      // Fallback: copy address
       handleCopyAddress()
     }
   }
@@ -126,18 +103,22 @@ const QRCodeDialog = ({ isOpen, onClose, address }) => {
 
           {/* QR Code */}
           <div className="flex justify-center">
-            <div className="p-4 bg-white border-4 border-gray-200 rounded-2xl">
-              {qrCodeUrl ? (
-                <img 
-                  src={qrCodeUrl} 
-                  alt="QR Code" 
-                  className="w-64 h-64"
-                />
-              ) : (
-                <div className="w-64 h-64 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
-                </div>
-              )}
+            <div className="p-4 bg-white border-4 border-gray-200 rounded-2xl shadow-inner">
+              <QRCodeCanvas
+                ref={canvasRef}
+                value={qrData}
+                size={256}
+                level="H"
+                includeMargin={true}
+                imageSettings={{
+                  src: "/logo.png",
+                  x: undefined,
+                  y: undefined,
+                  height: 24,
+                  width: 24,
+                  excavate: true,
+                }}
+              />
             </div>
           </div>
 
