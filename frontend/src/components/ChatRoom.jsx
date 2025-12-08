@@ -528,30 +528,34 @@ const ChatRoom = () => {
     return (
       <div
         key={msg.id}
-        className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-4`}
+        className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-4 group`}
       >
         {!isMe && (
-          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-lg mr-2 flex-shrink-0">
+          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-lg mr-2 flex-shrink-0 self-end mb-1">
             {recipientProfile?.avatar || '👤'}
           </div>
         )}
-        <div className={`max-w-[70%] ${isMe ? 'order-2' : 'order-1'}`}>
+        <div className={`max-w-[75%] ${isMe ? 'order-2' : 'order-1'}`}>
           <div
-            className={`rounded-2xl overflow-hidden ${
-              isMe ? 'bg-black' : 'bg-gray-100'
+            className={`rounded-2xl overflow-hidden shadow-sm transition-all ${
+              isMe 
+                ? 'bg-primary text-primary-foreground rounded-br-none' 
+                : 'bg-card text-card-foreground border border-border rounded-bl-none'
             }`}
           >
             {msg.type === 'image' && (
-              <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer">
+              <div className="relative group/image">
                 <img
                   src={msg.fileUrl}
                   alt={msg.fileName}
-                  className="max-w-full h-auto cursor-pointer hover:opacity-90"
+                  className="max-w-full h-auto cursor-pointer hover:scale-105 transition-transform duration-300"
+                  onClick={() => window.open(msg.fileUrl, '_blank')}
                 />
-              </a>
+                <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors pointer-events-none" />
+              </div>
             )}
             {msg.type === 'video' && (
-              <video controls className="max-w-full">
+              <video controls className="max-w-full rounded-lg">
                 <source src={msg.fileUrl} />
               </video>
             )}
@@ -560,22 +564,32 @@ const ChatRoom = () => {
                 href={msg.fileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`flex items-center gap-3 px-4 py-3 ${
-                  isMe ? 'text-white' : 'text-gray-900'
+                className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                  isMe ? 'hover:bg-white/10' : 'hover:bg-black/5'
                 }`}
               >
-                <FileText className="w-8 h-8" />
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl shadow-sm ${
+                  isMe ? 'bg-white/20 text-white' : 'bg-white text-primary'
+                }`}>
+                  {msg.type === 'pdf' ? '📄' : '📎'}
+                </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{msg.fileName}</p>
-                  <p className="text-sm opacity-70">{msg.fileSize}</p>
+                  <p className="font-medium truncate text-sm">{msg.fileName || 'Document'}</p>
+                  <p className="text-xs opacity-70">{msg.fileSize || 'Unknown size'}</p>
                 </div>
               </a>
             )}
           </div>
-          <div className="flex items-center gap-2 mt-1 px-2">
-            <span className="text-xs text-gray-500">{msg.timestamp}</span>
-            {isMe && msg.isRead && (
-              <span className="text-xs text-blue-500">✓✓</span>
+          
+          <div className={`flex items-center gap-1 mt-1 px-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
+            <span className="text-[10px] text-muted-foreground opacity-70">{msg.timestamp}</span>
+            {isMe && (
+              <span className={`text-[10px] ${msg.isRead ? 'text-primary' : 'text-muted-foreground'}`}>
+                {msg.isRead ? '✓✓' : '✓'}
+              </span>
+            )}
+            {msg.encrypted && (
+              <span className="text-[10px] text-muted-foreground" title="End-to-end encrypted">🔒</span>
             )}
           </div>
         </div>
@@ -589,35 +603,37 @@ const ChatRoom = () => {
         <div className="text-center">
           <p className="text-gray-600 mb-4">Please connect your wallet</p>
           <Button onClick={() => navigate('/login')}>Connect Wallet</Button>
-        </div>
-      </div>
-    )
-  }
-
+        </di  const isFileTransfer = recipientAddress === account
+  
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="flex flex-col h-screen bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-white">
+      <div className={`flex items-center justify-between px-4 py-3 border-b border-border/40 backdrop-blur-xl sticky top-0 z-10 ${
+        isFileTransfer ? 'bg-blue-50/80 dark:bg-blue-950/20' : 'bg-background/80'
+      }`}>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/chat')}
-            className="p-2 hover:bg-gray-100 rounded-full"
-          >
+          <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="hover:bg-accent/50">
             <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-xl">
-            {recipientProfile?.avatar || '👤'}
+          </Button>
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-sm ring-2 ring-offset-2 ring-offset-background ${
+              isFileTransfer 
+                ? 'bg-blue-100 text-blue-600 ring-blue-100' 
+                : 'bg-secondary text-secondary-foreground ring-transparent'
+            }`}>
+              {isFileTransfer ? '📂' : (recipientProfile?.avatar || '👤')}
+            </div>
+            <div>
+              <h2 className="font-semibold flex items-center gap-2">
+                {isFileTransfer ? 'File Transfer' : (recipientProfile?.username || 'Loading...')}
+                {isFileTransfer && <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded-full font-medium">ME</span>}
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                {isFileTransfer ? 'Send files to yourself' : (recipientProfile?.company || 'Online')}
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="font-semibold text-gray-900">
-              {recipientProfile?.username || 'Loading...'}
-            </h2>
-            {recipientProfile?.company && (
-              <p className="text-xs text-gray-500">{recipientProfile.company}</p>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
+        </div>ssName="flex items-center gap-2">
           <button className="p-2 hover:bg-gray-100 rounded-full">
             <Phone className="w-5 h-5" />
           </button>
