@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import DOMPurify from 'dompurify'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Send, Paperclip, Users, UserPlus, Settings, Loader2 } from 'lucide-react'
 import { Button } from './ui/button'
@@ -172,7 +173,10 @@ const GroupChat = () => {
                 : 'bg-gray-100 text-gray-900 rounded-bl-sm'
             }`}
           >
-            <p className="text-sm whitespace-pre-wrap break-words">{msg.text}</p>
+            <div 
+  className="text-sm whitespace-pre-wrap break-words"
+  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(msg.text) }} 
+/>
             <span className={`text-xs ${isMe ? 'text-gray-300' : 'text-gray-500'} mt-1 block`}>
               {msg.timestamp}
             </span>

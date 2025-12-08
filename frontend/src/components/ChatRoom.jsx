@@ -13,6 +13,9 @@ import PaymentDialog from './dialogs/PaymentDialog'
 import socketService from '../services/socketService'
 import readReceiptService from '../services/ReadReceiptService'
 import MessageReactions from './MessageReactions'
+import DOMPurify from 'dompurify'
+import { KeyManagementService } from '../services/KeyManagementService'
+import { encryptMessage, decryptMessage } from '../utils/encryption'
 
 
 const ChatRoom = () => {
@@ -30,6 +33,7 @@ const ChatRoom = () => {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [recipientProfile, setRecipientProfile] = useState(null)
   const [messageService, setMessageService] = useState(null)
+  const [userKeys, setUserKeys] = useState(null)
   const [showMenu, setShowMenu] = useState(false)
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
   const [upgradeMessage, setUpgradeMessage] = useState({ title: '', description: '' })
@@ -52,13 +56,26 @@ const ChatRoom = () => {
     }
   }, [recipientAddress])
 
-  // TODO: Translate {t('init_message_service')}
+  // Initialize keys and message service
   useEffect(() => {
-    if (provider && signer) {
-      const service = new MessageStorageService(provider, signer)
-      setMessageService(service)
+    const init = async () => {
+      if (account) {
+        try {
+          const keys = await KeyManagementService.initializeKeys(account)
+          setUserKeys(keys)
+        } catch (err) {
+          console.error('Failed to initialize keys:', err)
+          showError('Error', 'Failed to initialize encryption keys')
+        }
+      }
+      
+      if (provider && signer) {
+        const service = new MessageStorageService(provider, signer)
+        setMessageService(service)
+      }
     }
-  }, [provider, signer])
+    init()
+  }, [provider, signer, account])
 
   // TODO: Translate {t('load_message')}
   const loadMessages = useCallback(async () => {
@@ -138,44 +155,51 @@ const ChatRoom = () => {
     socketService.joinRoom(roomId)
 
     // Listen for new messages
-    const unsubscribe = socketService.onMessage((data) => {
+    const unsubscribe = socketService.onMessage(async (data) => {
       console.log('Received message via Socket.IO:', data)
       
-      // Only process messages for this room
       if (data.room_id !== roomId) return
-      
-      // Don't add our own messages (already added when sending)
       if (data.user_id === account) return
 
-      // Add received message to list
+      let decryptedText = data.message
+      let isEncrypted = data.is_encrypted || false
+
+      // Try to decrypt if it's encrypted
+      if (isEncrypted && userKeys) {
+        try {
+          decryptedText = await decryptMessage(data.message, userKeys.privateKey)
+        } catch (err) {
+          console.error('Failed to decrypt message:', err)
+          decryptedText = '[Decryption Failed]'
+        }
+      }
+
       const newMessage = {
         id: data.message_id,
-        text: data.message,
+        text: decryptedText,
         sender: 'other',
         timestamp: new Date(data.timestamp).toLocaleTimeString('en-US', {
           hour: '2-digit',
           minute: '2-digit'
         }),
         isRead: false,
-        type: 'text'
+        type: 'text',
+        encrypted: isEncrypted
       }
 
       setMessages(prev => {
-        // Check if message already exists
         if (prev.some(m => m.id === newMessage.id)) {
           return prev
         }
         const updated = [...prev, newMessage]
         
-        // Save to local storage
         const storageKey = `dchat_messages_${account}_${recipientAddress}`
         localStorage.setItem(storageKey, JSON.stringify(updated))
         
         return updated
       })
 
-      // Update conversations list
-      updateConversationsList(data.message)
+      updateConversationsList(decryptedText)
     })
 
     return () => {
@@ -192,7 +216,7 @@ const ChatRoom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // TODO: Translate {t('send_text_message')}
+  // Send encrypted message
   const handleSendMessage = async () => {
     if (!message.trim() || sending) return
 
@@ -201,38 +225,50 @@ const ChatRoom = () => {
     setSending(true)
 
     try {
-      // Generate message ID
+      // 1. Get recipient's public key
+      const recipientPublicKey = await KeyManagementService.getPublicKey(recipientAddress)
+      
+      if (!recipientPublicKey) {
+        showError('Error', 'Recipient has not set up encryption keys yet')
+        setSending(false)
+        return
+      }
+
+      // 2. Encrypt message for recipient
+      const encryptedContent = await encryptMessage(messageText, recipientPublicKey)
+      
+      // 3. Encrypt message for self (so we can read it later)
+      // In a real app, we might store local copy in plaintext or encrypt with our own key
+      // For simplicity here, we'll just store the plaintext in local state/storage
+      
       const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       
-      // TODO: Translate {t('create_message_object')}
       const newMessage = {
         id: messageId,
-        text: messageText,
+        text: messageText, // Local display uses plaintext
         sender: 'me',
         timestamp: new Date().toLocaleTimeString('en-US', {
           hour: '2-digit',
           minute: '2-digit'
         }),
         isRead: false,
-        type: 'text'
+        type: 'text',
+        encrypted: true
       }
 
-      // TODO: Translate {t('show_message_now')}
       const updatedMessages = [...messages, newMessage]
       setMessages(updatedMessages)
 
-      // TODO: Translate {t('save_to_local_storage')}
       const storageKey = `dchat_messages_${account}_${recipientAddress}`
       localStorage.setItem(storageKey, JSON.stringify(updatedMessages))
 
-      // TODO: Translate {t('update_chat_list')}
       updateConversationsList(messageText)
 
-      // Send via Socket.IO
+      // 4. Send ENCRYPTED content via Socket.IO/Blockchain
       const roomId = [account, recipientAddress].sort().join('_')
-      socketService.sendMessage(roomId, messageText, messageId)
+      socketService.sendMessage(roomId, encryptedContent, messageId, true) // true flag for encrypted
 
-      success('Sent!', 'Message sent successfully')
+      success('Sent!', 'Encrypted message sent')
     } catch (err) {
       console.error('Error sending message:', err)
       showError('Error', 'Failed to send message')
@@ -364,7 +400,10 @@ const ChatRoom = () => {
                 <DollarSign className="w-5 h-5" />
                 <span className="font-semibold">{isMe ? 'Payment Sent' : 'Payment Received'}</span>
               </div>
-              <p className="text-sm">{msg.text}</p>
+              <div 
+  className="text-sm"
+  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(msg.text) }} 
+/>
               {msg.escrowId && (
                 <p className="text-xs mt-1 opacity-70">Escrow ID: {msg.escrowId}</p>
               )}
@@ -409,7 +448,10 @@ const ChatRoom = () => {
                   : 'bg-gray-100 text-gray-900 rounded-bl-sm'
               }`}
             >
-              <p className="text-sm whitespace-pre-wrap break-words">{msg.text}</p>
+              <div 
+  className="text-sm whitespace-pre-wrap break-words"
+  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(msg.text) }} 
+/>
             </div>
             <div className="flex items-center gap-2 mt-1 px-2">
               <span className="text-xs text-gray-500">{msg.timestamp}</span>
