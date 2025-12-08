@@ -99,22 +99,38 @@ def bind_account():
 
 @account_binding_bp.route('/invite-friend', methods=['POST'])
 def invite_friend():
-    data = request.json
-    inviter_address = data.get('inviter_address')
-    invitee_identifier = data.get('invitee_identifier') # email or phone
-    type = data.get('type') # 'email' or 'phone'
-    
-    inviter = User.query.filter_by(wallet_address=inviter_address).first()
-    inviter_name = inviter.username if inviter else "A friend"
-    
-    invite_link = "https://dchat.pro/register"
-    
-    if type == 'email':
-        subject = f"{inviter_name} invited you to join Dchat"
-        body = f"Hi! {inviter_name} is using Dchat for secure, encrypted messaging. Join now: {invite_link}"
-        aws_service.send_email(invitee_identifier, subject, body)
-    elif type == 'phone':
-        message = f"{inviter_name} invited you to Dchat: {invite_link}"
-        aws_service.send_sms(invitee_identifier, message)
+    try:
+        data = request.json
+        inviter_address = data.get('inviter_address')
+        invitee_identifier = data.get('invitee_identifier') # email or phone
+        type = data.get('type') # 'email' or 'phone'
         
-    return jsonify({'message': 'Invitation sent'})
+        if not all([inviter_address, invitee_identifier, type]):
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+        inviter = User.query.filter_by(wallet_address=inviter_address).first()
+        inviter_name = inviter.username if inviter else "A friend"
+        
+        # TODO: Use dynamic link based on environment
+        invite_link = "https://dchat.pro/register"
+        
+        success = False
+        msg = ""
+        
+        if type == 'email':
+            subject = f"{inviter_name} invited you to join Dchat"
+            body = f"Hi! {inviter_name} is using Dchat for secure, encrypted messaging.\n\nDchat is a Web3 social app with end-to-end encryption.\n\nJoin now: {invite_link}"
+            success, msg = aws_service.send_email(invitee_identifier, subject, body)
+        elif type == 'phone':
+            message = f"{inviter_name} invited you to Dchat: {invite_link}"
+            success, msg = aws_service.send_sms(invitee_identifier, message)
+        else:
+            return jsonify({'error': 'Invalid invitation type'}), 400
+            
+        if success:
+            return jsonify({'message': 'Invitation sent successfully'})
+        else:
+            return jsonify({'error': 'Failed to send invitation', 'details': msg}), 500
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

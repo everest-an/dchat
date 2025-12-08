@@ -116,17 +116,51 @@ const ContactImport = () => {
     navigate(`/chat/${user.wallet_address}`)
   }
 
-  const handleInvite = () => {
-    // 跳转到邀请页面
-    // 这里假设有一个邀请路由或弹窗
-    toast({
-      title: "Invite Friends",
-      description: "Redirecting to invite page..."
-    })
-    // navigate('/invite') 
+  const [inviting, setInviting] = useState(null)
+
+  const handleInvite = async (contact) => {
+    if (!contact.email && !contact.phone) return
+    
+    setInviting(contact.email || contact.phone)
+    try {
+      const response = await fetch('/api/account/invite-friend', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({
+          inviter_address: account,
+          invitee_identifier: contact.email || contact.phone,
+          type: contact.email ? 'email' : 'phone'
+        })
+      })
+      
+      const data = await response.json()
+      if (response.ok) {
+        toast({
+          title: "Invitation Sent",
+          description: `Invited ${contact.name || (contact.email || contact.phone)}`
+        })
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (error) {
+      toast({
+        title: "Failed to Invite",
+        description: error.message,
+        variant: "destructive"
+      })
+    } finally {
+      setInviting(null)
+    }
   }
 
   if (showResults) {
+    // Separate matched and unmatched contacts
+    // Note: In a real app, we would need the original list to show unmatched contacts
+    // For now, we'll just show matched ones and a generic invite button
+    
     return (
       <div className="p-6 bg-white rounded-lg shadow-sm border">
         <div className="flex items-center justify-between mb-6">
@@ -164,20 +198,28 @@ const ContactImport = () => {
         ) : (
           <div className="text-center py-8 text-gray-500">
             <p>No registered users found in your contacts.</p>
-            <Button className="mt-4" onClick={handleInvite}>
-              Invite Friends to Join
-            </Button>
           </div>
         )}
         
-        {matchedContacts.length > 0 && (
-           <div className="mt-6 pt-4 border-t text-center">
-             <p className="text-sm text-gray-500 mb-3">Don't see who you're looking for?</p>
-             <Button variant="outline" onClick={handleInvite}>
-               Invite More Friends
-             </Button>
-           </div>
-        )}
+        <div className="mt-8 pt-6 border-t">
+          <h3 className="font-medium mb-4">Invite Friends Not on Dchat</h3>
+          <div className="grid gap-4">
+             <div className="flex gap-2">
+               <input 
+                 type="email" 
+                 placeholder="Enter email address" 
+                 className="flex-1 px-3 py-2 border rounded-md"
+                 id="invite-email"
+               />
+               <Button onClick={() => {
+                 const email = document.getElementById('invite-email').value
+                 if (email) handleInvite({ email, name: email })
+               }}>
+                 Invite
+               </Button>
+             </div>
+          </div>
+        </div>
       </div>
     )
   }
