@@ -302,8 +302,7 @@ const ChatRoom = () => {
     
     localStorage.setItem(conversationsKey, JSON.stringify(conversations))
   }
-
-  // TODO: Translate {t('handle_file_upload')}
+// Handle file upload
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -327,13 +326,68 @@ const ChatRoom = () => {
     try {
       info('Uploading...', 'Uploading file to IPFS')
 
-      // TODO: Translate {t('upload_to')} IPFS
-      const result = await ipfsService.uploadFile(file, (progress) => {
-        setUploadProgress(progress)
-      })
+      // Upload to IPFS
+      const ipfsHash = await ipfsService.uploadFile(file)
+      
+      // Construct file message
+      const messageText = `[FILE]${file.name}|${ipfsHash}|${file.type}|${file.size}`
+      
+      // Send as regular message (encrypted)
+      // 1. Get recipient's public key
+      const recipientPublicKey = await KeyManagementService.getPublicKey(recipientAddress)
+      
+      if (!recipientPublicKey) {
+        showError('Error', 'Recipient has not set up encryption keys yet')
+        setUploading(false)
+        return
+      }
 
-      if (result.success) {
-        // TODO: Translate {t('create_file_message')}
+      // 2. Encrypt message for recipient
+      const encryptedContent = await encryptMessage(messageText, recipientPublicKey)
+      
+      const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      
+      const newMessage = {
+        id: messageId,
+        text: messageText,
+        sender: 'me',
+        timestamp: new Date().toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        isRead: false,
+        type: 'file',
+        fileInfo: {
+          name: file.name,
+          hash: ipfsHash,
+          type: file.type,
+          size: file.size,
+          url: ipfsService.getGatewayUrl(ipfsHash)
+        },
+        encrypted: true
+      }
+
+      const updatedMessages = [...messages, newMessage]
+      setMessages(updatedMessages)
+
+      const storageKey = `dchat_messages_${account}_${recipientAddress}`
+      localStorage.setItem(storageKey, JSON.stringify(updatedMessages))
+
+      updateConversationsList(`Sent a file: ${file.name}`)
+
+      // 4. Send ENCRYPTED content via Socket.IO
+      const roomId = [account, recipientAddress].sort().join('_')
+      socketService.sendMessage(roomId, encryptedContent, messageId, true)
+
+      success('Sent!', 'File sent successfully')
+    } catch (err) {
+      console.error('Error uploading file:', err)
+      showError('Error', 'Failed to upload file')
+    } finally {
+      setUploading(false)
+      e.target.value = '' // Reset input
+    }
+  }
         const fileMessage = {
           id: Date.now().toString(),
           text: file.name,

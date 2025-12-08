@@ -14,6 +14,9 @@ class User(db.Model):
     company = db.Column(db.String(200), nullable=True)
     position = db.Column(db.String(200), nullable=True)
     linkedin_id = db.Column(db.String(100), nullable=True)
+    phone_number = db.Column(db.String(20), unique=True, nullable=True)
+    is_email_verified = db.Column(db.Boolean, default=False)
+    is_phone_verified = db.Column(db.Boolean, default=False)
     public_key = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -41,6 +44,9 @@ class User(db.Model):
             'company': self.company,
             'position': self.position,
             'linkedin_id': self.linkedin_id,
+            'phone_number': self.phone_number,
+            'is_email_verified': self.is_email_verified,
+            'is_phone_verified': self.is_phone_verified,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
