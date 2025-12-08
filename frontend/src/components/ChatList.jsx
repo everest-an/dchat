@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Plus, QrCode, ScanLine, Settings, User } from 'lucide-react'
+import { Search, Plus, QrCode, ScanLine, Settings, User, Users } from 'lucide-react'
 import { Button } from './ui/button'
 import { useWeb3 } from '../contexts/Web3Context'
 import { useToast } from '../contexts/ToastContext'
 import { UserProfileService } from '../services/UserProfileService'
+import GroupService from '../services/GroupService'
 import QRCodeDialog from './QRCodeDialog'
 import ScanQRDialog from './ScanQRDialog'
 import EditProfileDialog from './dialogs/EditProfileDialog'
@@ -77,12 +78,28 @@ const ChatList = ({ user }) => {
 
   const loadConversations = () => {
     try {
+      // Load direct messages
       const conversationsKey = 'dchat_conversations'
       const stored = localStorage.getItem(conversationsKey)
       const convs = stored ? JSON.parse(stored) : []
       
-      // TODO: Translate {t('sort_by_time')}
-      const sorted = convs.sort((a, b) => b.timestamp - a.timestamp)
+      // Load groups
+      const groups = GroupService.getAllGroups(userAddress)
+      const groupConvs = groups.map(g => ({
+        id: g.id,
+        address: g.id, // Use ID as address for routing
+        username: g.name,
+        avatar: g.avatar?.emoji || '👥',
+        lastMessage: 'Group Chat', // TODO: Get last message
+        timestamp: g.updatedAt || g.createdAt,
+        type: 'group',
+        unread: 0 // TODO: Get unread count
+      }))
+
+      // Merge and sort
+      const allConvs = [...convs, ...groupConvs]
+      const sorted = allConvs.sort((a, b) => b.timestamp - a.timestamp)
+      
       setConversations(sorted)
       setFilteredConversations(sorted)
     } catch (err) {
@@ -113,6 +130,11 @@ const ChatList = ({ user }) => {
     }
   }
 
+  const handleGroupCreated = (group) => {
+    loadConversations()
+    navigate(`/group/${group.id}`)
+  }
+
   // TODO: Translate {t('format_time')}
   const formatTime = (timestamp) => {
     const now = Date.now()
@@ -123,28 +145,23 @@ const ChatList = ({ user }) => {
     const day = 24 * hour
     
     if (diff < minute) return 'Just now'
-    if (diff < hour) return `${Math.floor(diff / minute)}m ago`
-    if (diff < day) return `${Math.floor(diff / hour)}h ago`
-    if (diff < 7 * day) return `${Math.floor(diff / day)}d ago`
-    
-    return new Date(timestamp).toLocaleDateString()
-  }
-
-  // TODO: Translate {t('render_chat_item')}
+    if (diff < hour) return `${Math.floo  // Render conversation item
   const renderConversation = (conv) => (
     <div
       key={conv.address}
-      onClick={() => navigate(`/chat/${conv.address}`)}
+      onClick={() => navigate(conv.type === 'group' ? `/group/${conv.id}` : `/chat/${conv.address}`)}
       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b"
     >
       <div className="relative">
-        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-2xl">
+        <div className={`w-12 h-12 rounded-full ${conv.type === 'group' ? 'bg-purple-100 text-purple-600' : 'bg-gray-200'} flex items-center justify-center text-2xl`}>
           {conv.avatar}
         </div>
-        {/* Online status badge */}
-        <div className="absolute bottom-0 right-0">
-          <StatusBadge userId={conv.address} size="sm" />
-        </div>
+        {/* Online status badge - only for direct chats */}
+        {conv.type !== 'group' && (
+          <div className="absolute bottom-0 right-0">
+            <StatusBadge userId={conv.address} size="sm" />
+          </div>
+        )}
         {conv.unread > 0 && (
           <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs text-white font-bold">
             {conv.unread > 9 ? '9+' : conv.unread}
@@ -153,8 +170,9 @@ const ChatList = ({ user }) => {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
-          <h3 className="font-semibold text-gray-900 truncate">
+          <h3 className="font-semibold text-gray-900 truncate flex items-center gap-1">
             {conv.username}
+            {conv.type === 'group' && <Users className="w-3 h-3 text-gray-400" />}
           </h3>
           <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
             {formatTime(conv.timestamp)}
@@ -165,11 +183,7 @@ const ChatList = ({ user }) => {
         </p>
       </div>
     </div>
-  )
-
-  return (
-    <div className="flex flex-col h-screen bg-white">
-      {/* Header */}
+  )*/}
       <div className="px-4 py-3 border-b">
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-2xl font-bold">Chats</h1>
@@ -319,8 +333,9 @@ const ChatList = ({ user }) => {
       />
       
       <CreateGroupDialog
-        isOpen={showCreateGroup}
-        onClose={() => setShowCreateGroup(false)}
+        open={showCreateGroup}
+        onOpenChange={setShowCreateGroup}
+        onGroupCreated={handleGroupCreated}
       />
 
       {/* New Chat Dialog */}

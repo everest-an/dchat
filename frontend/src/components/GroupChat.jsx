@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import DOMPurify from 'dompurify'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Send, Paperclip, Users, UserPlus, Settings, Loader2 } from 'lucide-react'
+import { ArrowLeft, Send, Paperclip, Users, UserPlus, Settings, Loader2, FileText } from 'lucide-react'
 import { Button } from './ui/button'
 import { useWeb3 } from '../contexts/Web3Context'
 import { useToast } from '../contexts/ToastContext'
@@ -9,6 +9,7 @@ import { UserProfileService } from '../services/UserProfileService'
 import GroupService from '../services/GroupService'
 import GroupMessageService from '../services/GroupMessageService'
 import ipfsService from '../services/ipfsService'
+import socketService from '../services/socketService'
 import { useLanguage } from '../contexts/LanguageContext'
 
 
@@ -24,6 +25,7 @@ const GroupChat = () => {
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [groupInfo, setGroupInfo] = useState(null)
   const [members, setMembers] = useState([])
   const [showMembers, setShowMembers] = useState(false)
@@ -33,13 +35,40 @@ const GroupChat = () => {
   const messagesEndRef = useRef(null)
   const fileInputRef = useRef(null)
 
-  // TODO: Translate {t('load_group_info')}
+  // Initialize and listen for messages
   useEffect(() => {
     if (groupId) {
       loadGroupInfo()
       loadMessages()
+      
+      // Join socket room
+      socketService.joinRoom(`group_${groupId}`)
+      
+      // Listen for new messages
+      const unsubscribe = socketService.onMessage((data) => {
+        if (data.room_id === `group_${groupId}` && data.user_id !== account) {
+          const newMessage = {
+            id: data.message_id,
+            text: data.message,
+            sender: data.user_id,
+            senderName: UserProfileService.getDisplayName(data.user_id),
+            senderAvatar: UserProfileService.getDisplayAvatar(data.user_id),
+            timestamp: new Date(data.timestamp).toLocaleTimeString(),
+            type: data.type || 'text',
+            fileUrl: data.fileUrl,
+            fileName: data.fileName,
+            fileSize: data.fileSize
+          }
+          setMessages(prev => [...prev, newMessage])
+        }
+      })
+      
+      return () => {
+        unsubscribe()
+        socketService.leaveRoom(`group_${groupId}`)
+      }
     }
-  }, [groupId])
+  }, [groupId, account])
 
   const loadGroupInfo = () => {
     try {
@@ -84,15 +113,17 @@ const GroupChat = () => {
     setSending(true)
 
     try {
-      // use GroupMessageService TODO: Translate {t('send_message')}
+      // use GroupMessageService
       const newMessage = await GroupMessageService.sendMessage(
         groupId,
         account,
         messageText
       )
 
-      // TODO: Translate {t('update_local_message_list')}
       setMessages([...messages, newMessage])
+      
+      // Send via Socket.IO
+      socketService.sendMessage(`group_${groupId}`, messageText, newMessage.id)
 
       success('Sent!', 'Message sent to group')
     } catch (err) {
@@ -100,6 +131,52 @@ const GroupChat = () => {
       showError('Error', 'Failed to send message')
     } finally {
       setSending(false)
+    }
+  }
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    try {
+      // Upload to IPFS
+      const ipfsHash = await ipfsService.uploadFile(file)
+      const fileUrl = ipfsService.getGatewayUrl(ipfsHash)
+      
+      // Construct file message
+      const messageText = `[FILE]${file.name}|${ipfsHash}|${file.type}|${file.size}`
+      
+      const newMessage = await GroupMessageService.sendMessage(
+        groupId,
+        account,
+        messageText,
+        {
+          type: 'file',
+          fileUrl,
+          fileName: file.name,
+          fileSize: ipfsService.formatFileSize(file.size),
+          fileType: file.type
+        }
+      )
+
+      setMessages([...messages, newMessage])
+      
+      // Send via Socket.IO with file metadata
+      socketService.sendMessage(`group_${groupId}`, messageText, newMessage.id, false, {
+        type: 'file',
+        fileUrl,
+        fileName: file.name,
+        fileSize: ipfsService.formatFileSize(file.size)
+      })
+
+      success('Sent!', 'File sent successfully')
+    } catch (err) {
+      console.error('Error uploading file:', err)
+      showError('Error', 'Failed to upload file')
+    } finally {
+      setUploading(false)
+      e.target.value = ''
     }
   }
 
@@ -149,9 +226,10 @@ const GroupChat = () => {
     success('Added!', `${newMember.username} added to group`)
   }
 
-  // TODO: Translate {t('render_message')}
+  // Render message item
   const renderMessage = (msg) => {
     const isMe = msg.sender.toLowerCase() === account.toLowerCase()
+    const isFile = msg.type === 'file' || (msg.text && msg.text.startsWith('[FILE]'))
 
     return (
       <div key={msg.id} className="mb-4">
@@ -167,19 +245,46 @@ const GroupChat = () => {
         )}
         <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
           <div
-            className={`max-w-[70%] rounded-2xl px-4 py-2 ${
+            className={`max-w-[70%] rounded-2xl overflow-hidden ${
               isMe
                 ? 'bg-black text-white rounded-br-sm'
                 : 'bg-gray-100 text-gray-900 rounded-bl-sm'
             }`}
           >
-            <div 
-  className="text-sm whitespace-pre-wrap break-words"
-  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(msg.text) }} 
-/>
-            <span className={`text-xs ${isMe ? 'text-gray-300' : 'text-gray-500'} mt-1 block`}>
-              {msg.timestamp}
-            </span>
+            {isFile ? (
+              <div className="p-3">
+                {msg.fileType?.startsWith('image/') ? (
+                  <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer">
+                    <img src={msg.fileUrl} alt={msg.fileName} className="max-w-full rounded-lg" />
+                  </a>
+                ) : (
+                  <a 
+                    href={msg.fileUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className={`flex items-center gap-3 ${isMe ? 'text-white' : 'text-gray-900'}`}
+                  >
+                    <FileText className="w-8 h-8" />
+                    <div className="min-w-0">
+                      <p className="font-medium truncate text-sm">{msg.fileName}</p>
+                      <p className="text-xs opacity-70">{msg.fileSize}</p>
+                    </div>
+                  </a>
+                )}
+              </div>
+            ) : (
+              <div className="px-4 py-2">
+                <div 
+                  className="text-sm whitespace-pre-wrap break-words"
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(msg.text) }} 
+                />
+              </div>
+            )}
+            <div className={`px-4 pb-2 ${isFile ? 'pt-0' : ''}`}>
+              <span className={`text-xs ${isMe ? 'text-gray-300' : 'text-gray-500'} block`}>
+                {msg.timestamp}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -260,14 +365,16 @@ const GroupChat = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="p-2 hover:bg-gray-100 rounded-full"
+            disabled={uploading}
+            className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-50"
           >
-            <Paperclip className="w-5 h-5" />
+            {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Paperclip className="w-5 h-5" />}
           </button>
           <input
             ref={fileInputRef}
             type="file"
             className="hidden"
+            onChange={handleFileUpload}
             accept="image/*,video/*,.pdf,.doc,.docx"
           />
           <input
