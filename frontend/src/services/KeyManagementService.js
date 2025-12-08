@@ -64,6 +64,17 @@ export const KeyManagementService = {
   async getPublicKey(address) {
     if (!address) return null
     
+    // If sending to self, return own public key directly from local storage
+    // This ensures File Transfer Assistant works even if public key registry is slow/offline
+    const currentUser = localStorage.getItem('user')
+    if (currentUser) {
+      const userData = JSON.parse(currentUser)
+      if (userData.walletAddress && userData.walletAddress.toLowerCase() === address.toLowerCase()) {
+        const myKeys = this.getKeys(address)
+        if (myKeys) return myKeys.publicKey
+      }
+    }
+    
     // Check cache first
     const cacheKey = `${PUBLIC_KEYS_CACHE_PREFIX}${address.toLowerCase()}`
     const cachedKey = localStorage.getItem(cacheKey)

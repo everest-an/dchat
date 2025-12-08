@@ -100,7 +100,27 @@ const ChatList = ({ user }) => {
 
       // Merge and sort
       const allConvs = [...convs, ...groupConvs]
-      const sorted = allConvs.sort((a, b) => b.timestamp - a.timestamp)
+      
+      // Add File Transfer Assistant if not present
+      const hasSelfChat = allConvs.some(c => c.address === userAddress)
+      if (!hasSelfChat && userAddress) {
+        allConvs.unshift({
+          address: userAddress,
+          username: 'File Transfer Assistant',
+          avatar: '📁',
+          lastMessage: 'Send files to yourself',
+          timestamp: Date.now(),
+          type: 'direct',
+          unread: 0,
+          isSelf: true
+        })
+      }
+
+      const sorted = allConvs.sort((a, b) => {
+        // Always keep File Transfer Assistant at top if pinned (optional logic)
+        // For now just sort by time
+        return b.timestamp - a.timestamp
+      })
       
       setConversations(sorted)
       setFilteredConversations(sorted)
@@ -155,7 +175,10 @@ const ChatList = ({ user }) => {
       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b"
     >
       <div className="relative">
-        <div className={`w-12 h-12 rounded-full ${conv.type === 'group' ? 'bg-purple-100 text-purple-600' : 'bg-gray-200'} flex items-center justify-center text-2xl`}>
+        <div className={`w-12 h-12 rounded-full ${
+          conv.isSelf ? 'bg-blue-100 text-blue-600' : 
+          conv.type === 'group' ? 'bg-purple-100 text-purple-600' : 'bg-gray-200'
+        } flex items-center justify-center text-2xl`}>
           {conv.avatar}
         </div>
         {/* Online status badge - only for direct chats */}
