@@ -11,6 +11,8 @@ from src.routes.auth import auth_bp
 from src.routes.messages import messages_bp
 from src.routes.projects import projects_bp
 from src.routes.files import files_bp
+from src.routes.account_binding import account_binding_bp
+from src.routes.contacts import contacts_bp
 from src.middleware.api_logger import init_api_logging
 
 # 导入新增的路由
@@ -118,6 +120,8 @@ app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(messages_bp, url_prefix='/api/messages')
 app.register_blueprint(projects_bp, url_prefix='/api')
 app.register_blueprint(files_bp, url_prefix='/api/files')
+    app.register_blueprint(account_binding_bp, url_prefix='/api/account')
+    app.register_blueprint(contacts_bp, url_prefix='/api/contacts')
 
 # 注册新增蓝图
 if HAS_NEW_ROUTES:

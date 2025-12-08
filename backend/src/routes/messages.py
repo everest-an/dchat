@@ -71,18 +71,26 @@ def get_conversations():
 
 @messages_bp.route('/conversations/<int:user_id>', methods=['GET'])
 def get_conversation_messages(user_id):
-    """获取与特定用户的对话消息"""
+    """获取与特定用户的对话消息（支持分页）"""
     try:
         token = request.headers.get('Authorization')
         current_user_id, error = verify_token_helper(token)
         if error:
             return jsonify({'error': error}), 401
         
-        # 获取两个用户之间的所有消息
-        messages = Message.query.filter(
+        # 获取分页参数
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 50, type=int)
+        
+        # 获取两个用户之间的消息查询对象
+        query = Message.query.filter(
             ((Message.sender_id == current_user_id) & (Message.receiver_id == user_id)) |
             ((Message.sender_id == user_id) & (Message.receiver_id == current_user_id))
-        ).order_by(Message.timestamp.asc()).all()
+        ).order_by(Message.timestamp.desc())  # 倒序获取，最新的消息在前
+        
+        # 执行分页
+        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+        messages = pagination.items
         
         # 获取对方用户信息
         other_user = User.query.get(user_id)
@@ -100,6 +108,9 @@ def get_conversation_messages(user_id):
                 'message_type': msg.message_type
             })
         
+        # 因为是倒序获取的，返回前需要反转回正序，以便前端按时间顺序显示
+        message_list.reverse()
+        
         return jsonify({
             'success': True,
             'user': {
@@ -108,7 +119,15 @@ def get_conversation_messages(user_id):
                 'company': other_user.company,
                 'wallet_address': other_user.wallet_address
             },
-            'messages': message_list
+            'messages': message_list,
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total': pagination.total,
+                'pages': pagination.pages,
+                'has_next': pagination.has_next,
+                'has_prev': pagination.has_prev
+            }
         })
         
     except Exception as e:

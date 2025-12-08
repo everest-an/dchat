@@ -13,6 +13,8 @@ import CreateGroupDialog from './dialogs/CreateGroupDialog'
 import NewChatDialog from './NewChatDialog'
 import StatusBadge from './StatusBadge'
 import presenceService from '../services/PresenceService'
+import ContactImport from './ContactImport'
+import { Dialog, DialogContent, DialogTrigger } from './ui/dialog'
 const ChatList = ({ user }) => {
   const navigate = useNavigate()
   const { account } = useWeb3()
@@ -308,6 +310,18 @@ const ChatList = ({ user }) => {
           <Plus className="w-4 h-4 mr-2" />
           Create Group
         </Button>
+        
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="ghost" className="w-full text-gray-600">
+              <Users className="w-4 h-4 mr-2" />
+              Find Friends from Contacts
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md p-0 border-0 bg-transparent shadow-none">
+            <ContactImport />
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Dialogs */}
