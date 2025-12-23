@@ -229,7 +229,7 @@ const ChatList = ({ user }) => {
     return new Date(timestamp).toLocaleDateString()
   }
 
-  // Render conversation item
+  // Render conversation item - forced update v2
   const renderConversation = (conv) => (
     <div
       key={conv.address}
