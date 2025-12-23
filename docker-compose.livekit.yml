@@ -1,0 +1,50 @@
+# LiveKit Server Docker Compose Configuration
+# 
+# This file sets up a LiveKit server for Dchat's audio/video calling features.
+# 
+# Usage:
+#   docker-compose -f docker-compose.livekit.yml up -d
+#
+# Author: Manus AI
+# Date: 2024-11-13
+
+version: '3.9'
+
+services:
+  livekit:
+    image: livekit/livekit-server:v1.9.3
+    container_name: dchat-livekit
+    command: --config /etc/livekit.yaml
+    ports:
+      - "7880:7880"   # HTTP/WebSocket
+      - "7881:7881"   # TURN/TCP
+      - "7882:7882/udp"  # TURN/UDP
+      - "50000-60000:50000-60000/udp"  # RTP/UDP range
+    environment:
+      - LIVEKIT_KEYS=${LIVEKIT_API_KEY:-devkey}: ${LIVEKIT_API_SECRET:-secret}
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml
+      - livekit-data:/livekit
+    restart: unless-stopped
+    networks:
+      - dchat-network
+
+  # Optional: Redis for LiveKit state management
+  redis:
+    image: redis:7-alpine
+    container_name: dchat-livekit-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - dchat-network
+
+volumes:
+  livekit-data:
+  redis-data:
+
+networks:
+  dchat-network:
+    driver: bridge

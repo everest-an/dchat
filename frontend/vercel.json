@@ -1,0 +1,85 @@
+{
+  "version": 2,
+  "name": "dchat",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install --legacy-peer-deps",
+  "framework": "vite",
+  "regions": ["iad1"],
+  "env": {
+    "VITE_API_URL": "@vite_api_url",
+    "VITE_SOCKET_URL": "@vite_socket_url",
+    "VITE_PINATA_GATEWAY": "@vite_pinata_gateway",
+    "VITE_PINATA_JWT": "@vite_pinata_jwt",
+    "VITE_ALCHEMY_API_KEY": "@vite_alchemy_api_key",
+    "VITE_ETHERSCAN_API_KEY": "@vite_etherscan_api_key"
+  },
+  "build": {
+    "env": {
+      "VITE_API_URL": "@vite_api_url",
+      "VITE_SOCKET_URL": "@vite_socket_url",
+      "VITE_PINATA_GATEWAY": "@vite_pinata_gateway",
+      "VITE_PINATA_JWT": "@vite_pinata_jwt",
+      "VITE_ALCHEMY_API_KEY": "@vite_alchemy_api_key",
+      "VITE_ETHERSCAN_API_KEY": "@vite_etherscan_api_key"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/home",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
+  "trailingSlash": false,
+  "cleanUrls": true,
+  "github": {
+    "enabled": true,
+    "autoAlias": true,
+    "silent": false
+  }
+}
+
