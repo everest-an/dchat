@@ -1,0 +1,9 @@
+{
+  "network": "sepolia",
+  "deployer": "0x66794fC75C351ad9677cB00B2043868C11dfcadA",
+  "timestamp": "2025-10-20T13:34:01.139Z",
+  "contracts": {
+    "UserIdentityV2": "0x6BCF16f82F8d3A37b7b6fd59DeE9adf95B1BA5a1",
+    "MessageStorageV2": "0x906626694a065bEECf51F2C776f272bDB67Ce174"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "dchat-contracts",
+  "version": "1.0.0",
+  "description": "Dchat Smart Contracts for Ethereum Hackathon",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:local": "hardhat run deploy.js --network hardhat",
+    "deploy:sepolia": "hardhat run deploy.js --network sepolia",
+    "deploy:goerli": "hardhat run deploy.js --network goerli",
+    "deploy:mumbai": "hardhat run deploy.js --network mumbai",
+    "verify": "hardhat verify",
+    "clean": "hardhat clean"
+  },
+  "keywords": [
+    "ethereum",
+    "solidity",
+    "smart-contracts",
+    "web3",
+    "dchat",
+    "blockchain",
+    "messaging",
+    "escrow"
+  ],
+  "author": "Dchat Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0",
+    "dotenv": "^16.3.1"
+  }
+}
