@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import './index.css';
+import { Analytics } from '@vercel/analytics/react';
 
 // 全局错误处理
 window.addEventListener('error', (event) => {
@@ -28,6 +29,7 @@ try {
   root.render(
     <React.StrictMode>
       <App />
+      <Analytics />
     </React.StrictMode>
   );
   console.log('✅ App rendered');
