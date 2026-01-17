@@ -143,8 +143,9 @@
   - 确保所有测试通过，如有问题请询问用户
 
 - [ ] 10. 部署和验证
-  - [ ] 10.1 提交代码到 GitHub
-    - git add, commit, push
+  - [~] 10.1 提交代码到 GitHub
+    - git add, commit 已完成
+    - git push 需要重试（网络问题）
     - _Requirements: All_
   - [ ] 10.2 触发 Vercel 重新部署
     - 前端自动部署

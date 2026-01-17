@@ -5,10 +5,13 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT UNIQUE,
   phone TEXT UNIQUE,
   alipay_id TEXT UNIQUE,
-  login_method TEXT NOT NULL CHECK (login_method IN ('wallet', 'email', 'phone', 'alipay')),
+  login_method TEXT NOT NULL CHECK (login_method IN ('wallet', 'email', 'phone', 'alipay', 'password')),
+  password_hash TEXT,
   encrypted_wallet TEXT,
   display_name TEXT,
   avatar_url TEXT,
+  email_verified BOOLEAN DEFAULT FALSE,
+  last_login TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
