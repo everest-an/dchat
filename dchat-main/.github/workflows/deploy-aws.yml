@@ -1,0 +1,75 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Deploy to EC2
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          # 配置 SSH
+          mkdir -p ~/.ssh
+          echo "$EC2_SSH_KEY" > ~/.ssh/deploy_key.pem
+          chmod 600 ~/.ssh/deploy_key.pem
+          ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
+          
+          # 部署脚本
+          ssh -i ~/.ssh/deploy_key.pem $EC2_USER@$EC2_HOST << 'ENDSSH'
+            set -e
+            
+            echo "=== 开始部署 Dchat 到 AWS EC2 ==="
+            
+            # 进入项目目录
+            cd /home/ubuntu/dchat || { echo "项目目录不存在"; exit 1; }
+            
+            # 拉取最新代码
+            echo "拉取最新代码..."
+            git pull origin main
+            
+            # 安装后端依赖
+            echo "安装后端依赖..."
+            cd backend
+            pip3 install --user -r requirements.txt
+            
+            # 启动/重启后端服务
+            echo "重启后端服务..."
+            pkill -f "python3.*src.main" || true
+            nohup python3 -m src.main > /tmp/dchat-backend.log 2>&1 &
+            
+            # 构建前端
+            echo "构建前端..."
+            cd ../frontend
+            
+            # 安装 pnpm (如果未安装)
+            if ! command -v pnpm &> /dev/null; then
+              echo "安装 pnpm..."
+              npm install -g pnpm
+            fi
+            
+            pnpm install
+            pnpm build
+            
+            # 配置 Nginx (如果需要)
+            if [ -f /etc/nginx/sites-available/dchat ]; then
+              echo "重启 Nginx..."
+              sudo systemctl restart nginx
+            fi
+            
+            echo "=== 部署完成! ==="
+            echo "后端日志: tail -f /tmp/dchat-backend.log"
+          ENDSSH
+          
+          echo "✅ 部署成功完成!"

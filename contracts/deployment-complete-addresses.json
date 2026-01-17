@@ -1,0 +1,12 @@
+{
+  "network": "sepolia",
+  "deployer": "0x66794fC75C351ad9677cB00B2043868C11dfcadA",
+  "timestamp": "2025-10-20T13:38:12.977Z",
+  "contracts": {
+    "UserIdentityV2": "0xa9403dCaBE90076e5aB9d942A2076f50ba96Ac2A",
+    "MessageStorageV2": "0x026371EA6a59Fc1B42551f44cd1fedA9521b09F5",
+    "PaymentEscrow": "0x199e4e527e625b7BF816a56Dbe65635EFf653500",
+    "ProjectCollaboration": "0x6Cb92a0D491e3316091e4C8680dFAD8009785579",
+    "LivingPortfolio": "0x1B57F4fA3fdc02b1F6c7F1b9646Ddfa6d7f86B48"
+  }
+}

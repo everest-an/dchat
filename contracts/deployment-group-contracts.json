@@ -1,0 +1,15 @@
+{
+  "network": "sepolia",
+  "deployer": "0x66794fC75C351ad9677cB00B2043868C11dfcadA",
+  "timestamp": "2025-11-04T16:58:48.910Z",
+  "contracts": {
+    "GroupChatV2": "0x4f93AEaAE5981fd6C95cFA8096D31D3d92ae2F28",
+    "GroupPayment": "0x788Ba6e9B0EB746F58E4bab891B9c0add8359541",
+    "RedPacket": "0x0354fCfB243639d37F84E8d00031422655219f75"
+  },
+  "transactionHashes": {
+    "GroupChatV2": "0xa34dd0d7825e1a15798547a6019c82a970fa8ab82b77db0e5b5416f52cf3f2b6",
+    "GroupPayment": "0x2c19b73654abf287a619ceee2f621159809a20e8109762fe9bd74e0b795df2f1",
+    "RedPacket": "0x6d0ba7fa8a8c7eabc2338dd0559b6cb237708da821a6103b34b4124b12cca31a"
+  }
+}

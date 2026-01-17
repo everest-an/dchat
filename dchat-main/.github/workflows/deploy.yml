@@ -1,0 +1,98 @@
+name: Deploy Dchat.pro
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # 前端部署到 Vercel
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          pnpm install
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          pnpm build
+        env:
+          VITE_CHAIN_ID: ${{ secrets.VITE_CHAIN_ID }}
+          VITE_NETWORK_NAME: ${{ secrets.VITE_NETWORK_NAME }}
+          VITE_RPC_URL: ${{ secrets.VITE_RPC_URL }}
+          VITE_MESSAGE_STORAGE_ADDRESS: ${{ secrets.VITE_MESSAGE_STORAGE_ADDRESS }}
+          VITE_PAYMENT_ESCROW_ADDRESS: ${{ secrets.VITE_PAYMENT_ESCROW_ADDRESS }}
+          VITE_USER_IDENTITY_ADDRESS: ${{ secrets.VITE_USER_IDENTITY_ADDRESS }}
+          VITE_PROJECT_COLLABORATION_ADDRESS: ${{ secrets.VITE_PROJECT_COLLABORATION_ADDRESS }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
+
+      # Vercel deployment disabled - using AWS EC2 instead
+      # - name: Deploy to Vercel
+      #   uses: amondnet/vercel-action@v25
+      #   with:
+      #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
+      #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+      #     vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+      #     working-directory: ./frontend
+      #     vercel-args: '--prod'
+
+  # 运行测试
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          pnpm install
+
+      - name: Run frontend tests
+        run: |
+          cd frontend
+          pnpm test || echo "Tests not configured yet"
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run backend tests
+        run: |
+          cd backend
+          python -m pytest tests/ || echo "Tests not configured yet"

@@ -1,0 +1,81 @@
+# LiveKit Server Configuration for Dchat
+# 
+# This configuration file sets up LiveKit for development and production use.
+# Adjust settings based on your deployment environment.
+#
+# Documentation: https://docs.livekit.io/deploy/configuration/
+
+# Port configuration
+port: 7880
+bind_addresses:
+  - ""  # Bind to all interfaces
+
+# RTC configuration
+rtc:
+  # Port range for WebRTC connections
+  port_range_start: 50000
+  port_range_end: 60000
+  
+  # Use external IP for ICE candidates (set this in production)
+  # use_external_ip: true
+  # node_ip: "YOUR_PUBLIC_IP"
+  
+  # TURN server configuration
+  turn_servers:
+    - host: ""  # Will use the same host as LiveKit
+      protocol: udp
+      port: 7882
+    - host: ""
+      protocol: tcp
+      port: 7881
+  
+  # Enable TCP fallback
+  tcp_port: 7881
+  
+  # ICE server configuration
+  ice_servers:
+    - urls:
+        - stun:stun.l.google.com:19302
+        - stun:stun1.l.google.com:19302
+
+# Room configuration
+room:
+  # Auto-create rooms when participants join
+  auto_create: true
+  
+  # Empty room timeout (seconds)
+  empty_timeout: 300  # 5 minutes
+  
+  # Max participants per room
+  max_participants: 8  # Adjust based on your needs
+  
+  # Enable room recording
+  enable_recording: false
+
+# API keys (can also be set via environment variables)
+# keys:
+#   devkey: secret
+
+# Logging configuration
+logging:
+  level: info  # debug, info, warn, error
+  sample: false
+  
+# Redis configuration (optional, for multi-node setups)
+# redis:
+#   address: redis:6379
+#   username: ""
+#   password: ""
+#   db: 0
+
+# Webhooks (optional)
+# webhook:
+#   urls:
+#     - http://your-backend:5000/api/webhooks/livekit
+#   api_key: your_webhook_secret
+
+# Region configuration (for multi-region deployments)
+# region: us-west
+
+# Development mode settings
+# dev_mode: true

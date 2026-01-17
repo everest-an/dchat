@@ -1,0 +1,9 @@
+{
+  "network": "sepolia",
+  "deployer": "0x66794fC75C351ad9677cB00B2043868C11dfcadA",
+  "timestamp": "2025-11-04T19:32:48.792Z",
+  "contracts": {
+    "SubscriptionManager": "0x5d154C1A6DE2B10aFcCd139A4aBa3bbCfd8A31c8",
+    "NFTAvatarManager": "0xF91E0E6afF5A93831F67838539245a44Ca384187"
+  }
+}
