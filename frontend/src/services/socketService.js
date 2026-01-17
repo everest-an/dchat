@@ -196,8 +196,9 @@ class SocketService {
    * @param {string} roomId - Room ID
    * @param {string} message - Message content
    * @param {string} messageId - Unique message ID
+   * @param {boolean} isEncrypted - Whether the message is encrypted
    */
-  sendMessage(roomId, message, messageId = null) {
+  sendMessage(roomId, message, messageId = null, isEncrypted = false) {
     if (!this.socket || !this.connected) {
       console.error('Not connected to Socket.IO server');
       return;
@@ -208,6 +209,7 @@ class SocketService {
     this.socket.emit('send_message', {
       room_id: roomId,
       message: message,
+      is_encrypted: isEncrypted,
       message_id: msgId,
       timestamp: Date.now()
     });

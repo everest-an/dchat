@@ -8,11 +8,21 @@
   background: rgba(255, 255, 255, 0.95);
   font-weight: 500;
   transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
 }
 
 .verification-badge:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.verification-badge-kyc {
+  border-style: solid;
+}
+
+.verification-badge-kyb {
+  border-style: dashed;
 }
 
 .verification-badge-small {
@@ -53,4 +63,96 @@
 
 .verification-label {
   white-space: nowrap;
+}
+
+/* Tooltip Styles */
+.verification-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  min-width: 220px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+
+.verification-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: white;
+}
+
+.tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.tooltip-icon {
+  font-size: 20px;
+}
+
+.tooltip-title {
+  font-weight: 600;
+  color: #111827;
+}
+
+.tooltip-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.tooltip-label {
+  color: #6b7280;
+}
+
+.tooltip-value {
+  color: #111827;
+  font-weight: 500;
+}
+
+.tooltip-truncate {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expiring-soon {
+  color: #f59e0b !important;
+}
+
+.tooltip-footer {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.zkp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 2px 8px;
+  border-radius: 4px;
 }

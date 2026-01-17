@@ -126,27 +126,27 @@ export class ContractService {
    * TODO: Translate '格式化以太币金额'
    */
   static formatEther(value) {
-    return ethers.utils.formatEther(value)
+    return ethers.formatEther(value)
   }
 
   /**
    * TODO: Translate '解析以太币金额'
    */
   static parseEther(value) {
-    return ethers.utils.parseEther(value.toString())
+    return ethers.parseEther(value.toString())
   }
 
   /**
    * TODO: Translate '格式化' Token TODO: Translate '金额'
    */
   static formatUnits(value, decimals = 18) {
-    return ethers.utils.formatUnits(value, decimals)
+    return ethers.formatUnits(value, decimals)
   }
 
   /**
    * TODO: Translate '解析' Token TODO: Translate '金额'
    */
   static parseUnits(value, decimals = 18) {
-    return ethers.utils.parseUnits(value.toString(), decimals)
+    return ethers.parseUnits(value.toString(), decimals)
   }
 }

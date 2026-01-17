@@ -17,6 +17,8 @@ import {
 } from '@chatscope/chat-ui-kit-react';
 import { socketService } from '../services/socketService';
 import { apiCall, API_ENDPOINTS } from '../config/api';
+import VerificationBadge from './PrivadoID/VerificationBadge';
+import PrivadoIDService from '../services/privadoid/PrivadoIDService';
 
 // Demo data for fallback mode
 const DEMO_CONVERSATIONS = [
@@ -26,7 +28,11 @@ const DEMO_CONVERSATIONS = [
     lastMessage: "Hey, how are you?",
     time: "5m ago",
     unread: 2,
-    avatar: "https://ui-avatars.com/api/?name=Alice+Johnson&background=4F46E5&color=fff"
+    avatar: "https://ui-avatars.com/api/?name=Alice+Johnson&background=4F46E5&color=fff",
+    userId: 101,
+    verifications: [
+      { verification_type: 'kyc_humanity', status: 'active', verified_at: '2025-01-10', issuer_did: 'did:polygonid:demo' }
+    ]
   },
   {
     id: 'demo-2',
@@ -34,7 +40,12 @@ const DEMO_CONVERSATIONS = [
     lastMessage: "Let's discuss the project",
     time: "1h ago",
     unread: 0,
-    avatar: "https://ui-avatars.com/api/?name=Bob+Smith&background=10B981&color=fff"
+    avatar: "https://ui-avatars.com/api/?name=Bob+Smith&background=10B981&color=fff",
+    userId: 102,
+    verifications: [
+      { verification_type: 'kyb_registration', status: 'active', verified_at: '2025-01-08', issuer_did: 'did:polygonid:demo' },
+      { verification_type: 'kyc_humanity', status: 'active', verified_at: '2025-01-05', issuer_did: 'did:polygonid:demo' }
+    ]
   },
   {
     id: 'demo-3',
@@ -42,7 +53,9 @@ const DEMO_CONVERSATIONS = [
     lastMessage: "Thanks for the update!",
     time: "3h ago",
     unread: 1,
-    avatar: "https://ui-avatars.com/api/?name=Carol+White&background=F59E0B&color=fff"
+    avatar: "https://ui-avatars.com/api/?name=Carol+White&background=F59E0B&color=fff",
+    userId: 103,
+    verifications: []
   }
 ];
 
@@ -260,7 +273,24 @@ const ChatInterface = () => {
             {conversations.map((conversation) => (
               <Conversation
                 key={conversation.id}
-                name={conversation.name}
+                name={
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>{conversation.name}</span>
+                    {/* 在会话列表显示验证徽章 */}
+                    {conversation.verifications && conversation.verifications.filter(v => v.status === 'active').length > 0 && (
+                      <div style={{ display: 'flex', gap: '2px' }}>
+                        {conversation.verifications.filter(v => v.status === 'active').slice(0, 2).map((v, idx) => (
+                          <VerificationBadge 
+                            key={idx} 
+                            verification={v} 
+                            size="small" 
+                            showLabel={false}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                }
                 lastSenderName={conversation.name}
                 info={conversation.lastMessage}
                 active={activeConversation.id === conversation.id}
@@ -278,7 +308,24 @@ const ChatInterface = () => {
             <ConversationHeader.Back />
             <Avatar src={activeConversation.avatar} name={activeConversation.name} />
             <ConversationHeader.Content
-              userName={activeConversation.name}
+              userName={
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>{activeConversation.name}</span>
+                  {/* 在会话头部显示验证徽章 */}
+                  {activeConversation.verifications && activeConversation.verifications.length > 0 && (
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      {activeConversation.verifications.filter(v => v.status === 'active').slice(0, 3).map((v, idx) => (
+                        <VerificationBadge 
+                          key={idx} 
+                          verification={v} 
+                          size="small" 
+                          showLabel={false}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              }
               info="Active now"
             />
             <ConversationHeader.Actions>
@@ -349,6 +396,26 @@ const ChatInterface = () => {
                   position: msg.position
                 }}
               >
+                {msg.direction === 'incoming' && (
+                  <Message.Header>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontWeight: 500, fontSize: '13px', color: '#374151' }}>{msg.sender}</span>
+                      {/* 显示发送者的验证徽章 */}
+                      {activeConversation.verifications && activeConversation.verifications.length > 0 && (
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          {activeConversation.verifications.filter(v => v.status === 'active').slice(0, 2).map((v, idx) => (
+                            <VerificationBadge 
+                              key={idx} 
+                              verification={v} 
+                              size="small" 
+                              showLabel={false}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </Message.Header>
+                )}
                 {msg.direction === 'incoming' && (
                   <Avatar src={activeConversation.avatar} name={msg.sender} />
                 )}

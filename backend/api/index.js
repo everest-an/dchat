@@ -17,6 +17,7 @@ app.use(express.json());
 let authControllerLoaded = false;
 let verificationControllerLoaded = false;
 let profileControllerLoaded = false;
+let publicKeyControllerLoaded = false;
 let loadError = null;
 let supabaseConnected = false;
 
@@ -59,6 +60,7 @@ app.get('/health', async (req, res) => {
       authController: authControllerLoaded,
       verificationController: verificationControllerLoaded,
       profileController: profileControllerLoaded,
+      publicKeyController: publicKeyControllerLoaded,
       supabase: supabaseConnected
     }
   });
@@ -164,6 +166,50 @@ try {
   
   app.put('/api/profile/business', (req, res) => {
     res.json({ success: true, data: req.body });
+  });
+}
+
+// Public Key routes
+try {
+  const publicKeyRoutes = require('../src/routes/publicKey');
+  publicKeyControllerLoaded = true;
+  
+  app.use('/api/public-keys', publicKeyRoutes);
+  
+  console.log('✅ Public key controller loaded successfully');
+} catch (error) {
+  console.error('❌ Failed to load public key controller:', error.message);
+  
+  // Fallback routes - 使用本地存储模式
+  const localKeyStore = {};
+  
+  app.get('/api/public-keys/address/:address', (req, res) => {
+    const key = localKeyStore[req.params.address?.toLowerCase()];
+    if (key) {
+      res.json({ success: true, data: key });
+    } else {
+      res.status(404).json({ success: false, error: 'Public key not found' });
+    }
+  });
+  
+  app.post('/api/public-keys/register', (req, res) => {
+    const { walletAddress, publicKey, keyFormat } = req.body;
+    if (walletAddress && publicKey) {
+      localKeyStore[walletAddress.toLowerCase()] = { publicKey, keyFormat, createdAt: new Date().toISOString() };
+      res.json({ success: true, message: 'Public key registered (demo mode)' });
+    } else {
+      res.status(400).json({ success: false, error: 'Missing required fields' });
+    }
+  });
+  
+  app.post('/api/public-keys/batch', (req, res) => {
+    const { addresses } = req.body;
+    const result = {};
+    (addresses || []).forEach(addr => {
+      const key = localKeyStore[addr?.toLowerCase()];
+      if (key) result[addr.toLowerCase()] = key;
+    });
+    res.json({ success: true, data: result });
   });
 }
 

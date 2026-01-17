@@ -51,6 +51,16 @@
   border-bottom: 1px solid #e0e0e0;
 }
 
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-icon {
+  font-size: 24px;
+}
+
 .verification-dialog-header h2 {
   margin: 0;
   font-size: 20px;
@@ -84,8 +94,21 @@
   min-height: 200px;
 }
 
+/* Demo Banner */
+.demo-banner {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: #92400e;
+}
+
 .loading-state,
-.error-state {
+.error-state,
+.success-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -113,9 +136,49 @@
   color: #666;
 }
 
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
 .error-message {
   color: #f44336;
   margin-bottom: 16px;
+}
+
+.retry-button {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.retry-button:hover {
+  background: #d32f2f;
+}
+
+/* Success State */
+.success-state {
+  text-align: center;
+}
+
+.success-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.success-state h3 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.success-state p {
+  color: #666;
+  margin: 0;
 }
 
 .qr-state {
@@ -138,6 +201,42 @@
   margin-bottom: 24px;
 }
 
+/* QR Placeholder (when QRCode library not available) */
+.qr-placeholder {
+  width: 200px;
+  height: 200px;
+  border: 3px solid;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+}
+
+.qr-inner {
+  text-align: center;
+}
+
+.qr-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.qr-text {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 8px 0;
+}
+
+.qr-id {
+  font-size: 11px;
+  color: #999;
+  background: #f5f5f5;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
 .alternative-options {
   margin-top: 24px;
 }
@@ -147,29 +246,11 @@
   color: #999;
   font-size: 13px;
   margin: 20px 0;
-  position: relative;
-}
-
-.or-divider::before,
-.or-divider::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: 40%;
-  height: 1px;
-  background: #e0e0e0;
-}
-
-.or-divider::before {
-  left: 0;
-}
-
-.or-divider::after {
-  right: 0;
 }
 
 .wallet-button,
-.copy-link-button {
+.copy-link-button,
+.demo-verify-button {
   width: 100%;
   padding: 12px 24px;
   margin: 8px 0;
@@ -179,6 +260,10 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .wallet-button {
@@ -187,7 +272,7 @@
 }
 
 .wallet-button:hover {
-  background: #1976D2;
+  filter: brightness(1.1);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
 }
@@ -199,6 +284,15 @@
 
 .copy-link-button:hover {
   background: #e0e0e0;
+}
+
+.demo-verify-button {
+  background: #10b981;
+  color: white;
+}
+
+.demo-verify-button:hover {
+  background: #059669;
 }
 
 .help-text {
@@ -221,4 +315,10 @@
 
 .help-text a:hover {
   text-decoration: underline;
+}
+
+.expiry-notice {
+  margin-top: 16px;
+  font-size: 12px;
+  color: #999;
 }

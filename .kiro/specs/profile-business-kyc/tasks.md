@@ -105,8 +105,8 @@
 ### Acceptance Criteria
 - [x] 正确调用后端 API
 - [x] Demo 模式下显示模拟数据
-- [ ] QR 码正确显示 (需要 VerificationRequestDialog 更新)
-- [ ] 验证状态实时更新 (需要 WebSocket 或轮询)
+- [x] QR 码正确显示
+- [x] 验证状态实时更新
 
 ---
 
@@ -126,9 +126,9 @@
 
 ### Acceptance Criteria
 - [x] 后端 sync-profile 端点已创建
-- [ ] LinkedIn 连接后可导入数据 (需要前端更新)
-- [ ] 用户可选择导入哪些字段
-- [ ] 导入成功更新 ProfileEditDialog
+- [x] LinkedIn 连接后可导入数据
+- [x] 用户可选择导入哪些字段
+- [x] 导入成功更新 ProfileEditDialog
 
 ---
 
@@ -139,18 +139,18 @@
 
 ### Files to Modify
 - `frontend/src/components/Profile.jsx`
-- `frontend/src/components/ChatInterface.jsx`
 - `frontend/src/components/PrivadoID/VerificationBadge.jsx`
 
 ### Implementation Details
 1. 在 Profile 页面显示验证徽章
-2. 在聊天消息旁显示徽章
-3. 点击徽章显示详情
+2. 点击徽章显示详情
+3. KYC/KYB 不同样式
 
 ### Acceptance Criteria
-- [ ] KYC 和 KYB 徽章样式不同
-- [ ] 点击显示验证详情
-- [ ] 过期徽章自动隐藏
+- [x] KYC 和 KYB 徽章样式不同
+- [x] 点击显示验证详情
+- [x] 过期徽章自动隐藏
+- [x] 在聊天消息旁显示徽章 (Phase 2 - 已完成)
 
 ---
 
@@ -171,3 +171,28 @@
 - [x] 所有新路由可访问
 - [x] 错误处理正确
 - [x] 降级模式正常工作
+
+
+---
+
+## Summary
+
+### Completed Features (Phase 1 & Phase 2)
+1. **ProfileEditDialog** - 修复 API URL，添加 Demo 模式，Business Info tab
+2. **Backend Controllers** - verificationController.js, profileController.js
+3. **PrivadoIDService** - 更新正确的 API URL 和 Demo 模式回退
+4. **VerificationManager** - 完整的 KYC/KYB 管理 UI
+5. **VerificationRequestDialog** - QR 码显示，状态轮询，Demo 模式
+6. **VerificationBadge** - KYC/KYB 区分样式，工具提示，过期警告
+7. **Profile.jsx** - 验证徽章显示，管理按钮
+8. **LinkedInConnect** - 导入到档案功能
+9. **Database Tables** - user_business_info, user_verifications, linkedin_connections
+10. **API Routes** - 所有路由已注册到 backend/api/index.js
+11. **ChatInterface.jsx** - 聊天消息旁显示验证徽章 (Phase 2)
+
+### Future Enhancements (Phase 3)
+- 真实 Privado ID ZKP 验证（目前为 Demo 模式）
+- LinkedIn OAuth 集成（目前为 Demo 模式）
+- 群聊中显示多用户验证徽章
+
+### Status: ✅ COMPLETE (Phase 1 & Phase 2)
