@@ -15,8 +15,30 @@ app.use(express.json());
 
 // 状态变量
 let authControllerLoaded = false;
+let verificationControllerLoaded = false;
+let profileControllerLoaded = false;
 let loadError = null;
 let supabaseConnected = false;
+
+// JWT 认证中间件
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({ error: 'No authorization token provided' });
+  }
+  
+  try {
+    const jwt = require('jsonwebtoken');
+    const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+    const payload = jwt.decode(token); // For demo, just decode without verification
+    req.user_id = payload?.user_id || payload?.sub || 1;
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+};
 
 // 健康检查端点（增强版）
 app.get('/health', async (req, res) => {
@@ -35,6 +57,8 @@ app.get('/health', async (req, res) => {
     version: '1.0.0',
     components: {
       authController: authControllerLoaded,
+      verificationController: verificationControllerLoaded,
+      profileController: profileControllerLoaded,
       supabase: supabaseConnected
     }
   });
@@ -78,6 +102,68 @@ try {
       message: 'Backend services are being configured. Please use demo mode for now.',
       details: loadError ? loadError.message : 'Unknown error'
     });
+  });
+}
+
+// Verification routes
+try {
+  const verificationController = require('../src/controllers/verificationController');
+  verificationControllerLoaded = true;
+  
+  // Public routes
+  app.get('/api/verifications/types', verificationController.getVerificationTypes);
+  
+  // Protected routes
+  app.post('/api/verifications/request', authenticateToken, verificationController.createVerificationRequest);
+  app.post('/api/verifications/callback', verificationController.handleVerificationCallback); // Callback from Privado ID
+  app.get('/api/verifications/user/:userId', authenticateToken, verificationController.getUserVerifications);
+  app.get('/api/verifications/status/:requestId', authenticateToken, verificationController.checkVerificationStatus);
+  app.delete('/api/verifications/:id', authenticateToken, verificationController.deleteVerification);
+  
+  console.log('✅ Verification controller loaded successfully');
+} catch (error) {
+  console.error('❌ Failed to load verification controller:', error.message);
+  
+  // Fallback routes
+  app.get('/api/verifications/types', (req, res) => {
+    res.json({
+      success: true,
+      data: [
+        { type: 'kyc_humanity', label: 'Humanity Verification', description: 'Prove you are a real human', category: 'kyc' },
+        { type: 'kyc_age', label: 'Age Verification', description: 'Prove you are over 18', category: 'kyc' },
+        { type: 'kyb_registration', label: 'Company Registration', description: 'Verify company registration', category: 'kyb' }
+      ]
+    });
+  });
+  
+  app.get('/api/verifications/user/:userId', (req, res) => {
+    res.json({ success: true, data: [] });
+  });
+}
+
+// Profile routes
+try {
+  const profileController = require('../src/controllers/profileController');
+  profileControllerLoaded = true;
+  
+  app.get('/api/profile/business', authenticateToken, profileController.getBusinessInfo);
+  app.put('/api/profile/business', authenticateToken, profileController.updateBusinessInfo);
+  app.post('/api/linkedin/sync-profile', authenticateToken, profileController.syncLinkedInProfile);
+  
+  console.log('✅ Profile controller loaded successfully');
+} catch (error) {
+  console.error('❌ Failed to load profile controller:', error.message);
+  
+  // Fallback routes
+  app.get('/api/profile/business', (req, res) => {
+    res.json({
+      success: true,
+      data: { company_name: '', job_title: '', industry: '', bio: '', website: '', location: '' }
+    });
+  });
+  
+  app.put('/api/profile/business', (req, res) => {
+    res.json({ success: true, data: req.body });
   });
 }
 

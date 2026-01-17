@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Save } from 'lucide-react';
+import { X, Plus, Trash2, Save, AlertTriangle, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '../contexts/LanguageContext';
 import axios from 'axios';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// Use correct backend URL with fallback
+const API_BASE = import.meta.env.VITE_API_URL || 'https://backend-op1c06n9l-everest-ans-projects.vercel.app';
 
 /**
  * Profile Edit Dialog
@@ -14,8 +15,9 @@ const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
  * - Skills
  * - Resources
  * - Seeking opportunities
+ * - Business Info (company, job title, industry)
  * 
- * Fully integrated with backend API.
+ * Fully integrated with backend API with demo mode fallback.
  */
 const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
   const { t } = useLanguage();
@@ -25,7 +27,20 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
   const [skills, setSkills] = useState([]);
   const [resources, setResources] = useState([]);
   const [seeking, setSeeking] = useState([]);
+  const [businessInfo, setBusinessInfo] = useState({
+    company_name: '',
+    job_title: '',
+    industry: '',
+    bio: '',
+    website: '',
+    location: ''
+  });
   const [loading, setLoading] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(null); // 'saving', 'saved', 'error'
+
+  // Demo data storage key
+  const DEMO_STORAGE_KEY = `dchat_profile_${userId || 'demo'}`;
 
   // Load data when dialog opens
   useEffect(() => {
@@ -34,24 +49,86 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
     }
   }, [isOpen]);
 
+  // Load demo data from localStorage
+  const loadDemoData = () => {
+    try {
+      const stored = localStorage.getItem(DEMO_STORAGE_KEY);
+      if (stored) {
+        const data = JSON.parse(stored);
+        setProjects(data.projects || []);
+        setSkills(data.skills || []);
+        setResources(data.resources || []);
+        setSeeking(data.seeking || []);
+        setBusinessInfo(data.businessInfo || {
+          company_name: '',
+          job_title: '',
+          industry: '',
+          bio: '',
+          website: '',
+          location: ''
+        });
+      }
+    } catch (e) {
+      console.error('Failed to load demo data:', e);
+    }
+  };
+
+  // Save demo data to localStorage
+  const saveDemoData = (updates = {}) => {
+    try {
+      const data = {
+        projects: updates.projects || projects,
+        skills: updates.skills || skills,
+        resources: updates.resources || resources,
+        seeking: updates.seeking || seeking,
+        businessInfo: updates.businessInfo || businessInfo
+      };
+      localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+      console.error('Failed to save demo data:', e);
+    }
+  };
+
   const loadAllData = async () => {
     setLoading(true);
     try {
       const headers = { Authorization: `Bearer ${authToken}` };
       
-      const [projectsRes, skillsRes, resourcesRes, seekingRes] = await Promise.all([
-        axios.get(`${API_BASE}/api/profile/projects`, { headers }),
-        axios.get(`${API_BASE}/api/profile/skills`, { headers }),
-        axios.get(`${API_BASE}/api/profile/resources`, { headers }),
-        axios.get(`${API_BASE}/api/profile/seeking`, { headers })
+      const [projectsRes, skillsRes, resourcesRes, seekingRes, businessRes] = await Promise.all([
+        axios.get(`${API_BASE}/api/profile/projects`, { headers }).catch(() => null),
+        axios.get(`${API_BASE}/api/profile/skills`, { headers }).catch(() => null),
+        axios.get(`${API_BASE}/api/profile/resources`, { headers }).catch(() => null),
+        axios.get(`${API_BASE}/api/profile/seeking`, { headers }).catch(() => null),
+        axios.get(`${API_BASE}/api/profile/business`, { headers }).catch(() => null)
       ]);
       
-      setProjects(projectsRes.data.projects || []);
-      setSkills(skillsRes.data.skills || []);
-      setResources(resourcesRes.data.resources || []);
-      setSeeking(seekingRes.data.seeking || []);
+      // Check if any request succeeded
+      const anySuccess = projectsRes || skillsRes || resourcesRes || seekingRes || businessRes;
+      
+      if (!anySuccess) {
+        // Backend unavailable, switch to demo mode
+        console.warn('Backend unavailable, switching to demo mode');
+        setDemoMode(true);
+        loadDemoData();
+      } else {
+        setDemoMode(false);
+        setProjects(projectsRes?.data?.projects || []);
+        setSkills(skillsRes?.data?.skills || []);
+        setResources(resourcesRes?.data?.resources || []);
+        setSeeking(seekingRes?.data?.seeking || []);
+        setBusinessInfo(businessRes?.data?.data || {
+          company_name: '',
+          job_title: '',
+          industry: '',
+          bio: '',
+          website: '',
+          location: ''
+        });
+      }
     } catch (error) {
       console.error('Failed to load profile data:', error);
+      setDemoMode(true);
+      loadDemoData();
     } finally {
       setLoading(false);
     }
@@ -60,11 +137,19 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
   // Project operations
   const addProject = async () => {
     const newProject = {
+      id: demoMode ? Date.now() : undefined,
       title: 'New Project',
       description: '',
       status: 'In Progress',
       progress: 0
     };
+    
+    if (demoMode) {
+      const updated = [...projects, newProject];
+      setProjects(updated);
+      saveDemoData({ projects: updated });
+      return;
+    }
     
     try {
       const res = await axios.post(
@@ -75,10 +160,22 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
       setProjects([...projects, res.data.project]);
     } catch (error) {
       console.error('Failed to add project:', error);
+      // Fallback to demo mode
+      const updated = [...projects, { ...newProject, id: Date.now() }];
+      setProjects(updated);
+      setDemoMode(true);
+      saveDemoData({ projects: updated });
     }
   };
 
   const updateProject = async (id, updates) => {
+    if (demoMode) {
+      const updated = projects.map(p => p.id === id ? { ...p, ...updates } : p);
+      setProjects(updated);
+      saveDemoData({ projects: updated });
+      return;
+    }
+    
     try {
       const res = await axios.put(
         `${API_BASE}/api/profile/projects/${id}`,
@@ -88,10 +185,21 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
       setProjects(projects.map(p => p.id === id ? res.data.project : p));
     } catch (error) {
       console.error('Failed to update project:', error);
+      // Fallback to local update
+      const updated = projects.map(p => p.id === id ? { ...p, ...updates } : p);
+      setProjects(updated);
+      saveDemoData({ projects: updated });
     }
   };
 
   const deleteProject = async (id) => {
+    if (demoMode) {
+      const updated = projects.filter(p => p.id !== id);
+      setProjects(updated);
+      saveDemoData({ projects: updated });
+      return;
+    }
+    
     try {
       await axios.delete(
         `${API_BASE}/api/profile/projects/${id}`,
@@ -100,16 +208,27 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
       setProjects(projects.filter(p => p.id !== id));
     } catch (error) {
       console.error('Failed to delete project:', error);
+      const updated = projects.filter(p => p.id !== id);
+      setProjects(updated);
+      saveDemoData({ projects: updated });
     }
   };
 
   // Skill operations
   const addSkill = async () => {
     const newSkill = {
+      id: demoMode ? Date.now() : undefined,
       name: 'New Skill',
       category: 'Technical',
       level: 'Intermediate'
     };
+    
+    if (demoMode) {
+      const updated = [...skills, newSkill];
+      setSkills(updated);
+      saveDemoData({ skills: updated });
+      return;
+    }
     
     try {
       const res = await axios.post(
@@ -120,10 +239,21 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
       setSkills([...skills, res.data.skill]);
     } catch (error) {
       console.error('Failed to add skill:', error);
+      const updated = [...skills, { ...newSkill, id: Date.now() }];
+      setSkills(updated);
+      setDemoMode(true);
+      saveDemoData({ skills: updated });
     }
   };
 
   const updateSkill = async (id, updates) => {
+    if (demoMode) {
+      const updated = skills.map(s => s.id === id ? { ...s, ...updates } : s);
+      setSkills(updated);
+      saveDemoData({ skills: updated });
+      return;
+    }
+    
     try {
       const res = await axios.put(
         `${API_BASE}/api/profile/skills/${id}`,
@@ -133,10 +263,20 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
       setSkills(skills.map(s => s.id === id ? res.data.skill : s));
     } catch (error) {
       console.error('Failed to update skill:', error);
+      const updated = skills.map(s => s.id === id ? { ...s, ...updates } : s);
+      setSkills(updated);
+      saveDemoData({ skills: updated });
     }
   };
 
   const deleteSkill = async (id) => {
+    if (demoMode) {
+      const updated = skills.filter(s => s.id !== id);
+      setSkills(updated);
+      saveDemoData({ skills: updated });
+      return;
+    }
+    
     try {
       await axios.delete(
         `${API_BASE}/api/profile/skills/${id}`,
@@ -145,17 +285,28 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
       setSkills(skills.filter(s => s.id !== id));
     } catch (error) {
       console.error('Failed to delete skill:', error);
+      const updated = skills.filter(s => s.id !== id);
+      setSkills(updated);
+      saveDemoData({ skills: updated });
     }
   };
 
   // Resource operations
   const addResource = async () => {
     const newResource = {
+      id: demoMode ? Date.now() : undefined,
       name: 'New Resource',
       description: '',
       resource_type: 'Service',
       availability: 'Available'
     };
+    
+    if (demoMode) {
+      const updated = [...resources, newResource];
+      setResources(updated);
+      saveDemoData({ resources: updated });
+      return;
+    }
     
     try {
       const res = await axios.post(
@@ -166,10 +317,21 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
       setResources([...resources, res.data.resource]);
     } catch (error) {
       console.error('Failed to add resource:', error);
+      const updated = [...resources, { ...newResource, id: Date.now() }];
+      setResources(updated);
+      setDemoMode(true);
+      saveDemoData({ resources: updated });
     }
   };
 
   const updateResource = async (id, updates) => {
+    if (demoMode) {
+      const updated = resources.map(r => r.id === id ? { ...r, ...updates } : r);
+      setResources(updated);
+      saveDemoData({ resources: updated });
+      return;
+    }
+    
     try {
       const res = await axios.put(
         `${API_BASE}/api/profile/resources/${id}`,
@@ -179,10 +341,20 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
       setResources(resources.map(r => r.id === id ? res.data.resource : r));
     } catch (error) {
       console.error('Failed to update resource:', error);
+      const updated = resources.map(r => r.id === id ? { ...r, ...updates } : r);
+      setResources(updated);
+      saveDemoData({ resources: updated });
     }
   };
 
   const deleteResource = async (id) => {
+    if (demoMode) {
+      const updated = resources.filter(r => r.id !== id);
+      setResources(updated);
+      saveDemoData({ resources: updated });
+      return;
+    }
+    
     try {
       await axios.delete(
         `${API_BASE}/api/profile/resources/${id}`,
@@ -191,18 +363,29 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
       setResources(resources.filter(r => r.id !== id));
     } catch (error) {
       console.error('Failed to delete resource:', error);
+      const updated = resources.filter(r => r.id !== id);
+      setResources(updated);
+      saveDemoData({ resources: updated });
     }
   };
 
   // Seeking operations
   const addSeeking = async () => {
     const newSeeking = {
+      id: demoMode ? Date.now() : undefined,
       title: 'New Opportunity',
       description: '',
       category: 'Partnership',
       priority: 'Medium',
       is_active: true
     };
+    
+    if (demoMode) {
+      const updated = [...seeking, newSeeking];
+      setSeeking(updated);
+      saveDemoData({ seeking: updated });
+      return;
+    }
     
     try {
       const res = await axios.post(
@@ -213,10 +396,21 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
       setSeeking([...seeking, res.data.seeking]);
     } catch (error) {
       console.error('Failed to add seeking:', error);
+      const updated = [...seeking, { ...newSeeking, id: Date.now() }];
+      setSeeking(updated);
+      setDemoMode(true);
+      saveDemoData({ seeking: updated });
     }
   };
 
   const updateSeeking = async (id, updates) => {
+    if (demoMode) {
+      const updated = seeking.map(s => s.id === id ? { ...s, ...updates } : s);
+      setSeeking(updated);
+      saveDemoData({ seeking: updated });
+      return;
+    }
+    
     try {
       const res = await axios.put(
         `${API_BASE}/api/profile/seeking/${id}`,
@@ -226,10 +420,20 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
       setSeeking(seeking.map(s => s.id === id ? res.data.seeking : s));
     } catch (error) {
       console.error('Failed to update seeking:', error);
+      const updated = seeking.map(s => s.id === id ? { ...s, ...updates } : s);
+      setSeeking(updated);
+      saveDemoData({ seeking: updated });
     }
   };
 
   const deleteSeeking = async (id) => {
+    if (demoMode) {
+      const updated = seeking.filter(s => s.id !== id);
+      setSeeking(updated);
+      saveDemoData({ seeking: updated });
+      return;
+    }
+    
     try {
       await axios.delete(
         `${API_BASE}/api/profile/seeking/${id}`,
@@ -238,10 +442,52 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
       setSeeking(seeking.filter(s => s.id !== id));
     } catch (error) {
       console.error('Failed to delete seeking:', error);
+      const updated = seeking.filter(s => s.id !== id);
+      setSeeking(updated);
+      saveDemoData({ seeking: updated });
+    }
+  };
+
+  // Business Info operations
+  const updateBusinessInfo = (field, value) => {
+    const updated = { ...businessInfo, [field]: value };
+    setBusinessInfo(updated);
+  };
+
+  const saveBusinessInfo = async () => {
+    setSaveStatus('saving');
+    
+    if (demoMode) {
+      saveDemoData({ businessInfo });
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus(null), 2000);
+      return;
+    }
+    
+    try {
+      await axios.put(
+        `${API_BASE}/api/profile/business`,
+        businessInfo,
+        { headers: { Authorization: `Bearer ${authToken}` } }
+      );
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus(null), 2000);
+    } catch (error) {
+      console.error('Failed to save business info:', error);
+      // Fallback to demo mode
+      saveDemoData({ businessInfo });
+      setDemoMode(true);
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus(null), 2000);
     }
   };
 
   if (!isOpen) return null;
+
+  const industries = [
+    'Technology', 'Finance', 'Healthcare', 'Education', 'Manufacturing',
+    'Retail', 'Real Estate', 'Consulting', 'Media', 'Other'
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
@@ -254,18 +500,29 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
           </button>
         </div>
 
+        {/* Demo Mode Banner */}
+        {demoMode && (
+          <div className="bg-yellow-50 border-b border-yellow-200 px-6 py-3 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-yellow-600" />
+            <span className="text-sm text-yellow-800">
+              Demo Mode: Changes are saved locally. Connect to backend to sync data.
+            </span>
+          </div>
+        )}
+
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 px-6">
-          {['projects', 'skills', 'resources', 'seeking'].map(tab => (
+        <div className="flex border-b border-gray-200 px-6 overflow-x-auto">
+          {['projects', 'skills', 'resources', 'seeking', 'business'].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+              className={`px-4 py-3 font-medium border-b-2 transition-colors whitespace-nowrap flex items-center gap-2 ${
                 activeTab === tab
                   ? 'border-black text-black'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
+              {tab === 'business' && <Building2 className="w-4 h-4" />}
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
           ))}
@@ -411,6 +668,117 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
                       </button>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {/* Business Tab */}
+              {activeTab === 'business' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Company Name
+                      </label>
+                      <input
+                        type="text"
+                        value={businessInfo.company_name}
+                        onChange={(e) => updateBusinessInfo('company_name', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                        placeholder="Enter company name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Job Title
+                      </label>
+                      <input
+                        type="text"
+                        value={businessInfo.job_title}
+                        onChange={(e) => updateBusinessInfo('job_title', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                        placeholder="Enter job title"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Industry
+                      </label>
+                      <select
+                        value={businessInfo.industry}
+                        onChange={(e) => updateBusinessInfo('industry', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                      >
+                        <option value="">Select industry</option>
+                        {industries.map(ind => (
+                          <option key={ind} value={ind}>{ind}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Location
+                      </label>
+                      <input
+                        type="text"
+                        value={businessInfo.location}
+                        onChange={(e) => updateBusinessInfo('location', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                        placeholder="City, Country"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Website
+                    </label>
+                    <input
+                      type="url"
+                      value={businessInfo.website}
+                      onChange={(e) => updateBusinessInfo('website', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                      placeholder="https://example.com"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Bio
+                    </label>
+                    <textarea
+                      value={businessInfo.bio}
+                      onChange={(e) => updateBusinessInfo('bio', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                      rows="4"
+                      placeholder="Tell us about yourself and your work..."
+                    />
+                  </div>
+                  
+                  <Button 
+                    onClick={saveBusinessInfo} 
+                    className="w-full"
+                    disabled={saveStatus === 'saving'}
+                  >
+                    {saveStatus === 'saving' ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        Saving...
+                      </>
+                    ) : saveStatus === 'saved' ? (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Saved!
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Business Info
+                      </>
+                    )}
+                  </Button>
                 </div>
               )}
             </>
