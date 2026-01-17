@@ -32,18 +32,26 @@ class SocketService {
       this.disconnect();
     }
 
-    // Socket.IO server URL - use environment variable or default
-    const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:8001';
+    // Socket.IO server URL - use environment variable or backend URL
+    const API_URL = import.meta.env.VITE_API_URL || 'https://backend-op1c06n9l-everest-ans-projects.vercel.app';
+    const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || API_URL;
 
     console.log('Connecting to Socket.IO server:', SOCKET_URL);
 
-    // Create socket connection
+    // Create socket connection with auth token
+    const authToken = localStorage.getItem('authToken');
     this.socket = io(SOCKET_URL, {
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      reconnectionAttempts: 5
+      reconnectionAttempts: 5,
+      auth: {
+        token: authToken
+      },
+      query: {
+        userId: userId
+      }
     });
 
     this.userId = userId;

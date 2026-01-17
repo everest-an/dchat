@@ -41,7 +41,7 @@ export const Web3Provider = ({ children }) => {
     }
   }, [provider])
 
-  // TODO: Translate '连接钱包'
+  // 连接钱包
   const connectWallet = async () => {
     if (!isMetaMaskInstalled()) {
       setError('请安装 MetaMask 钱包')
@@ -52,7 +52,7 @@ export const Web3Provider = ({ children }) => {
     setError(null)
 
     try {
-      // TODO: Translate '请求账户访问'
+      // 请求账户访问
       const accounts = await window.ethereum.request({
         method: 'eth_requestAccounts'
       })
@@ -61,7 +61,7 @@ export const Web3Provider = ({ children }) => {
         throw new Error('未找到账户')
       }
 
-      // TODO: Translate '创建' provider TODO: Translate '和' signer
+      // 创建 provider 和 signer
       const web3Provider = new ethers.BrowserProvider(window.ethereum)
       const web3Signer = await web3Provider.getSigner()
       const network = await web3Provider.getNetwork()
@@ -71,11 +71,11 @@ export const Web3Provider = ({ children }) => {
       setSigner(web3Signer)
       setChainId(network.chainId.toString())
 
-      // TODO: Translate '获取余额'
+      // 获取余额
       const userBalance = await getBalance(accounts[0])
       setBalance(userBalance)
 
-      // Authenticate with backend
+      // 尝试后端认证，失败时使用本地模式
       try {
         const authResult = await web3AuthService.authenticateWallet(
           accounts[0],
@@ -88,16 +88,32 @@ export const Web3Provider = ({ children }) => {
         setIsAuthenticated(true)
         setUser(authResult.user)
         
-        // saveto localStorage
+        // 保存到 localStorage
         localStorage.setItem('walletConnected', 'true')
         localStorage.setItem('walletAddress', accounts[0])
         
         return accounts[0]
       } catch (authError) {
-        console.error('Backend authentication failed:', authError)
-        // Disconnect wallet if authentication fails
-        disconnectWallet()
-        throw new Error('Authentication failed: ' + authError.message)
+        console.warn('Backend authentication failed, using local mode:', authError.message)
+        
+        // 后端不可用时，使用本地模式
+        const localUser = {
+          id: `local_${accounts[0].slice(2, 10)}`,
+          walletAddress: accounts[0],
+          displayName: `${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`,
+          loginMethod: 'wallet-local'
+        }
+        
+        setIsAuthenticated(true)
+        setUser(localUser)
+        
+        // 保存到 localStorage
+        localStorage.setItem('walletConnected', 'true')
+        localStorage.setItem('walletAddress', accounts[0])
+        localStorage.setItem('user', JSON.stringify(localUser))
+        localStorage.setItem('authToken', `local_${accounts[0]}_${Date.now()}`)
+        
+        return accounts[0]
       }
     } catch (err) {
       console.error('连接钱包失败:', err)

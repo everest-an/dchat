@@ -66,10 +66,25 @@ const verifySignature = (message, signature, address) => {
   }
 };
 
+// Alias functions for backward compatibility
+const createWallet = generateWallet;
+const encryptWallet = (privateKey, password) => {
+  const encrypted = encryptPrivateKey(privateKey, password);
+  return JSON.stringify(encrypted);
+};
+const decryptWallet = (encryptedJson, password) => {
+  const encryptedData = JSON.parse(encryptedJson);
+  return decryptPrivateKey(encryptedData, password);
+};
+
 module.exports = {
   generateWallet,
   encryptPrivateKey,
   decryptPrivateKey,
-  verifySignature
+  verifySignature,
+  // Aliases for authController compatibility
+  createWallet,
+  encryptWallet,
+  decryptWallet
 };
 

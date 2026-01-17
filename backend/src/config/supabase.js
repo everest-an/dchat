@@ -7,5 +7,21 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 console.log('✅ Supabase client initialized:', supabaseUrl);
 
-module.exports = { supabase };
+// Test connection function
+const testConnection = async () => {
+  try {
+    const { data, error } = await supabase.from('users').select('count').limit(1);
+    if (error) {
+      console.error('❌ Supabase connection test failed:', error.message);
+      return false;
+    }
+    console.log('✅ Supabase connection test passed');
+    return true;
+  } catch (err) {
+    console.error('❌ Supabase connection error:', err.message);
+    return false;
+  }
+};
+
+module.exports = { supabase, testConnection };
 
