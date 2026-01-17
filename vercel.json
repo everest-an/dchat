@@ -1,0 +1,76 @@
+{
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "installCommand": "echo 'Using npm'",
+  "framework": null,
+  "env": {
+    "VITE_CHAIN_ID": "11155111",
+    "VITE_NETWORK_NAME": "sepolia",
+    "VITE_RPC_URL": "https://eth-sepolia.g.alchemy.com/v2/NgBhOA3zYpCBd3LopKZ6n-lWXJoN_IUQM",
+    "VITE_WALLETCONNECT_PROJECT_ID": "d40819fe5aacd81976ac7145cde518d3",
+    "VITE_PINATA_API_KEY": "096941eb22c9ebdebf66",
+    "VITE_PINATA_API_SECRET": "0c31f48f2917c2ebee2caf2f123dfefb585967b3636f829209bdb885ff2030f2",
+    "VITE_PINATA_JWT": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI2ZWY5MjVhMi01ZGE4LTRmNjgtYjQzNi0wNDljOWVjYTliYmIiLCJlbWFpbCI6ImFubXVyaW5ndHJhbmNlQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaW5fcG9saWN5Ijp7InJlZ2lvbnMiOlt7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6IkZSQTEifSx7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6Ik5ZQzEifV0sInZlcnNpb24iOjF9LCJtZmFfZW5hYmxlZCI6ZmFsc2UsInN0YXR1cyI6IkFDVElWRSJ9LCJhdXRoZW50aWNhdGlvblR5cGUiOiJzY29wZWRLZXkiLCJzY29wZWRLZXlLZXkiOiIwOTY5NDFlYjIyYzllYmRlYmY2NiIsInNjb3BlZEtleVNlY3JldCI6IjBjMzFmNDhmMjkxN2MyZWJlZTJjYWYyZjEyM2RmZWZiNTg1OTY3YjM2MzZmODI5MjA5YmRiODg1ZmYyMDMwZjIiLCJleHAiOjE3OTgzOTMzOTN9.s9Zd62tJ23iApmrcdo8VpO4zhBkOVrg6xl6wDV7Mg_0",
+    "VITE_MESSAGE_STORAGE_ADDRESS": "0x5a7f2f9538D6a5044142123c12A254F73bf77F6f",
+    "VITE_PAYMENT_ESCROW_ADDRESS": "0xB71fD2eD9a15A2Bef002b1206A97e9Bddd7436d6",
+    "VITE_USER_IDENTITY_ADDRESS": "0x32a75De07Cd3FE59A8437445BE37D0546B4Bb17a",
+    "VITE_PROJECT_COLLABORATION_ADDRESS": "0x09668e0764B43E8093a65d33620DeAd9BDa1d85c",
+    "VITE_LIVING_PORTFOLIO_ADDRESS": "0xYourLivingPortfolioAddress",
+    "VITE_VERIFIED_CREDENTIALS_ADDRESS": "0xYourVerifiedCredentialsAddress",
+    "VITE_API_BASE_URL": "https://dchat.pro/api",
+    "VITE_BACKEND_URL": "https://dchat.pro/api",
+    "VITE_ENABLE_LINKEDIN_AUTH": "true",
+    "VITE_ENABLE_EMAIL_VERIFICATION": "true",
+    "VITE_ENABLE_PROJECT_COLLABORATION": "true"
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, must-revalidate"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "http://44.211.79.69/api/:path*"
+    },
+    {
+      "source": "/socket.io/:path*",
+      "destination": "http://44.211.79.69/socket.io/:path*"
+    },
+    {
+      "source": "/health",
+      "destination": "http://44.211.79.69/health"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

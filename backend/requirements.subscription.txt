@@ -1,0 +1,14 @@
+# Additional requirements for Subscription System
+# Append these to your main requirements.txt
+
+# Web3 Integration
+web3==6.11.3
+eth-account==0.10.0
+eth-utils==2.3.1
+
+# Redis for caching
+redis==5.0.1
+hiredis==2.2.3
+
+# Additional utilities
+python-dotenv==1.0.0

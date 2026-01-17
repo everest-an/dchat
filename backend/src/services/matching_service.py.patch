@@ -1,0 +1,19 @@
+    def _proficiency_to_numeric(self, proficiency: str) -> int:
+        """
+        Convert string proficiency level to numeric value
+        
+        Args:
+            proficiency: String proficiency level
+            
+        Returns:
+            Numeric proficiency (1-5)
+        """
+        proficiency_map = {
+            'beginner': 1,
+            'intermediate': 2,
+            'advanced': 3,
+            'expert': 4,
+            'master': 5
+        }
+        
+        return proficiency_map.get(proficiency.lower(), 1)

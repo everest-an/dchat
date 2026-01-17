@@ -1,0 +1,88 @@
+=== Verifying DChat Smart Contracts on Etherscan ===
+
+1. Verifying UserIdentityV2...
+[INFO] Sourcify Verification Skipped: Sourcify verification is currently disabled. To enable it, add the following entry to your Hardhat configuration:
+
+sourcify: {
+  enabled: true
+}
+
+Or set 'enabled' to false to hide this message.
+
+For more information, visit https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#verifying-on-sourcify
+hardhat-verify found one or more errors during the verification process:
+
+Etherscan:
+Headers Timeout Error
+
+
+
+2. Verifying MessageStorageV2...
+[INFO] Sourcify Verification Skipped: Sourcify verification is currently disabled. To enable it, add the following entry to your Hardhat configuration:
+
+sourcify: {
+  enabled: true
+}
+
+Or set 'enabled' to false to hide this message.
+
+For more information, visit https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#verifying-on-sourcify
+hardhat-verify found one or more errors during the verification process:
+
+Etherscan:
+Headers Timeout Error
+
+
+
+3. Verifying PaymentEscrow...
+[INFO] Sourcify Verification Skipped: Sourcify verification is currently disabled. To enable it, add the following entry to your Hardhat configuration:
+
+sourcify: {
+  enabled: true
+}
+
+Or set 'enabled' to false to hide this message.
+
+For more information, visit https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#verifying-on-sourcify
+hardhat-verify found one or more errors during the verification process:
+
+Etherscan:
+Headers Timeout Error
+
+
+
+4. Verifying ProjectCollaboration...
+[INFO] Sourcify Verification Skipped: Sourcify verification is currently disabled. To enable it, add the following entry to your Hardhat configuration:
+
+sourcify: {
+  enabled: true
+}
+
+Or set 'enabled' to false to hide this message.
+
+For more information, visit https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#verifying-on-sourcify
+hardhat-verify found one or more errors during the verification process:
+
+Etherscan:
+Headers Timeout Error
+
+
+
+5. Verifying LivingPortfolio...
+[INFO] Sourcify Verification Skipped: Sourcify verification is currently disabled. To enable it, add the following entry to your Hardhat configuration:
+
+sourcify: {
+  enabled: true
+}
+
+Or set 'enabled' to false to hide this message.
+
+For more information, visit https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#verifying-on-sourcify
+hardhat-verify found one or more errors during the verification process:
+
+Etherscan:
+Headers Timeout Error
+
+
+
+=== Verification Complete ===
