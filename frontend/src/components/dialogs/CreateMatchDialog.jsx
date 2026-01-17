@@ -58,6 +58,16 @@ export default function CreateMatchDialog({ open, onClose, onSuccess }) {
             matchScore: Number(parsed.args.matchScore)
           })) || []
 
+        // 保存匹配结果到本地存储
+        const userAddress = await signer.getAddress()
+        for (const match of matchIds) {
+          portfolioService.saveMatchToLocal(userAddress, {
+            ...match,
+            seeker: userAddress,
+            requiredSkills: skills
+          })
+        }
+
         setMatchResults({
           count: matchIds.length,
           matches: matchIds

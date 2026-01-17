@@ -277,9 +277,43 @@ export class LivingPortfolioService extends ContractService {
 
   /**
    * TODO: Translate '获取匹配机会'
+   * 注意：合约没有 getMatchedOpportunities 方法，使用本地存储作为替代
    */
   async getMatchedOpportunities(address) {
-    return await this.call('getMatchedOpportunities', address)
+    try {
+      // 尝试从本地存储获取匹配数据
+      const storageKey = `dchat_matches_${address.toLowerCase()}`
+      const stored = localStorage.getItem(storageKey)
+      const localMatches = stored ? JSON.parse(stored) : []
+      
+      return { success: true, data: localMatches }
+    } catch (err) {
+      console.error('Error getting matched opportunities:', err)
+      return { success: true, data: [] }
+    }
+  }
+
+  /**
+   * 保存匹配结果到本地存储
+   */
+  saveMatchToLocal(address, matchData) {
+    try {
+      const storageKey = `dchat_matches_${address.toLowerCase()}`
+      const stored = localStorage.getItem(storageKey)
+      const matches = stored ? JSON.parse(stored) : []
+      
+      // 添加新匹配
+      matches.push({
+        ...matchData,
+        createdAt: Date.now()
+      })
+      
+      localStorage.setItem(storageKey, JSON.stringify(matches))
+      return true
+    } catch (err) {
+      console.error('Error saving match to local:', err)
+      return false
+    }
   }
 
   // ========== TODO: Translate '凭证系统' ==========

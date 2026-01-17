@@ -48,20 +48,23 @@ export default function OpportunityMatching({ user }) {
       setLoading(true)
       setError(null)
 
-      // Get matched opportunities
+      // Get matched opportunities from local storage (contract doesn't have getMatchedOpportunities)
       const matchesResult = await portfolioService.getMatchedOpportunities(userAddress)
       
-      if (matchesResult.success && matchesResult.data) {
-        const matchData = matchesResult.data
+      if (matchesResult.success) {
+        const matchData = matchesResult.data || []
         setMatches(matchData)
 
         // Load profiles of matched users
         const profiles = {}
         for (const match of matchData) {
           try {
-            const profileResult = await identityService.getProfile(match.seeker || match.provider)
-            if (profileResult.success) {
-              profiles[match.seeker || match.provider] = profileResult.profile
+            const matchAddress = match.seeker || match.provider
+            if (matchAddress) {
+              const profileResult = await identityService.getProfile(matchAddress)
+              if (profileResult.success) {
+                profiles[matchAddress] = profileResult.profile
+              }
             }
           } catch (err) {
             console.error('Error loading profile:', err)
@@ -72,7 +75,8 @@ export default function OpportunityMatching({ user }) {
 
     } catch (err) {
       console.error('Error loading matches:', err)
-      setError(err.message)
+      // Don't show error for missing contract method, just show empty state
+      setMatches([])
     } finally {
       setLoading(false)
     }
