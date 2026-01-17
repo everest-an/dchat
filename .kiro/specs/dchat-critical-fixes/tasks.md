@@ -79,6 +79,7 @@
   - [x] 6.1 修复 socketService.js 连接配置
     - 使用正确的 WebSocket 服务器地址
     - 添加连接状态监控
+    - 添加 isEncrypted 参数支持
     - _Requirements: 3.1, 3.2_
   - [x] 6.2 修复 ChatInterface.jsx 消息加载
     - 从后端 API 加载消息历史
@@ -87,12 +88,19 @@
   - [x] 6.3 修复 ChatRoom.jsx 实时消息
     - 连接 WebSocket 发送消息
     - 处理接收消息显示
+    - 修复自己和自己聊天的逻辑（与 file-helper 相同处理）
     - _Requirements: 3.4, 3.5, 3.6_
   - [x] 6.4 添加消息状态指示器
     - 显示发送中/已发送/已读状态
     - 显示打字指示器
     - _Requirements: 3.8, 3.9_
-  - [ ]* 6.5 编写聊天功能属性测试
+  - [x] 6.5 创建统一用户数据服务
+    - 创建 UnifiedUserService.js 统一管理用户数据
+    - 创建 UserAvatar.jsx 统一头像组件
+    - 更新 ChatRoom.jsx 使用统一服务
+    - 更新 ChatList.jsx 使用统一服务
+    - _Requirements: 用户头像/名字一致性_
+  - [ ]* 6.6 编写聊天功能属性测试
     - **Property 6: WebSocket Authentication**
     - **Property 7: Message Delivery**
     - **Validates: Requirements 3.1, 3.2, 3.4, 3.5, 3.6**

@@ -5,7 +5,7 @@ import { Button } from './ui/button'
 import { useWeb3 } from '../contexts/Web3Context'
 import { useToast } from '../contexts/ToastContext'
 import { MessageStorageService } from '../services/MessageStorageService'
-import { UserProfileService } from '../services/UserProfileService'
+import { UnifiedUserService } from '../services/UnifiedUserService'
 import ipfsService from '../services/IPFSService'
 import { subscriptionService } from '../services/SubscriptionService'
 import UpgradeDialog from './dialogs/UpgradeDialog'
@@ -16,6 +16,7 @@ import MessageReactions from './MessageReactions'
 import DOMPurify from 'dompurify'
 import { KeyManagementService } from '../services/KeyManagementService'
 import { encryptMessage, decryptMessage } from '../utils/encryption'
+import { UserAvatar } from './ui/UserAvatar'
 
 
 const ChatRoom = () => {
@@ -46,16 +47,32 @@ const ChatRoom = () => {
   // TODO: Translate {t('get_recipient_info')}
   useEffect(() => {
     if (recipientAddress) {
-      const profile = UserProfileService.getProfile(recipientAddress)
-      const avatarData = UserProfileService.getDisplayAvatar(recipientAddress)
+      const userData = UnifiedUserService.getUser(recipientAddress)
       setRecipientProfile({
         address: recipientAddress,
-        username: UserProfileService.getDisplayName(recipientAddress),
-        avatar: avatarData?.emoji || avatarData?.url || UserProfileService.getDefaultAvatar(recipientAddress),
-        avatarType: avatarData?.type || 'default',
-        bio: profile?.bio || '',
-        company: profile?.company || ''
+        username: userData.displayName,
+        avatar: userData.avatar,
+        avatarType: userData.avatarType,
+        bio: userData.bio,
+        company: userData.company
       })
+
+      // 订阅用户数据变化
+      const unsubscribe = UnifiedUserService.subscribe((updatedAddress) => {
+        if (updatedAddress?.toLowerCase() === recipientAddress?.toLowerCase()) {
+          const updated = UnifiedUserService.getUser(recipientAddress)
+          setRecipientProfile({
+            address: recipientAddress,
+            username: updated.displayName,
+            avatar: updated.avatar,
+            avatarType: updated.avatarType,
+            bio: updated.bio,
+            company: updated.company
+          })
+        }
+      })
+
+      return unsubscribe
     }
   }, [recipientAddress])
 
@@ -228,8 +245,8 @@ const ChatRoom = () => {
     setSending(true)
 
     try {
-      // Handle File Transfer Assistant
-      if (recipientAddress === 'file-helper') {
+      // Handle File Transfer Assistant or self-chat (local storage only, no encryption needed)
+      if (recipientAddress === 'file-helper' || recipientAddress === account) {
         const newMessage = {
           id: `msg_${Date.now()}`,
           text: messageText,
@@ -356,7 +373,7 @@ const ChatRoom = () => {
       // Construct file message
       const messageText = `[FILE]${file.name}|${ipfsHash}|${file.type}|${file.size}`
 
-      if (recipientAddress === 'file-helper') {
+      if (recipientAddress === 'file-helper' || recipientAddress === account) {
         const fileUrl = ipfsService.getGatewayUrl(ipfsHash)
         const newMessage = {
           id: `msg_${Date.now()}`,
@@ -452,9 +469,7 @@ const ChatRoom = () => {
           className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-4`}
         >
           {!isMe && (
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-lg mr-2 flex-shrink-0">
-              {recipientProfile?.avatar || '👤'}
-            </div>
+            <UserAvatar address={recipientAddress} size="sm" className="mr-2" />
           )}
           <div className={`max-w-[70%] ${isMe ? 'order-2' : 'order-1'}`}>
             <div
@@ -502,9 +517,7 @@ const ChatRoom = () => {
           className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-4`}
         >
           {!isMe && (
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-lg mr-2 flex-shrink-0">
-              {recipientProfile?.avatar || '👤'}
-            </div>
+            <UserAvatar address={recipientAddress} size="sm" className="mr-2" />
           )}
           <div className={`max-w-[70%] ${isMe ? 'order-2' : 'order-1'}`}>
             <div
@@ -542,9 +555,7 @@ const ChatRoom = () => {
         className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-4 group`}
       >
         {!isMe && (
-          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-lg mr-2 flex-shrink-0 self-end mb-1">
-            {recipientProfile?.avatar || '👤'}
-          </div>
+          <UserAvatar address={recipientAddress} size="sm" className="mr-2 self-end mb-1" />
         )}
         <div className={`max-w-[75%] ${isMe ? 'order-2' : 'order-1'}`}>
           <div
@@ -628,12 +639,13 @@ const ChatRoom = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-sm ring-2 ring-offset-2 ring-offset-background ${isFileTransfer
-              ? 'bg-blue-100 text-blue-600 ring-blue-100'
-              : 'bg-secondary text-secondary-foreground ring-transparent'
-              }`}>
-              {isFileTransfer ? '📂' : (recipientProfile?.avatar || '👤')}
-            </div>
+            {isFileTransfer ? (
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-sm ring-2 ring-offset-2 ring-offset-background bg-blue-100 text-blue-600 ring-blue-100">
+                📂
+              </div>
+            ) : (
+              <UserAvatar address={recipientAddress} size="md" className="shadow-sm ring-2 ring-offset-2 ring-offset-background ring-transparent" />
+            )}
             <div>
               <h2 className="font-semibold flex items-center gap-2">
                 {isFileTransfer ? 'File Transfer' : (recipientProfile?.username || 'Loading...')}
@@ -679,9 +691,7 @@ const ChatRoom = () => {
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center text-4xl mb-4">
-              {recipientProfile?.avatar || '👤'}
-            </div>
+            <UserAvatar address={recipientAddress} size="2xl" className="mb-4" />
             <h3 className="font-semibold text-lg mb-2">
               {recipientProfile?.username}
             </h3>

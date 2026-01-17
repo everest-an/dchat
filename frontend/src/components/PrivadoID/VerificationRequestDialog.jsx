@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import QRCode from 'qrcode.react';
 import PrivadoIDService from '../../services/privadoid/PrivadoIDService';
 import './VerificationRequestDialog.css';
 
@@ -12,140 +11,227 @@ const VerificationRequestDialog = ({ isOpen, onClose, onSuccess, verificationTyp
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [verificationRequest, setVerificationRequest] = useState(null);
-  const [step, setStep] = useState('form'); // 'form', 'qr', 'success'
+  const [step, setStep] = useState('loading'); // 'loading', 'qr', 'success', 'error'
+  const [pollingInterval, setPollingInterval] = useState(null);
+  const [demoMode, setDemoMode] = useState(false);
+
+  // Verification type labels and icons
+  const typeConfig = {
+    kyc_humanity: { label: 'Humanity Verification', icon: '👤', color: '#00BCD4' },
+    kyc_age: { label: 'Age Verification', icon: '🎂', color: '#9C27B0' },
+    kyc_country: { label: 'Country Verification', icon: '🌍', color: '#4CAF50' },
+    kyb_registration: { label: 'Company Registration', icon: '🏢', color: '#2196F3' },
+    kyb_tax_id: { label: 'Tax ID Verification', icon: '📋', color: '#FF9800' },
+    kyb_license: { label: 'Business License', icon: '📜', color: '#795548' }
+  };
+
+  const createRequest = useCallback(async () => {
+    if (!verificationType) return;
+    
+    setLoading(true);
+    setError(null);
+    setStep('loading');
+
+    try {
+      const response = await PrivadoIDService.createVerificationRequest({
+        type: verificationType
+      });
+      
+      setVerificationRequest(response);
+      setDemoMode(PrivadoIDService.isDemoMode());
+      setStep('qr');
+      
+      // Start polling for verification status
+      if (response.request_id && !response.request_id.startsWith('demo_')) {
+        startPolling(response.request_id);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to create verification request');
+      setStep('error');
+    } finally {
+      setLoading(false);
+    }
+  }, [verificationType]);
 
   useEffect(() => {
     if (isOpen && verificationType) {
       createRequest();
     }
-  }, [isOpen, verificationType]);
+    
+    return () => {
+      // Cleanup polling on unmount
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+    };
+  }, [isOpen, verificationType, createRequest]);
 
-  const createRequest = async () => {
-    setLoading(true);
-    setError(null);
+  const startPolling = (requestId) => {
+    const interval = setInterval(async () => {
+      try {
+        const status = await PrivadoIDService.checkVerificationStatus(requestId);
+        
+        if (status.status === 'completed' || status.status === 'active') {
+          clearInterval(interval);
+          setStep('success');
+          setTimeout(() => {
+            onSuccess?.();
+          }, 2000);
+        } else if (status.status === 'expired' || status.status === 'failed') {
+          clearInterval(interval);
+          setError('Verification request expired or failed');
+          setStep('error');
+        }
+      } catch (err) {
+        console.error('Polling error:', err);
+      }
+    }, 3000); // Poll every 3 seconds
+    
+    setPollingInterval(interval);
+  };
 
-    try {
-      const request = {
-        type: verificationType,
-        required_claim: {},
-        schema: getSchemaForType(verificationType),
-        allowed_issuers: ['*']
-      };
-
-      const response = await PrivadoIDService.createVerificationRequest(request);
-      setVerificationRequest(response);
-      setStep('qr');
-    } catch (err) {
-      setError(err.message || 'Failed to create verification request');
-    } finally {
-      setLoading(false);
+  const handleClose = () => {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
     }
-  };
-
-  const getSchemaForType = (type) => {
-    // In production, these would be actual IPFS URLs
-    const schemas = {
-      company: 'ipfs://QmCompanyEmployeeSchema',
-      project: 'ipfs://QmProjectParticipantSchema',
-      skill: 'ipfs://QmSkillCertificateSchema',
-      education: 'ipfs://QmEducationCredentialSchema',
-      humanity: 'ipfs://QmHumanityProofSchema'
-    };
-    return schemas[type] || '';
-  };
-
-  const getTypeLabel = (type) => {
-    const labels = {
-      company: 'Company Affiliation',
-      project: 'Project Participation',
-      skill: 'Professional Skill',
-      education: 'Education Background',
-      humanity: 'Proof of Humanity'
-    };
-    return labels[type] || 'Verification';
+    setVerificationRequest(null);
+    setStep('loading');
+    setError(null);
+    onClose();
   };
 
   const handleCopyLink = () => {
-    if (verificationRequest?.universal_link) {
-      navigator.clipboard.writeText(verificationRequest.universal_link);
+    if (verificationRequest?.deep_link) {
+      navigator.clipboard.writeText(verificationRequest.deep_link);
       alert('Link copied to clipboard!');
     }
   };
 
   const handleOpenWallet = () => {
     if (verificationRequest?.deep_link) {
-      window.location.href = verificationRequest.deep_link;
+      window.open(verificationRequest.deep_link, '_blank');
     }
   };
+
+  const handleDemoVerify = () => {
+    // Simulate successful verification in demo mode
+    setStep('success');
+    setTimeout(() => {
+      onSuccess?.();
+    }, 2000);
+  };
+
+  const config = typeConfig[verificationType] || { label: 'Verification', icon: '✓', color: '#4CAF50' };
 
   if (!isOpen) {
     return null;
   }
 
   return (
-    <div className="verification-dialog-overlay" onClick={onClose}>
+    <div className="verification-dialog-overlay" onClick={handleClose}>
       <div className="verification-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="verification-dialog-header">
-          <h2>Add {getTypeLabel(verificationType)}</h2>
-          <button className="close-button" onClick={onClose}>×</button>
+          <div className="header-title">
+            <span className="header-icon" style={{ color: config.color }}>{config.icon}</span>
+            <h2>{config.label}</h2>
+          </div>
+          <button className="close-button" onClick={handleClose}>×</button>
         </div>
 
         <div className="verification-dialog-content">
-          {loading && (
+          {/* Demo Mode Banner */}
+          {demoMode && (
+            <div className="demo-banner">
+              <span>🔧 Demo Mode - Backend not connected</span>
+            </div>
+          )}
+
+          {/* Loading State */}
+          {step === 'loading' && (
             <div className="loading-state">
               <div className="spinner"></div>
               <p>Creating verification request...</p>
             </div>
           )}
 
-          {error && (
+          {/* Error State */}
+          {step === 'error' && (
             <div className="error-state">
+              <div className="error-icon">❌</div>
               <p className="error-message">{error}</p>
-              <button onClick={createRequest}>Try Again</button>
+              <button className="retry-button" onClick={createRequest}>Try Again</button>
             </div>
           )}
 
+          {/* QR Code State */}
           {step === 'qr' && verificationRequest && (
             <div className="qr-state">
               <p className="instruction">
-                Scan this QR code with your Privado ID wallet to verify your {getTypeLabel(verificationType).toLowerCase()}
+                Scan this QR code with your Privado ID wallet to verify your identity
               </p>
 
               <div className="qr-code-container">
-                <QRCode 
-                  value={verificationRequest.qr_code}
-                  size={256}
-                  level="H"
-                  includeMargin={true}
-                />
+                {/* Simple QR code display using data URL or text */}
+                <div className="qr-placeholder" style={{ borderColor: config.color }}>
+                  <div className="qr-inner">
+                    <span className="qr-icon">{config.icon}</span>
+                    <p className="qr-text">Scan with Privado ID</p>
+                    <code className="qr-id">{verificationRequest.request_id?.substring(0, 12)}...</code>
+                  </div>
+                </div>
               </div>
 
               <div className="alternative-options">
-                <p className="or-divider">OR</p>
+                <p className="or-divider">— OR —</p>
                 
                 <button 
                   className="wallet-button"
                   onClick={handleOpenWallet}
+                  style={{ backgroundColor: config.color }}
                 >
-                  Open in Wallet App
+                  📱 Open in Wallet App
                 </button>
 
                 <button 
                   className="copy-link-button"
                   onClick={handleCopyLink}
                 >
-                  Copy Link
+                  📋 Copy Verification Link
                 </button>
+
+                {demoMode && (
+                  <button 
+                    className="demo-verify-button"
+                    onClick={handleDemoVerify}
+                  >
+                    ✅ Simulate Verification (Demo)
+                  </button>
+                )}
               </div>
 
               <div className="help-text">
                 <p>
-                  Don't have Privado ID wallet? 
-                  <a href="https://wallet.privado.id" target="_blank" rel="noopener noreferrer">
+                  Don't have Privado ID wallet?{' '}
+                  <a href="https://www.privado.id/" target="_blank" rel="noopener noreferrer">
                     Get it here
                   </a>
                 </p>
               </div>
+
+              {verificationRequest.expires_at && (
+                <div className="expiry-notice">
+                  <p>Request expires: {new Date(verificationRequest.expires_at).toLocaleTimeString()}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Success State */}
+          {step === 'success' && (
+            <div className="success-state">
+              <div className="success-icon" style={{ color: config.color }}>✓</div>
+              <h3>Verification Successful!</h3>
+              <p>Your {config.label.toLowerCase()} has been verified.</p>
             </div>
           )}
         </div>

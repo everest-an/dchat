@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react'
-import { Settings, Edit, Linkedin, Wallet, Shield, Bell, HelpCircle, LogOut, ChevronRight, Github, FileText, ExternalLink } from 'lucide-react'
+import { Settings, Edit, Wallet, Shield, Bell, HelpCircle, LogOut, ChevronRight, Github, FileText, ExternalLink, BadgeCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import LinkedInConnect from './LinkedInConnect'
 import LinkedInMessages from './LinkedInMessages'
 import LanguageSwitcher from './LanguageSwitcher'
 import AvatarUpload from './AvatarUpload'
 import ProfileEditDialog from './ProfileEditDialog'
+import VerificationManager from './PrivadoID/VerificationManager'
+import VerificationBadge from './PrivadoID/VerificationBadge'
 import { useLanguage } from '../contexts/LanguageContext'
 import { UserProfileService } from '../services/UserProfileService'
+import PrivadoIDService from '../services/privadoid/PrivadoIDService'
 
 const Profile = ({ user, onLogout }) => {
   const { t } = useLanguage()
@@ -17,8 +20,10 @@ const Profile = ({ user, onLogout }) => {
   const [userProfile, setUserProfile] = useState(null)
   const [avatarData, setAvatarData] = useState(null)
   const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showVerificationManager, setShowVerificationManager] = useState(false)
+  const [verifications, setVerifications] = useState([])
 
-  // Load user profile
+  // Load user profile and verifications
   useEffect(() => {
     if (user?.walletAddress) {
       const profile = UserProfileService.getProfile(user.walletAddress)
@@ -29,7 +34,34 @@ const Profile = ({ user, onLogout }) => {
 
       console.log('📋 Loaded user profile:', { profile, avatar })
     }
-  }, [user?.walletAddress])
+    
+    // Load verifications
+    loadVerifications()
+  }, [user?.walletAddress, user?.id])
+
+  const loadVerifications = async () => {
+    try {
+      const userId = user?.id || 1
+      const data = await PrivadoIDService.getUserVerifications(userId)
+      setVerifications(data || [])
+    } catch (error) {
+      console.error('Failed to load verifications:', error)
+    }
+  }
+
+  // Handle LinkedIn profile import
+  const handleLinkedInProfileImport = (importedData) => {
+    console.log('📥 LinkedIn data imported:', importedData)
+    // Refresh profile data
+    if (user?.walletAddress) {
+      const profile = UserProfileService.getProfile(user.walletAddress)
+      setUserProfile({
+        ...profile,
+        company: importedData.company_name || profile?.company,
+        position: importedData.job_title || profile?.position
+      })
+    }
+  }
 
   // Handle avatar update
   const handleAvatarUpdate = async (avatarInfo) => {
@@ -150,7 +182,20 @@ const Profile = ({ user, onLogout }) => {
                 />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-black">{userProfile?.name || user?.name || user?.email || `User ${user?.walletAddress?.substring(0, 6)}`}</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-bold text-black">{userProfile?.name || user?.name || user?.email || `User ${user?.walletAddress?.substring(0, 6)}`}</h2>
+                  {/* Verification Badges */}
+                  <div className="flex items-center gap-1">
+                    {verifications.filter(v => v.status === 'active').slice(0, 3).map((v, idx) => (
+                      <VerificationBadge 
+                        key={idx} 
+                        verification={v} 
+                        size="small" 
+                        showLabel={false}
+                      />
+                    ))}
+                  </div>
+                </div>
                 <p className="text-gray-600">{userProfile?.company || user?.company || ''}</p>
                 <p className="text-sm text-gray-500">{userProfile?.position || user?.position || ''}</p>
               </div>
@@ -165,11 +210,54 @@ const Profile = ({ user, onLogout }) => {
             </Button>
           </div>
 
+          {/* Verification Badges Section */}
+          {verifications.length > 0 && (
+            <div className="py-3 border-t border-gray-100">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">Verifications</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowVerificationManager(true)}
+                  className="text-xs text-blue-600"
+                >
+                  Manage
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {verifications.filter(v => v.status === 'active').map((v, idx) => (
+                  <VerificationBadge 
+                    key={idx} 
+                    verification={v} 
+                    size="medium" 
+                    showLabel={true}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Add Verification Button (if no verifications) */}
+          {verifications.length === 0 && (
+            <div className="py-3 border-t border-gray-100">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowVerificationManager(true)}
+                className="w-full text-sm"
+              >
+                <BadgeCheck className="w-4 h-4 mr-2" />
+                Add Identity Verification
+              </Button>
+            </div>
+          )}
+
           {/* LinkedIn Integration */}
           <div className="py-3 border-t border-gray-100">
             <LinkedInConnect
               onConnect={setLinkedInData}
               isConnected={linkedInData}
+              onProfileImport={handleLinkedInProfileImport}
             />
           </div>
 
@@ -334,6 +422,29 @@ const Profile = ({ user, onLogout }) => {
         userId={user?.id}
         authToken={localStorage.getItem('authToken')}
       />
+
+      {/* Verification Manager Dialog */}
+      {showVerificationManager && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h2 className="text-lg font-bold">Identity Verifications</h2>
+              <button 
+                onClick={() => {
+                  setShowVerificationManager(false)
+                  loadVerifications() // Refresh verifications
+                }}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[70vh]">
+              <VerificationManager userId={user?.id || 1} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

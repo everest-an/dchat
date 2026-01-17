@@ -4,7 +4,7 @@ import { Search, Plus, QrCode, ScanLine, Settings, User, Users } from 'lucide-re
 import { Button } from './ui/button'
 import { useWeb3 } from '../contexts/Web3Context'
 import { useToast } from '../contexts/ToastContext'
-import { UserProfileService } from '../services/UserProfileService'
+import { UnifiedUserService } from '../services/UnifiedUserService'
 import GroupService from '../services/GroupService'
 import QRCodeDialog from './QRCodeDialog'
 import ScanQRDialog from './ScanQRDialog'
@@ -16,6 +16,7 @@ import presenceService from '../services/PresenceService'
 import ContactImport from './ContactImport'
 import NFCDialog from './NFCDialog'
 import { Dialog, DialogContent, DialogTrigger } from './ui/dialog'
+import { UserAvatar } from './ui/UserAvatar'
 const ChatList = ({ user }) => {
   const navigate = useNavigate()
   const { account } = useWeb3()
@@ -38,11 +39,12 @@ const ChatList = ({ user }) => {
   // TODO: Translate {t('load_user_profile')}
   const loadMyProfile = () => {
     if (userAddress) {
-      const profile = UserProfileService.getProfile(userAddress)
+      const userData = UnifiedUserService.getUser(userAddress)
       setMyProfile({
-        username: UserProfileService.getDisplayName(userAddress),
-        avatar: UserProfileService.getDisplayAvatar(userAddress)?.emoji || UserProfileService.getDefaultAvatar(userAddress),
-        bio: profile?.bio || ''
+        username: userData.displayName,
+        avatar: userData.avatar,
+        avatarType: userData.avatarType,
+        bio: userData.bio
       })
     }
   }
@@ -136,10 +138,11 @@ const ChatList = ({ user }) => {
 
       // 2. Self Chat
       if (!hasSelf && userAddress) {
+        const selfUser = UnifiedUserService.getUser(userAddress)
         newDefaults.push({
           address: userAddress,
-          username: UserProfileService.getDisplayName(userAddress) || 'Me', // Use display name or "Me"
-          avatar: UserProfileService.getDisplayAvatar(userAddress)?.emoji || UserProfileService.getDefaultAvatar(userAddress),
+          username: selfUser.displayName || 'Me',
+          avatar: selfUser.avatar,
           lastMessage: 'Message yourself',
           timestamp: Date.now() - 1000, // Put slightly behind file helper
           type: 'direct',
@@ -190,10 +193,11 @@ const ChatList = ({ user }) => {
       const exists = convs.some(c => c.address.toLowerCase() === chatData.address.toLowerCase())
 
       if (!exists) {
+        const contactUser = UnifiedUserService.getUser(chatData.address)
         const newConv = {
           address: chatData.address,
-          username: chatData.contact?.name || UserProfileService.getDisplayName(chatData.address),
-          avatar: chatData.contact?.avatar || UserProfileService.getDisplayAvatar(chatData.address).emoji || '👤',
+          username: chatData.contact?.name || contactUser.displayName,
+          avatar: chatData.contact?.avatar || contactUser.avatar,
           lastMessage: 'New conversation',
           timestamp: Date.now(),
           type: 'direct',
@@ -237,13 +241,17 @@ const ChatList = ({ user }) => {
       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b"
     >
       <div className="relative">
-        <div className={`w-12 h-12 rounded-full ${conv.isSelf ? 'bg-blue-100 text-blue-600' :
-          conv.type === 'group' ? 'bg-purple-100 text-purple-600' : 'bg-gray-200'
-          } flex items-center justify-center text-2xl`}>
-          {conv.avatar}
-        </div>
+        {conv.isSystem || conv.type === 'group' ? (
+          <div className={`w-12 h-12 rounded-full ${conv.isSelf ? 'bg-blue-100 text-blue-600' :
+            conv.type === 'group' ? 'bg-purple-100 text-purple-600' : 'bg-gray-200'
+            } flex items-center justify-center text-2xl`}>
+            {conv.avatar}
+          </div>
+        ) : (
+          <UserAvatar address={conv.address} size="lg" />
+        )}
         {/* Online status badge - only for direct chats */}
-        {conv.type !== 'group' && (
+        {conv.type !== 'group' && !conv.isSystem && (
           <div className="absolute bottom-0 right-0">
             <StatusBadge userId={conv.address} size="sm" />
           </div>
@@ -257,7 +265,7 @@ const ChatList = ({ user }) => {
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-semibold text-gray-900 truncate flex items-center gap-1">
-            {conv.username}
+            {conv.isSystem ? conv.username : UnifiedUserService.getDisplayName(conv.address) || conv.username}
             {conv.type === 'group' && <Users className="w-3 h-3 text-gray-400" />}
           </h3>
           <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
@@ -327,17 +335,7 @@ const ChatList = ({ user }) => {
       {/* My Profile Card */}
       <div className="px-4 py-3 bg-gradient-to-r from-black to-gray-800 text-white">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center text-2xl overflow-hidden">
-            {myProfile?.avatar?.type === 'ipfs' && myProfile?.avatar?.url ? (
-              <img
-                src={myProfile.avatar.url}
-                alt="Avatar"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span>{myProfile?.avatar?.emoji || myProfile?.avatar || '👤'}</span>
-            )}
-          </div>
+          <UserAvatar address={userAddress} size="lg" className="ring-2 ring-white/20" />
           <div className="flex-1">
             <h3 className="font-semibold">{myProfile?.username || 'Loading...'}</h3>
             <p className="text-sm opacity-80">

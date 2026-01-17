@@ -147,3 +147,59 @@ CREATE POLICY "Users can read their own linkedin connections" ON linkedin_connec
 
 CREATE POLICY "Users can manage their own linkedin connections" ON linkedin_connections
   FOR ALL USING (true);
+
+
+-- ============================================================================
+-- Public Key Management Tables (Added for whitepaper-p0-features)
+-- ============================================================================
+
+-- 公钥存储表 - 存储用户当前公钥
+CREATE TABLE IF NOT EXISTS public_keys (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  wallet_address VARCHAR(42) NOT NULL,
+  public_key TEXT NOT NULL,
+  key_format VARCHAR(10) DEFAULT 'PEM', -- PEM, JWK, or BASE64
+  is_current BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  rotated_at TIMESTAMP WITH TIME ZONE
+);
+
+-- 公钥历史表 - 用于解密旧消息
+CREATE TABLE IF NOT EXISTS public_key_history (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  wallet_address VARCHAR(42) NOT NULL,
+  public_key TEXT NOT NULL,
+  valid_from TIMESTAMP WITH TIME ZONE NOT NULL,
+  valid_until TIMESTAMP WITH TIME ZONE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 创建索引优化查询性能
+CREATE INDEX IF NOT EXISTS idx_public_keys_address ON public_keys(wallet_address);
+CREATE INDEX IF NOT EXISTS idx_public_keys_user ON public_keys(user_id);
+CREATE INDEX IF NOT EXISTS idx_public_keys_current ON public_keys(wallet_address, is_current) WHERE is_current = true;
+CREATE INDEX IF NOT EXISTS idx_public_key_history_address ON public_key_history(wallet_address);
+CREATE INDEX IF NOT EXISTS idx_public_key_history_valid ON public_key_history(wallet_address, valid_from, valid_until);
+
+-- 启用 RLS
+ALTER TABLE public_keys ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public_key_history ENABLE ROW LEVEL SECURITY;
+
+-- 公钥表策略 - 公钥是公开的，任何人都可以读取
+CREATE POLICY "Anyone can read public keys" ON public_keys
+  FOR SELECT USING (true);
+
+CREATE POLICY "Users can insert their own public keys" ON public_keys
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Users can update their own public keys" ON public_keys
+  FOR UPDATE USING (true);
+
+-- 公钥历史表策略
+CREATE POLICY "Anyone can read public key history" ON public_key_history
+  FOR SELECT USING (true);
+
+CREATE POLICY "System can insert public key history" ON public_key_history
+  FOR INSERT WITH CHECK (true);
