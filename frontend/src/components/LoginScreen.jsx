@@ -94,7 +94,9 @@ const LoginScreen = ({ onLogin }) => {
     }
   }
 
-  // Phone Login (Simplified version - no backend required)
+  // Phone Login - calls backend API with fallback to demo mode
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://backend-op1c06n9l-everest-ans-projects.vercel.app'
+  
   const handleSendCode = async () => {
     if (!phone || phone.length < 10) {
       setError('Please enter a valid phone number')
@@ -103,15 +105,32 @@ const LoginScreen = ({ onLogin }) => {
     setError('')
     setIsSubmitting(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false)
+    try {
+      // Try to call backend API
+      const response = await fetch(`${API_BASE_URL}/api/auth/send-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log('Verification code sent via backend')
+        setIsCodeSent(true)
+        setTimer(60)
+      } else {
+        throw new Error('Backend unavailable')
+      }
+    } catch (err) {
+      // Fallback to demo mode
+      console.log('Backend unavailable, using demo mode')
       setIsCodeSent(true)
       setTimer(60)
-
-      console.log('Verification Code: 123456')
-      alert('Test Code: 123456')
-
+      console.log('Demo Verification Code: 123456')
+      alert('Demo Mode - Test Code: 123456')
+    } finally {
+      setIsSubmitting(false)
+      // Start countdown timer
       const interval = setInterval(() => {
         setTimer((prev) => {
           if (prev <= 1) {
@@ -121,7 +140,7 @@ const LoginScreen = ({ onLogin }) => {
           return prev - 1
         })
       }, 1000)
-    }, 1500)
+    }
   }
 
   const handlePhoneLogin = async (e) => {
@@ -141,24 +160,48 @@ const LoginScreen = ({ onLogin }) => {
     setError('')
 
     try {
-      // Very simple mock verification
-      if (verificationCode !== '123456') {
-        throw new Error('Invalid verification code')
-      }
+      // Try to verify with backend API
+      let userData = null
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/verify-login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, code: verificationCode })
+        })
 
-      // Generate a deterministic wallet address from phone number
-      const hash = phone.split('').reduce((acc, char) => {
-        return ((acc << 5) - acc) + char.charCodeAt(0)
-      }, 0)
-      const mockAddress = '0x' + Math.abs(hash).toString(16).padStart(40, '0').slice(0, 40)
+        if (response.ok) {
+          const data = await response.json()
+          localStorage.setItem('authToken', data.token)
+          userData = data.user
+        } else {
+          throw new Error('Backend verification failed')
+        }
+      } catch (err) {
+        // Fallback to demo mode verification
+        console.log('Backend unavailable, using demo verification')
+        if (verificationCode !== '123456') {
+          throw new Error('Invalid verification code (Demo: use 123456)')
+        }
 
-      const userData = {
-        phone,
-        username: `User_${phone.slice(-4)}`,
-        walletAddress: mockAddress,
-        loginMethod: 'phone',
-        web3Enabled: false,
-        createdAt: new Date().toISOString()
+        // Generate a deterministic wallet address from phone number
+        const hash = phone.split('').reduce((acc, char) => {
+          return ((acc << 5) - acc) + char.charCodeAt(0)
+        }, 0)
+        const mockAddress = '0x' + Math.abs(hash).toString(16).padStart(40, '0').slice(0, 40)
+
+        userData = {
+          phone,
+          username: `User_${phone.slice(-4)}`,
+          walletAddress: mockAddress,
+          loginMethod: 'phone',
+          web3Enabled: false,
+          demoMode: true,
+          createdAt: new Date().toISOString()
+        }
+        
+        // Store demo token
+        localStorage.setItem('authToken', `demo_phone_${mockAddress}_${Date.now()}`)
       }
 
       onLogin(userData)
