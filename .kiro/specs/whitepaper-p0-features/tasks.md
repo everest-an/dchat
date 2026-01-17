@@ -6,7 +6,7 @@
 
 ## Tasks
 
-- [-] 1. 公钥管理系统
+- [x] 1. 公钥管理系统
   - [x] 1.1 创建后端公钥控制器和 API 路由
     - 创建 `backend/src/controllers/publicKeyController.js`
     - 实现 registerPublicKey, getPublicKeyByAddress, getPublicKeyByUserId, rotateKey, getKeyHistory 方法
@@ -17,6 +17,7 @@
   - [x] 1.2 创建数据库表结构
     - 在 `backend/src/scripts/init-supabase.sql` 添加 public_keys 表
     - 添加 public_key_history 表
+    - 添加 signing_public_key 列支持签名密钥
     - 添加索引优化查询性能
     - _Requirements: 2.5_
 
@@ -25,21 +26,25 @@
     - 添加 registerPublicKeyToBackend 方法
     - 添加 fetchPublicKeyFromBackend 方法
     - 添加本地缓存机制
+    - 添加签名密钥支持 (initializeSigningKeys, getSigningKeys, getSigningPublicKey)
     - _Requirements: 2.6, 2.9_
 
-  - [-] 1.4 编写公钥管理属性测试
+  - [x] 1.4 编写公钥管理属性测试
     - **Property 3: 公钥存储检索一致性**
     - **Property 4: 密钥格式验证**
     - **Property 5: 密钥轮换历史保留**
     - **Validates: Requirements 2.2, 2.3, 2.4, 2.5, 2.7, 2.8**
 
-- [ ] 2. 端到端加密系统增强
-  - [ ] 2.1 增强 EncryptionService 添加签名功能
+- [-] 2. 端到端加密系统增强
+  - [x] 2.1 增强 EncryptionService 添加签名功能
     - 修改 `frontend/src/services/EncryptionService.js`
-    - 添加 signMessage 方法 (RSASSA-PKCS1-v1_5)
+    - 添加 generateSigningKeyPair 方法 (RSASSA-PKCS1-v1_5)
+    - 添加 signMessage 方法
     - 添加 verifySignature 方法
+    - 添加 importSigningPublicKey 方法
     - 添加 createMessageEnvelope 方法
     - 添加 openMessageEnvelope 方法
+    - 添加 initializeAllKeys 方法
     - _Requirements: 1.6, 1.7, 1.8_
 
   - [ ] 2.2 用户登录时自动初始化密钥

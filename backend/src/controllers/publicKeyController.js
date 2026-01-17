@@ -12,7 +12,7 @@ const publicKeyController = {
    */
   async registerPublicKey(req, res) {
     try {
-      const { userId, walletAddress, publicKey, keyFormat = 'PEM' } = req.body;
+      const { userId, walletAddress, publicKey, signingPublicKey, keyFormat = 'PEM' } = req.body;
       
       // 验证必填字段
       if (!publicKey) {
@@ -43,14 +43,26 @@ const publicKeyController = {
       // 检查是否已存在当前密钥
       const { data: existingKey } = await supabase
         .from('public_keys')
-        .select('id, public_key')
+        .select('id, public_key, signing_public_key')
         .eq('wallet_address', normalizedAddress)
         .eq('is_current', true)
         .single();
       
       if (existingKey) {
-        // 如果密钥相同，直接返回成功
+        // 如果加密密钥相同，检查是否需要更新签名密钥
         if (existingKey.public_key === publicKey) {
+          // 如果签名密钥不同或新增，更新签名密钥
+          if (signingPublicKey && existingKey.signing_public_key !== signingPublicKey) {
+            const { error: updateError } = await supabase
+              .from('public_keys')
+              .update({ signing_public_key: signingPublicKey })
+              .eq('id', existingKey.id);
+            
+            if (updateError) {
+              console.error('Error updating signing key:', updateError);
+            }
+          }
+          
           return res.json({
             success: true,
             message: 'Public key already registered',
@@ -69,6 +81,7 @@ const publicKeyController = {
           user_id: userId || req.user_id,
           wallet_address: normalizedAddress,
           public_key: publicKey,
+          signing_public_key: signingPublicKey,
           key_format: keyFormat,
           is_current: true
         })
@@ -121,7 +134,7 @@ const publicKeyController = {
       
       const { data, error } = await supabase
         .from('public_keys')
-        .select('id, public_key, key_format, created_at, user_id')
+        .select('id, public_key, signing_public_key, key_format, created_at, user_id')
         .eq('wallet_address', normalizedAddress)
         .eq('is_current', true)
         .single();
@@ -137,6 +150,7 @@ const publicKeyController = {
         success: true,
         data: {
           publicKey: data.public_key,
+          signingPublicKey: data.signing_public_key,
           keyFormat: data.key_format,
           userId: data.user_id,
           createdAt: data.created_at,
@@ -208,7 +222,7 @@ const publicKeyController = {
    */
   async rotateKey(req, res) {
     try {
-      const { walletAddress, newPublicKey, keyFormat = 'PEM' } = req.body;
+      const { walletAddress, newPublicKey, newSigningPublicKey, keyFormat = 'PEM' } = req.body;
       const userId = req.user_id;
       
       if (!newPublicKey) {
@@ -256,6 +270,7 @@ const publicKeyController = {
           user_id: currentKey.user_id,
           wallet_address: currentKey.wallet_address,
           public_key: currentKey.public_key,
+          signing_public_key: currentKey.signing_public_key,
           valid_from: currentKey.created_at,
           valid_until: new Date().toISOString()
         });
@@ -265,13 +280,19 @@ const publicKeyController = {
       }
       
       // 更新当前密钥
+      const updateData = {
+        public_key: newPublicKey,
+        key_format: keyFormat,
+        rotated_at: new Date().toISOString()
+      };
+      
+      if (newSigningPublicKey) {
+        updateData.signing_public_key = newSigningPublicKey;
+      }
+      
       const { data: updatedKey, error: updateError } = await supabase
         .from('public_keys')
-        .update({
-          public_key: newPublicKey,
-          key_format: keyFormat,
-          rotated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', currentKey.id)
         .select()
         .single();
@@ -390,6 +411,7 @@ const publicKeyController = {
       (data || []).forEach(item => {
         keyMap[item.wallet_address] = {
           publicKey: item.public_key,
+          signingPublicKey: item.signing_public_key,
           keyFormat: item.key_format
         };
       });
