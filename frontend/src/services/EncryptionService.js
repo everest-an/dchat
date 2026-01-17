@@ -1,6 +1,7 @@
 /**
  * End-to-End Encryption Service for Dchat
  * Uses Web Crypto API for RSA + AES hybrid encryption
+ * Enhanced with digital signatures for message authentication
  */
 
 class EncryptionService {
@@ -8,6 +9,7 @@ class EncryptionService {
         this.keyPair = null;
         this.publicKeyPem = null;
         this.privateKeyPem = null;
+        this.signingKeyPair = null; // For digital signatures
     }
 
     /**
@@ -45,6 +47,197 @@ class EncryptionService {
             };
         } catch (error) {
             console.error("Error generating key pair:", error);
+            throw error;
+        }
+    }
+
+    /**
+     * Generate RSA key pair for digital signatures (RSASSA-PKCS1-v1_5)
+     * @returns {Promise<{publicKey: string, privateKey: CryptoKey}>}
+     */
+    async generateSigningKeyPair() {
+        try {
+            const keyPair = await crypto.subtle.generateKey(
+                {
+                    name: "RSASSA-PKCS1-v1_5",
+                    modulusLength: 2048,
+                    publicExponent: new Uint8Array([1, 0, 1]),
+                    hash: "SHA-256",
+                },
+                true,
+                ["sign", "verify"]
+            );
+
+            this.signingKeyPair = keyPair;
+
+            // Export public key to PEM format
+            const publicKeyBuffer = await crypto.subtle.exportKey(
+                "spki",
+                keyPair.publicKey
+            );
+            const signingPublicKeyPem = this.arrayBufferToPem(publicKeyBuffer, "PUBLIC KEY");
+
+            return {
+                publicKey: signingPublicKeyPem,
+                privateKey: keyPair.privateKey,
+            };
+        } catch (error) {
+            console.error("Error generating signing key pair:", error);
+            throw error;
+        }
+    }
+
+    /**
+     * Sign a message using RSASSA-PKCS1-v1_5
+     * @param {string} message - Message to sign
+     * @param {CryptoKey} privateKey - Signing private key
+     * @returns {Promise<string>} Base64 encoded signature
+     */
+    async signMessage(message, privateKey) {
+        try {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(message);
+            
+            const signature = await crypto.subtle.sign(
+                {
+                    name: "RSASSA-PKCS1-v1_5",
+                },
+                privateKey,
+                data
+            );
+
+            return this.arrayBufferToBase64(signature);
+        } catch (error) {
+            console.error("Error signing message:", error);
+            throw error;
+        }
+    }
+
+    /**
+     * Verify a message signature
+     * @param {string} message - Original message
+     * @param {string} signatureBase64 - Base64 encoded signature
+     * @param {string} publicKeyPem - Signer's public key in PEM format
+     * @returns {Promise<boolean>} True if signature is valid
+     */
+    async verifySignature(message, signatureBase64, publicKeyPem) {
+        try {
+            const publicKey = await this.importSigningPublicKey(publicKeyPem);
+            const encoder = new TextEncoder();
+            const data = encoder.encode(message);
+            const signature = this.base64ToArrayBuffer(signatureBase64);
+
+            const isValid = await crypto.subtle.verify(
+                {
+                    name: "RSASSA-PKCS1-v1_5",
+                },
+                publicKey,
+                signature,
+                data
+            );
+
+            return isValid;
+        } catch (error) {
+            console.error("Error verifying signature:", error);
+            return false;
+        }
+    }
+
+    /**
+     * Import signing public key from PEM string
+     * @param {string} pemKey - PEM formatted public key
+     * @returns {Promise<CryptoKey>}
+     */
+    async importSigningPublicKey(pemKey) {
+        try {
+            const binaryKey = this.pemToArrayBuffer(pemKey);
+            return await crypto.subtle.importKey(
+                "spki",
+                binaryKey,
+                {
+                    name: "RSASSA-PKCS1-v1_5",
+                    hash: "SHA-256",
+                },
+                true,
+                ["verify"]
+            );
+        } catch (error) {
+            console.error("Error importing signing public key:", error);
+            throw error;
+        }
+    }
+
+    /**
+     * Create a signed and encrypted message envelope
+     * @param {string} message - Plain text message
+     * @param {string} recipientPublicKeyPem - Recipient's encryption public key
+     * @param {CryptoKey} senderSigningPrivateKey - Sender's signing private key
+     * @param {string} senderAddress - Sender's wallet address
+     * @returns {Promise<Object>} Message envelope with encrypted content and signature
+     */
+    async createMessageEnvelope(message, recipientPublicKeyPem, senderSigningPrivateKey, senderAddress) {
+        try {
+            // 1. Create message payload with metadata
+            const payload = {
+                content: message,
+                sender: senderAddress,
+                timestamp: Date.now(),
+                nonce: crypto.getRandomValues(new Uint8Array(16)).join('')
+            };
+            const payloadString = JSON.stringify(payload);
+
+            // 2. Sign the payload
+            const signature = await this.signMessage(payloadString, senderSigningPrivateKey);
+
+            // 3. Encrypt the payload
+            const encrypted = await this.encryptMessage(payloadString, recipientPublicKeyPem);
+
+            // 4. Return envelope
+            return {
+                version: '1.0',
+                encrypted: encrypted,
+                signature: signature,
+                sender: senderAddress,
+                timestamp: payload.timestamp
+            };
+        } catch (error) {
+            console.error("Error creating message envelope:", error);
+            throw error;
+        }
+    }
+
+    /**
+     * Open and verify a message envelope
+     * @param {Object} envelope - Message envelope
+     * @param {CryptoKey} recipientPrivateKey - Recipient's decryption private key
+     * @param {string} senderSigningPublicKeyPem - Sender's signing public key
+     * @returns {Promise<{content: string, verified: boolean, sender: string, timestamp: number}>}
+     */
+    async openMessageEnvelope(envelope, recipientPrivateKey, senderSigningPublicKeyPem) {
+        try {
+            // 1. Decrypt the payload
+            const payloadString = await this.decryptMessage(envelope.encrypted, recipientPrivateKey);
+            const payload = JSON.parse(payloadString);
+
+            // 2. Verify signature if signing key is provided
+            let verified = false;
+            if (senderSigningPublicKeyPem && envelope.signature) {
+                verified = await this.verifySignature(payloadString, envelope.signature, senderSigningPublicKeyPem);
+            }
+
+            // 3. Verify sender matches
+            const senderMatches = payload.sender === envelope.sender;
+
+            return {
+                content: payload.content,
+                verified: verified && senderMatches,
+                sender: payload.sender,
+                timestamp: payload.timestamp,
+                signatureValid: verified,
+                senderMatches: senderMatches
+            };
+        } catch (error) {
+            console.error("Error opening message envelope:", error);
             throw error;
         }
     }
@@ -238,18 +431,29 @@ class EncryptionService {
     }
 
     /**
-     * Store keys in IndexedDB
-     * @param {CryptoKey} privateKey
-     * @param {string} publicKeyPem
+     * Store keys in localStorage
+     * @param {CryptoKey} privateKey - Encryption private key
+     * @param {string} publicKeyPem - Encryption public key
+     * @param {CryptoKey} signingPrivateKey - Signing private key (optional)
+     * @param {string} signingPublicKeyPem - Signing public key (optional)
      */
-    async storeKeys(privateKey, publicKeyPem) {
+    async storeKeys(privateKey, publicKeyPem, signingPrivateKey = null, signingPublicKeyPem = null) {
         try {
-            // Export private key for storage
+            // Export encryption private key for storage
             const privateKeyBuffer = await crypto.subtle.exportKey("pkcs8", privateKey);
             const privateKeyBase64 = this.arrayBufferToBase64(privateKeyBuffer);
 
             localStorage.setItem("dchat_public_key", publicKeyPem);
             localStorage.setItem("dchat_private_key", privateKeyBase64);
+
+            // Store signing keys if provided
+            if (signingPrivateKey && signingPublicKeyPem) {
+                const signingPrivateKeyBuffer = await crypto.subtle.exportKey("pkcs8", signingPrivateKey);
+                const signingPrivateKeyBase64 = this.arrayBufferToBase64(signingPrivateKeyBuffer);
+
+                localStorage.setItem("dchat_signing_public_key", signingPublicKeyPem);
+                localStorage.setItem("dchat_signing_private_key", signingPrivateKeyBase64);
+            }
         } catch (error) {
             console.error("Error storing keys:", error);
             throw error;
@@ -257,8 +461,8 @@ class EncryptionService {
     }
 
     /**
-     * Load keys from IndexedDB
-     * @returns {Promise<{publicKey: string, privateKey: CryptoKey}>}
+     * Load keys from localStorage
+     * @returns {Promise<{publicKey: string, privateKey: CryptoKey, signingPublicKey?: string, signingPrivateKey?: CryptoKey}>}
      */
     async loadKeys() {
         try {
@@ -284,15 +488,81 @@ class EncryptionService {
             this.publicKeyPem = publicKeyPem;
             this.privateKey = privateKey;
 
-            return {
+            const result = {
                 publicKey: publicKeyPem,
                 privateKey: privateKey,
             };
+
+            // Load signing keys if available
+            const signingPublicKeyPem = localStorage.getItem("dchat_signing_public_key");
+            const signingPrivateKeyBase64 = localStorage.getItem("dchat_signing_private_key");
+
+            if (signingPublicKeyPem && signingPrivateKeyBase64) {
+                const signingPrivateKeyBuffer = this.base64ToArrayBuffer(signingPrivateKeyBase64);
+                const signingPrivateKey = await crypto.subtle.importKey(
+                    "pkcs8",
+                    signingPrivateKeyBuffer,
+                    {
+                        name: "RSASSA-PKCS1-v1_5",
+                        hash: "SHA-256",
+                    },
+                    true,
+                    ["sign"]
+                );
+
+                result.signingPublicKey = signingPublicKeyPem;
+                result.signingPrivateKey = signingPrivateKey;
+            }
+
+            return result;
         } catch (error) {
             console.error("Error loading keys:", error);
             return null;
         }
     }
+
+    /**
+     * Initialize all keys (encryption + signing)
+     * @returns {Promise<Object>} All keys
+     */
+    async initializeAllKeys() {
+        try {
+            // Try to load existing keys
+            const existingKeys = await this.loadKeys();
+            if (existingKeys && existingKeys.signingPrivateKey) {
+                return existingKeys;
+            }
+
+            // Generate new encryption keys if needed
+            let encryptionKeys = existingKeys;
+            if (!encryptionKeys) {
+                encryptionKeys = await this.generateKeyPair();
+            }
+
+            // Generate signing keys
+            const signingKeys = await this.generateSigningKeyPair();
+
+            // Store all keys
+            await this.storeKeys(
+                encryptionKeys.privateKey,
+                encryptionKeys.publicKey,
+                signingKeys.privateKey,
+                signingKeys.publicKey
+            );
+
+            return {
+                publicKey: encryptionKeys.publicKey,
+                privateKey: encryptionKeys.privateKey,
+                signingPublicKey: signingKeys.publicKey,
+                signingPrivateKey: signingKeys.privateKey
+            };
+        } catch (error) {
+            console.error("Error initializing all keys:", error);
+            throw error;
+        }
+    }
 }
+
+export default new EncryptionService();
 
 export default new EncryptionService();

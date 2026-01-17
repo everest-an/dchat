@@ -159,6 +159,7 @@ CREATE TABLE IF NOT EXISTS public_keys (
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
   wallet_address VARCHAR(42) NOT NULL,
   public_key TEXT NOT NULL,
+  signing_public_key TEXT, -- 签名公钥，用于消息认证
   key_format VARCHAR(10) DEFAULT 'PEM', -- PEM, JWK, or BASE64
   is_current BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -171,6 +172,7 @@ CREATE TABLE IF NOT EXISTS public_key_history (
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
   wallet_address VARCHAR(42) NOT NULL,
   public_key TEXT NOT NULL,
+  signing_public_key TEXT, -- 签名公钥历史
   valid_from TIMESTAMP WITH TIME ZONE NOT NULL,
   valid_until TIMESTAMP WITH TIME ZONE NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -203,3 +205,7 @@ CREATE POLICY "Anyone can read public key history" ON public_key_history
 
 CREATE POLICY "System can insert public key history" ON public_key_history
   FOR INSERT WITH CHECK (true);
+
+-- 添加签名公钥列（如果表已存在）
+-- ALTER TABLE public_keys ADD COLUMN IF NOT EXISTS signing_public_key TEXT;
+-- ALTER TABLE public_key_history ADD COLUMN IF NOT EXISTS signing_public_key TEXT;
