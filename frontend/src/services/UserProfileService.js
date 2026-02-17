@@ -171,8 +171,6 @@ export class UserProfileService {
         }
       }
     }
-    
-    // TODO: Translate '返回默认'emojiTODO: Translate '头像'
     return {
       type: 'default',
       emoji: this.getDefaultAvatar(address)
@@ -239,8 +237,6 @@ export class UserProfileService {
     if (!profile.avatarHistory) {
       profile.avatarHistory = []
     }
-    
-    // TODO: Translate '限制历史记录数量'（TODO: Translate '最多保留'10TODO: Translate '个'）
     if (profile.avatarHistory.length >= 10) {
       profile.avatarHistory.shift()
     }

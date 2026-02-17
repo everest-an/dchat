@@ -37,8 +37,6 @@ export default function WalletConnect({ onConnected }) {
   const handleSwitchNetwork = async () => {
     await switchNetwork('sepolia')
   }
-
-  // TODO: Translate '检查是否在正确的网络'
   const isCorrectNetwork = chainId === '11155111' // Sepolia chainId
 
   if (!isMetaMaskInstalled) {

@@ -24,20 +24,13 @@ class AdvancedEncryptionService {
    */
   async initializeUserEncryption(userAddress) {
     try {
-      // TODO: Translate '检查是否已有密钥对'
       const existingKeys = this.getUserKeys(userAddress)
       if (existingKeys) {
         return existingKeys
       }
-
-      // TODO: Translate '生成新的密钥对'
       console.log('Generating new key pair for user:', userAddress)
       const keyPair = await generateKeyPair()
-      
-      // TODO: Translate '保存密钥对'
       this.saveUserKeys(userAddress, keyPair)
-      
-      // TODO: Translate '保存公钥到用户资料'
       this.savePublicKeyToProfile(userAddress, keyPair.publicKey)
       
       return keyPair
@@ -89,7 +82,6 @@ class AdvancedEncryptionService {
    */
   async getRecipientPublicKey(recipientAddress) {
     try {
-      // TODO: Translate '从本地缓存获取'
       const cachedKey = localStorage.getItem(`${this.STORAGE_KEY_PREFIX}pubkey_${recipientAddress}`)
       if (cachedKey) {
         return cachedKey
@@ -97,8 +89,6 @@ class AdvancedEncryptionService {
 
       // TODO: TODO: Translate '从智能合约获取'
       // const publicKey = await userIdentityContract.getPublicKey(recipientAddress)
-      
-      // TODO: Translate '暂时返回' null,TODO: Translate '需要对方先发送公钥'
       return null
     } catch (error) {
       console.error('Error getting recipient public key:', error)
@@ -126,10 +116,7 @@ class AdvancedEncryptionService {
    */
   async encryptMessageForRecipient(message, recipientAddress, senderAddress) {
     try {
-      // TODO: Translate '获取接收者的公钥'
       let recipientPublicKey = await this.getRecipientPublicKey(recipientAddress)
-      
-      // TODO: Translate '如果没有公钥',TODO: Translate '返回未加密的消息'
       if (!recipientPublicKey) {
         console.warn('No public key found for recipient, sending unencrypted')
         return {
@@ -141,11 +128,7 @@ class AdvancedEncryptionService {
           }
         }
       }
-
-      // TODO: Translate '加密消息'
       const encryptedMessage = await encryptMessage(message, recipientPublicKey)
-      
-      // TODO: Translate '获取发送者的公钥'(TODO: Translate '用于接收者验证')
       const senderPublicKey = this.getUserPublicKey(senderAddress)
       
       return {
@@ -160,7 +143,6 @@ class AdvancedEncryptionService {
       }
     } catch (error) {
       console.error('Error encrypting message:', error)
-      // TODO: Translate '加密失败',TODO: Translate '返回未加密的消息'
       return {
         encrypted: false,
         message: message,
@@ -182,24 +164,16 @@ class AdvancedEncryptionService {
    */
   async decryptMessageForUser(encryptedMessage, userAddress, metadata = {}) {
     try {
-      // TODO: Translate '如果消息未加密',TODO: Translate '直接返回'
       if (!metadata.encrypted) {
         return encryptedMessage
       }
-
-      // TODO: Translate '获取用户的私钥'
       const keys = this.getUserKeys(userAddress)
       if (!keys || !keys.privateKey) {
         throw new Error('Private key not found')
       }
-
-      // TODO: Translate '缓存发送者的公钥'
       if (metadata.senderPublicKey) {
-        // TODO: Translate '从消息中提取发送者地址'(TODO: Translate '需要从消息上下文获取')
         // this.cacheRecipientPublicKey(senderAddress, metadata.senderPublicKey)
       }
-
-      // TODO: Translate '解密消息'
       const decryptedMessage = await decryptMessage(encryptedMessage, keys.privateKey)
       
       return decryptedMessage
@@ -221,15 +195,9 @@ class AdvancedEncryptionService {
       if (!keys) {
         throw new Error('No keys found to export')
       }
-
-      // TODO: Translate '使用密码派生密钥'
       const derivedKey = await this.deriveKeyFromPassword(password)
-      
-      // TODO: Translate '加密密钥对'
       const keysJson = JSON.stringify(keys)
       const { encrypted, iv } = await encryptWithSymmetricKey(keysJson, derivedKey)
-      
-      // TODO: Translate '返回备份数据'
       return JSON.stringify({
         version: 1,
         userAddress,
@@ -252,20 +220,12 @@ class AdvancedEncryptionService {
   async importKeys(backupData, password) {
     try {
       const backup = JSON.parse(backupData)
-      
-      // TODO: Translate '验证备份格式'
       if (!backup.version || !backup.encrypted || !backup.iv) {
         throw new Error('Invalid backup format')
       }
-
-      // TODO: Translate '使用密码派生密钥'
       const derivedKey = await this.deriveKeyFromPassword(password)
-      
-      // TODO: Translate '解密密钥对'
       const keysJson = await decryptWithSymmetricKey(backup.encrypted, derivedKey, backup.iv)
       const keys = JSON.parse(keysJson)
-      
-      // TODO: Translate '保存密钥'
       this.saveUserKeys(backup.userAddress, keys)
       
       return true
@@ -291,8 +251,6 @@ class AdvancedEncryptionService {
         false,
         ['deriveBits', 'deriveKey']
       )
-      
-      // TODO: Translate '固定的盐值'(TODO: Translate '实际应用中应该随机生成并保存')
       const salt = encoder.encode('dchat-encryption-salt-v1')
       
       const derivedKey = await window.crypto.subtle.deriveKey(
@@ -348,7 +306,6 @@ class AdvancedEncryptionService {
    */
   savePublicKeyToProfile(userAddress, publicKey) {
     try {
-      // TODO: Translate '保存到本地存储'
       const profileKey = `dchat_profile_${userAddress}`
       const profileJson = localStorage.getItem(profileKey)
       const profile = profileJson ? JSON.parse(profileJson) : {}
@@ -382,6 +339,4 @@ class AdvancedEncryptionService {
     return window.btoa(binary)
   }
 }
-
-// TODO: Translate '导出单例'
 export const advancedEncryptionService = new AdvancedEncryptionService()

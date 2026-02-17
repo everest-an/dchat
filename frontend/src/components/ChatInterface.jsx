@@ -93,7 +93,7 @@ const ChatInterface = () => {
 
         // Try to load conversations from backend
         try {
-          const API_URL = import.meta.env.VITE_API_URL || '''';
+          const API_URL = import.meta.env.VITE_API_URL || '';
           const response = await fetch(`${API_URL}/api/conversations`, {
             headers: {
               'Authorization': `Bearer ${authToken}`,

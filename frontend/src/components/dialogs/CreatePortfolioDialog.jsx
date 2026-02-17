@@ -139,8 +139,6 @@ export default function CreatePortfolioDialog({ open, onClose, onSuccess, userAd
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-
-            {/* TODO: Translate '标题' */}
             <div className="space-y-2">
               <Label htmlFor="title">职位/标题 *</Label>
               <Input
@@ -151,8 +149,6 @@ export default function CreatePortfolioDialog({ open, onClose, onSuccess, userAd
                 disabled={loading}
               />
             </div>
-
-            {/* TODO: Translate '简介' */}
             <div className="space-y-2">
               <Label htmlFor="bio">个人简介 *</Label>
               <Textarea
@@ -164,8 +160,6 @@ export default function CreatePortfolioDialog({ open, onClose, onSuccess, userAd
                 disabled={loading}
               />
             </div>
-
-            {/* TODO: Translate '技能' */}
             <div className="space-y-2">
               <Label htmlFor="skills">技能 *</Label>
               <div className="flex gap-2">
@@ -204,8 +198,6 @@ export default function CreatePortfolioDialog({ open, onClose, onSuccess, userAd
                 </div>
               )}
             </div>
-
-            {/* TODO: Translate '时薪' */}
             <div className="space-y-2">
               <Label htmlFor="hourlyRate">时薪 (ETH) *</Label>
               <Input

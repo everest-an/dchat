@@ -82,7 +82,7 @@ class IPFSService {
             }
 
             const result = await response.json();
-            console.log('✅ Uploaded to IPFS:', result.IpfsHash);
+
             return result.IpfsHash;
         } catch (error) {
             console.error('Error uploading to IPFS:', error);
@@ -187,7 +187,7 @@ class IPFSService {
             }
 
             const result = await response.json();
-            console.log('✅ File uploaded to IPFS:', result.IpfsHash);
+
             return result.IpfsHash;
         } catch (error) {
             console.error('Error uploading file to IPFS:', error);

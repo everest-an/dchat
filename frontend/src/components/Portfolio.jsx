@@ -46,19 +46,13 @@ export default function Portfolio({ user }) {
   const [showCreatePortfolio, setShowCreatePortfolio] = useState(false)
   const [showAddProject, setShowAddProject] = useState(false)
   const [showUpdateAvailability, setShowUpdateAvailability] = useState(false)
-
-  // TODO: Translate '初始化服务'
   const portfolioService = new LivingPortfolioService(provider, signer)
-
-  // TODO: Translate '加载作品集数据'
   const loadPortfolio = async () => {
     if (!userAddress) return
     
     try {
       setLoading(true)
       setError(null)
-
-      // TODO: Translate '检查作品集是否存在'
       const existsResult = await portfolioService.portfolioExists(userAddress)
       
       if (!existsResult.success || !existsResult.data) {
@@ -66,32 +60,22 @@ export default function Portfolio({ user }) {
         setLoading(false)
         return
       }
-
-      // TODO: Translate '加载作品集'
       const portfolioResult = await portfolioService.getPortfolio(userAddress)
       if (portfolioResult.success) {
         setPortfolio(portfolioResult.portfolio)
       }
-
-      // TODO: Translate '加载项目'
       const projectsResult = await portfolioService.getUserProjects(userAddress)
       if (projectsResult.success) {
         setProjects(projectsResult.projects)
       }
-
-      // TODO: Translate '加载当前项目'
       const currentResult = await portfolioService.getCurrentProjects(userAddress)
       if (currentResult.success) {
         setCurrentProjects(currentResult.projects)
       }
-
-      // TODO: Translate '加载可用性'
       const availabilityResult = await portfolioService.getAvailability(userAddress)
       if (availabilityResult.success) {
         setAvailability(availabilityResult.availability)
       }
-
-      // TODO: Translate '加载凭证'
       const credentialsResult = await portfolioService.getUserCredentials(userAddress)
       if (credentialsResult.success) {
         setCredentials(credentialsResult.credentials)
@@ -110,26 +94,18 @@ export default function Portfolio({ user }) {
       loadPortfolio()
     }
   }, [userAddress])
-
-  // TODO: Translate '创建作品集成功回调'
   const handlePortfolioCreated = () => {
     setShowCreatePortfolio(false)
     loadPortfolio()
   }
-
-  // TODO: Translate '添加项目成功回调'
   const handleProjectAdded = () => {
     setShowAddProject(false)
     loadPortfolio()
   }
-
-  // TODO: Translate '更新可用性成功回调'
   const handleAvailabilityUpdated = () => {
     setShowUpdateAvailability(false)
     loadPortfolio()
   }
-
-  // TODO: Translate '获取可用性状态文本'
   const getAvailabilityStatusText = (status) => {
     switch (status) {
       case AvailabilityStatus.AVAILABLE:
@@ -144,8 +120,6 @@ export default function Portfolio({ user }) {
         return '未知'
     }
   }
-
-  // TODO: Translate '获取可用性状态颜色'
   const getAvailabilityStatusColor = (status) => {
     switch (status) {
       case AvailabilityStatus.AVAILABLE:
@@ -205,8 +179,6 @@ export default function Portfolio({ user }) {
       </div>
     )
   }
-
-  // TODO: Translate '如果没有作品集',TODO: Translate '显示创建界面'
   if (!portfolio) {
     return (
       <div className="flex items-center justify-center h-full p-4">
@@ -264,11 +236,8 @@ export default function Portfolio({ user }) {
       </div>
     )
   }
-
-  // TODO: Translate '显示作品集'
   return (
     <div className="h-full overflow-auto p-4 space-y-6">
-      {/* TODO: Translate '作品集头部' */}
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between">
@@ -297,7 +266,6 @@ export default function Portfolio({ user }) {
           </div>
         </CardHeader>
         <CardContent>
-          {/* TODO: Translate '技能标签' */}
           <div className="space-y-2">
             <h3 className="font-semibold">{t('portfolio.skills')}</h3>
             <div className="flex flex-wrap gap-2">
@@ -308,8 +276,6 @@ export default function Portfolio({ user }) {
               ))}
             </div>
           </div>
-
-          {/* TODO: Translate '可用性状态' */}
           {availability && (
             <div className="mt-4 p-4 border rounded-lg">
               <div className="flex items-center justify-between mb-2">
@@ -340,16 +306,12 @@ export default function Portfolio({ user }) {
           )}
         </CardContent>
       </Card>
-
-      {/* TODO: Translate '标签页' */}
       <Tabs defaultValue="current" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="current">{t('portfolio.currentProjects')}</TabsTrigger>
           <TabsTrigger value="all">{t('portfolio.allProjects')}</TabsTrigger>
           <TabsTrigger value="credentials">{t('portfolio.credentials')}</TabsTrigger>
         </TabsList>
-
-        {/* TODO: Translate '当前项目' */}
         <TabsContent value="current" className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">{t('portfolio.currentProjects')}</h2>
@@ -373,8 +335,6 @@ export default function Portfolio({ user }) {
             </div>
           )}
         </TabsContent>
-
-        {/* TODO: Translate '所有项目' */}
         <TabsContent value="all" className="space-y-4">
           <h2 className="text-xl font-semibold">{t('portfolio.allProjects')}</h2>
           
@@ -392,8 +352,6 @@ export default function Portfolio({ user }) {
             </div>
           )}
         </TabsContent>
-
-        {/* TODO: Translate '凭证' */}
         <TabsContent value="credentials" className="space-y-4">
           <h2 className="text-xl font-semibold">{t('portfolio.earnedCredentials')}</h2>
           
@@ -412,8 +370,6 @@ export default function Portfolio({ user }) {
           )}
         </TabsContent>
       </Tabs>
-
-      {/* TODO: Translate '对话框' */}
       <CreatePortfolioDialog
         open={showCreatePortfolio}
         onClose={() => setShowCreatePortfolio(false)}

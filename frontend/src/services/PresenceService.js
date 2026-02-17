@@ -50,8 +50,7 @@ class PresenceService {
     this.updateInterval = null;
     this.lastActivity = Date.now();
     this.isTracking = false;
-    
-    console.log('✅ PresenceService initialized');
+
   }
 
   /**
@@ -362,7 +361,7 @@ class PresenceService {
    */
   startTracking(userId) {
     if (this.isTracking) {
-      console.log('⚠️ Already tracking activity');
+
       return;
     }
 
@@ -430,7 +429,6 @@ class PresenceService {
       this.periodicUpdate(userId);
     }, THRESHOLDS.UPDATE_INTERVAL);
 
-    console.log('✅ Activity tracking started');
   }
 
   /**
@@ -479,7 +477,7 @@ class PresenceService {
     }
 
     this.isTracking = false;
-    console.log('✅ Activity tracking stopped');
+
   }
 
   /**
@@ -577,8 +575,7 @@ class PresenceService {
     
     this.currentUserId = null;
     this.statusChangeCallbacks = [];
-    
-    console.log('✅ PresenceService cleaned up');
+
   }
 }
 

@@ -2,37 +2,31 @@
  * TODO: Translate '订阅服务'
  * TODO: Translate '管理用户订阅和功能限制'
  */
-
-// TODO: Translate '订阅计划'
 export const SUBSCRIPTION_PLANS = {
   FREE: 'free',
   PRO: 'pro',
   ENTERPRISE: 'enterprise'
 }
-
-// TODO: Translate '免费版限制'
 export const FREE_LIMITS = {
-  groupMembers: 10,                    // TODO: Translate '群组最多'10TODO: Translate '人'
-  fileSize: 10 * 1024 * 1024,         // TODO: Translate '文件最大'10MB
-  storage: 100 * 1024 * 1024,         // TODO: Translate '总存储'100MB
-  messages: 1000,                      // TODO: Translate '最多保存'1000TODO: Translate '条消息'
-  groups: 5,                           // TODO: Translate '最多'5TODO: Translate '个群组'
-  contacts: 100,                       // TODO: Translate '最多'100TODO: Translate '个联系人'
-  dailyMessages: 500                   // TODO: Translate '每天最多'500TODO: Translate '条消息'
+  groupMembers: 10,
+  fileSize: 10 * 1024 * 1024,
+  storage: 100 * 1024 * 1024,
+  messages: 1000,
+  groups: 5,
+  contacts: 100,
+  dailyMessages: 500
 }
 
 // ProTODO: Translate '版限制'
 export const PRO_LIMITS = {
   groupMembers: Infinity,
-  fileSize: 100 * 1024 * 1024,        // TODO: Translate '文件最大'100MB
-  storage: 10 * 1024 * 1024 * 1024,   // TODO: Translate '总存储'10GB
+  fileSize: 100 * 1024 * 1024,
+  storage: 10 * 1024 * 1024 * 1024,
   messages: Infinity,
   groups: Infinity,
   contacts: Infinity,
   dailyMessages: Infinity
 }
-
-// TODO: Translate '企业版限制'
 export const ENTERPRISE_LIMITS = {
   groupMembers: Infinity,
   fileSize: Infinity,
@@ -45,31 +39,29 @@ export const ENTERPRISE_LIMITS = {
 
 // ProTODO: Translate '版功能'
 export const PRO_FEATURES = [
-  'advanced_encryption',   // TODO: Translate '高级加密'
-  'priority_support',      // TODO: Translate '优先支持'
-  'custom_domain',         // TODO: Translate '自定义域名'
+  'advanced_encryption',
+  'priority_support',
+  'custom_domain',
   'api_access',            // API TODO: Translate '访问'
-  'data_export',           // TODO: Translate '数据导出'
-  'backup_restore',        // TODO: Translate '备份恢复'
-  'analytics',             // TODO: Translate '数据分析'
-  'white_label',           // TODO: Translate '白标定制'
-  'message_search',        // TODO: Translate '消息搜索'
-  'voice_call',            // TODO: Translate '语音通话'
-  'video_call'             // TODO: Translate '视频通话'
+  'data_export',
+  'backup_restore',
+  'analytics',
+  'white_label',
+  'message_search',
+  'voice_call',
+  'video_call'
 ]
-
-// TODO: Translate '企业版功能'
 export const ENTERPRISE_FEATURES = [
   ...PRO_FEATURES,
-  'private_deployment',    // TODO: Translate '私有部署'
-  'custom_development',    // TODO: Translate '定制开发'
-  'dedicated_support',     // TODO: Translate '专属支持'
+  'private_deployment',
+  'custom_development',
+  'dedicated_support',
   'sla_guarantee',         // SLA TODO: Translate '保证'
-  'training_service',      // TODO: Translate '培训服务'
-  'audit_logs',            // TODO: Translate '审计日志'
-  'compliance',            // TODO: Translate '合规支持'
-  'integration',           // TODO: Translate '企业集成'
-  'unlimited_users'        // TODO: Translate '无限用户'
+  'training_service',
+  'audit_logs',
+  'compliance',
+  'integration',
+  'unlimited_users'
 ]
 
 class SubscriptionService {

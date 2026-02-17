@@ -12,13 +12,9 @@ export class ContractService {
     this.provider = provider
     this.signer = signer
     this.address = getContractAddress(contractName)
-    
-    // TODO: Translate '创建合约实例'
     if (!this.address) {
       throw new Error(`Contract address not found for ${contractName}`)
     }
-    
-    // TODO: Translate '如果有' signer,use signer(TODO: Translate '可写'),否则use provider(TODO: Translate '只读')
     this.contract = new ethers.Contract(
       this.address,
       abi,
@@ -56,14 +52,9 @@ export class ContractService {
     }
 
     try {
-      // TODO: Translate '估算' gas
       const gasEstimate = await this.contract[method].estimateGas(...args)
-      const gasLimit = gasEstimate * 120n / 100n // TODO: Translate '增加' 20% TODO: Translate '作为缓冲'
-
-      // TODO: Translate '发送交易'
+      const gasLimit = gasEstimate * 120n / 100n
       const tx = await this.contract[method](...args, { gasLimit })
-      
-      // TODO: Translate '等待交易确认'
       const receipt = await tx.wait()
       
       return {
@@ -74,8 +65,6 @@ export class ContractService {
       }
     } catch (error) {
       console.error(`Error sending transaction ${method}:`, error)
-      
-      // TODO: Translate '解析错误信息'
       let errorMessage = error.message
       if (error.reason) {
         errorMessage = error.reason

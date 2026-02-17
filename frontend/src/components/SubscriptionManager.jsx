@@ -32,22 +32,16 @@ export default function SubscriptionManager() {
   const [activeTab, setActiveTab] = useState('subscriptions')
 
   const portfolioService = new LivingPortfolioService(provider, signer)
-
-  // TODO: Translate '加载订阅数据'
   const loadData = async () => {
     if (!account) return
 
     try {
       setLoading(true)
       setError(null)
-
-      // TODO: Translate '加载订阅列表'
       const subsResult = await portfolioService.getSubscriptions(account)
       if (subsResult.success) {
         setSubscriptions(subsResult.data || [])
       }
-
-      // TODO: Translate '加载订阅者列表'
       const subscribersResult = await portfolioService.getSubscribers(account)
       if (subscribersResult.success) {
         setSubscribers(subscribersResult.data || [])
@@ -66,8 +60,6 @@ export default function SubscriptionManager() {
       loadData()
     }
   }, [isConnected, account])
-
-  // TODO: Translate '取消订阅'
   const handleUnsubscribe = async (targetAddress) => {
     try {
       const result = await portfolioService.unsubscribe(targetAddress)
@@ -110,7 +102,6 @@ export default function SubscriptionManager() {
 
   return (
     <div className="h-full overflow-auto p-4 space-y-6">
-      {/* TODO: Translate '头部统计' */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-3">
@@ -153,8 +144,6 @@ export default function SubscriptionManager() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-
-      {/* TODO: Translate '标签切换' */}
       <div className="flex gap-2 border-b">
         <Button
           variant={activeTab === 'subscriptions' ? 'default' : 'ghost'}
@@ -171,8 +160,6 @@ export default function SubscriptionManager() {
           订阅者 ({subscribers.length})
         </Button>
       </div>
-
-      {/* TODO: Translate '订阅列表' */}
       {activeTab === 'subscriptions' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -227,8 +214,6 @@ export default function SubscriptionManager() {
           )}
         </div>
       )}
-
-      {/* TODO: Translate '订阅者列表' */}
       {activeTab === 'subscribers' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">

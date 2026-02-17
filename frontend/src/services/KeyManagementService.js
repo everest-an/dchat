@@ -15,7 +15,7 @@ const SIGNING_KEYS_CACHE_PREFIX = 'dchat_sk_cache_'
 const CACHE_EXPIRY_MS = 5 * 60 * 1000 // 5 分钟缓存过期
 
 // API 配置
-const API_URL = import.meta.env.VITE_API_URL || ''''
+const API_URL = import.meta.env.VITE_API_URL || ''
 
 export const KeyManagementService = {
   /**

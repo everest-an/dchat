@@ -33,7 +33,7 @@ class SocketService {
     }
 
     // Socket.IO server URL - use environment variable or backend URL
-    const API_URL = import.meta.env.VITE_API_URL || '''';
+    const API_URL = import.meta.env.VITE_API_URL || '';
     const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || API_URL;
 
     console.log('Connecting to Socket.IO server:', SOCKET_URL);

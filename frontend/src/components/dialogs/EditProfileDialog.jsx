@@ -52,8 +52,6 @@ const EditProfileDialog = ({ isOpen, onClose, address, onSave }) => {
    */
   const handleAvatarUpdate = async (avatarInfo) => {
     console.log('🖼️ Avatar updated in dialog:', avatarInfo)
-    
-    // TODO: Translate '更新本地状态'
     const newAvatar = {
       type: 'ipfs',
       ipfsHash: avatarInfo.ipfsHash,
@@ -65,8 +63,6 @@ const EditProfileDialog = ({ isOpen, onClose, address, onSave }) => {
     
     setProfile({ ...profile, avatar: newAvatar })
     setAvatarData(newAvatar)
-    
-    // TODO: Translate '立即保存到'UserProfileService
     UserProfileService.updateAvatar(address, avatarInfo)
     
     success(t('avatar.uploadSuccess'), t('avatar.uploadSuccess'))
@@ -93,11 +89,9 @@ const EditProfileDialog = ({ isOpen, onClose, address, onSave }) => {
     const saved = UserProfileService.saveProfile(address, profile)
     if (saved) {
       success(t('common.success'), 'Profile updated successfully')
-      // TODO: Translate '触发父组件刷新'
       if (onSave) {
         onSave(profile)
       }
-      // TODO: Translate '触发全局事件以刷新所有组件'
       window.dispatchEvent(new CustomEvent('profileUpdated', { detail: { address, profile } }))
       onClose()
     } else {

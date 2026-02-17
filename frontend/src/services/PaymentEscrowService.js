@@ -201,8 +201,6 @@ export class PaymentEscrowService extends ContractService {
     })
   }
 }
-
-// TODO: Translate '托管状态枚举'
 export const EscrowStatus = {
   PENDING: 0,
   RELEASED: 1,

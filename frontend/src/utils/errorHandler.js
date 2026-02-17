@@ -1,10 +1,14 @@
 /**
- * 错误处理工具
- * 统一处理前端错误，提供友好的错误提示
+ * Unified Error Handler
+ * 
+ * Centralized error handling for the frontend application.
+ * Provides consistent error messages, logging, and user notifications.
  */
 
+import { ApiError } from '../services/apiClient'
+
 /**
- * 错误类型枚举
+ * Error type enum
  */
 export const ErrorType = {
   NETWORK: 'network',
@@ -15,45 +19,83 @@ export const ErrorType = {
   UNKNOWN: 'unknown'
 }
 
-/**
- * 错误消息映射
- */
-const errorMessages = {
-  // 网络错误
-  'Failed to fetch': '网络连接失败，请检查您的网络连接',
-  'Network request failed': '网络请求失败，请稍后重试',
-  'timeout': '请求超时，请稍后重试',
-  
-  // 认证错误
-  'Unauthorized': '未授权访问，请先登录',
-  'Token expired': '登录已过期，请重新登录',
-  'Invalid token': '无效的登录凭证，请重新登录',
-  
-  // 钱包错误
-  'User rejected': '用户拒绝了操作',
-  'MetaMask not installed': '请先安装 MetaMask 钱包',
-  'Wrong network': '请切换到正确的网络',
-  'Insufficient funds': '余额不足',
-  
-  // 合约错误
-  'execution reverted': '智能合约执行失败',
-  'gas required exceeds allowance': 'Gas 费用不足',
-  'nonce too low': '交易序号错误，请刷新页面',
-  
-  // IPFS错误
-  'IPFS upload failed': 'IPFS 上传失败，请稍后重试',
-  'IPFS fetch failed': 'IPFS 获取失败，请稍后重试',
-  
-  // 验证错误
-  'Invalid address': '无效的钱包地址',
-  'Invalid email': '无效的邮箱地址',
-  'Required field': '该字段为必填项'
+/** Map HTTP status codes to user-friendly messages */
+const STATUS_MESSAGES = {
+  0: 'Network error. Please check your internet connection.',
+  400: 'Invalid request. Please check your input.',
+  401: 'Session expired. Please log in again.',
+  403: 'You do not have permission to perform this action.',
+  404: 'The requested resource was not found.',
+  408: 'Request timed out. Please try again.',
+  429: 'Too many requests. Please wait a moment.',
+  500: 'Server error. Please try again later.',
+  502: 'Server is temporarily unavailable.',
+  503: 'Service is under maintenance. Please try again later.',
 }
 
 /**
- * 解析错误类型
- * @param {Error} error - 错误对象
- * @returns {string} 错误类型
+ * Error message mapping (keyword-based fallback)
+ */
+const errorMessages = {
+  // Network errors
+  'Failed to fetch': 'Network connection failed. Please check your connection.',
+  'Network request failed': 'Network request failed. Please try again.',
+  'timeout': 'Request timed out. Please try again.',
+  
+  // Auth errors
+  'Unauthorized': 'Unauthorized access. Please log in.',
+  'Token expired': 'Session expired. Please log in again.',
+  'Invalid token': 'Invalid credentials. Please log in again.',
+  
+  // Wallet errors
+  'User rejected': 'Transaction rejected by user.',
+  'MetaMask not installed': 'Please install MetaMask wallet.',
+  'Wrong network': 'Please switch to the correct network.',
+  'Insufficient funds': 'Insufficient balance.',
+  
+  // Contract errors
+  'execution reverted': 'Smart contract execution failed.',
+  'gas required exceeds allowance': 'Insufficient gas.',
+  'nonce too low': 'Transaction nonce error. Please refresh the page.',
+  
+  // IPFS errors
+  'IPFS upload failed': 'IPFS upload failed. Please try again.',
+  'IPFS fetch failed': 'IPFS fetch failed. Please try again.',
+  
+  // Validation errors
+  'Invalid address': 'Invalid wallet address.',
+  'Invalid email': 'Invalid email address.',
+  'Required field': 'This field is required.'
+}
+
+/**
+ * Parse error from ApiError or any error type into a unified format
+ * @param {Error|ApiError|string} error - The error to process
+ * @returns {{ message: string, severity: string, shouldLogout: boolean }}
+ */
+export function parseError(error) {
+  if (typeof error === 'string') {
+    return { message: error, severity: 'error', shouldLogout: false }
+  }
+  if (error instanceof ApiError) {
+    const shouldLogout = error.status === 401
+    const message = error.data?.error || error.data?.message
+      || STATUS_MESSAGES[error.status] || error.message || 'An unexpected error occurred.'
+    return { message, severity: error.status >= 500 ? 'critical' : 'error', shouldLogout }
+  }
+  if (error?.code === 4001) {
+    return { message: 'Transaction rejected by user.', severity: 'warning', shouldLogout: false }
+  }
+  if (error?.code === -32002) {
+    return { message: 'Please check MetaMask for a pending request.', severity: 'info', shouldLogout: false }
+  }
+  return { message: getFriendlyErrorMessage(error), severity: 'error', shouldLogout: false }
+}
+
+/**
+ * Parse error type from error object
+ * @param {Error} error
+ * @returns {string} Error type
  */
 export function parseErrorType(error) {
   if (!error) return ErrorType.UNKNOWN
@@ -84,41 +126,41 @@ export function parseErrorType(error) {
 }
 
 /**
- * 获取友好的错误消息
- * @param {Error|string} error - 错误对象或错误消息
- * @returns {string} 友好的错误消息
+ * Get a user-friendly error message
+ * @param {Error|string} error
+ * @returns {string} Friendly error message
  */
 export function getFriendlyErrorMessage(error) {
-  if (!error) return '发生未知错误'
+  if (!error) return 'An unexpected error occurred.'
   
   const errorString = typeof error === 'string' ? error : error.message || error.toString()
   
-  // 查找匹配的错误消息
+  // Find matching error message
   for (const [key, message] of Object.entries(errorMessages)) {
     if (errorString.includes(key)) {
       return message
     }
   }
   
-  // 如果没有匹配的，返回原始错误消息（但限制长度）
+  // If no match, return original message (truncated)
   return errorString.length > 100 
     ? errorString.substring(0, 100) + '...' 
     : errorString
 }
 
 /**
- * 处理API错误响应
- * @param {Response} response - Fetch API 响应对象
- * @returns {Promise<never>} 抛出错误
+ * Handle API error response
+ * @param {Response} response - Fetch API response object
+ * @returns {Promise<never>} Throws error
  */
 export async function handleApiError(response) {
-  let errorMessage = '请求失败'
+  let errorMessage = 'Request failed'
   
   try {
     const data = await response.json()
     errorMessage = data.error || data.message || errorMessage
   } catch (e) {
-    // 无法解析JSON，使用状态文本
+    // Cannot parse JSON, use status text
     errorMessage = response.statusText || errorMessage
   }
   
@@ -126,59 +168,38 @@ export async function handleApiError(response) {
 }
 
 /**
- * 处理合约错误
- * @param {Error} error - 合约错误对象
- * @returns {string} 友好的错误消息
+ * Handle contract error
+ * @param {Error} error - Contract error object
+ * @returns {string} Friendly error message
  */
 export function handleContractError(error) {
-  console.error('Contract Error:', error)
+  if (import.meta.env.DEV) console.error('Contract Error:', error)
   
-  if (error.code === 4001) {
-    return '您取消了交易'
-  }
-  
-  if (error.code === -32603) {
-    return '交易执行失败，请检查参数和余额'
-  }
-  
-  if (error.message?.includes('insufficient funds')) {
-    return '余额不足，请充值后重试'
-  }
-  
-  if (error.message?.includes('gas required exceeds')) {
-    return 'Gas 费用不足，请增加 Gas Limit'
-  }
-  
-  if (error.message?.includes('nonce too low')) {
-    return '交易序号错误，请刷新页面后重试'
-  }
+  if (error.code === 4001) return 'Transaction rejected by user.'
+  if (error.code === -32603) return 'Transaction execution failed. Please check parameters and balance.'
+  if (error.message?.includes('insufficient funds')) return 'Insufficient balance. Please top up and try again.'
+  if (error.message?.includes('gas required exceeds')) return 'Insufficient gas. Please increase Gas Limit.'
+  if (error.message?.includes('nonce too low')) return 'Transaction nonce error. Please refresh the page.'
   
   return getFriendlyErrorMessage(error)
 }
 
 /**
- * 处理网络错误
- * @param {Error} error - 网络错误对象
- * @returns {string} 友好的错误消息
+ * Handle network error
+ * @param {Error} error - Network error object
+ * @returns {string} Friendly error message
  */
 export function handleNetworkError(error) {
-  console.error('Network Error:', error)
-  
-  if (error.message === 'Failed to fetch') {
-    return '网络连接失败，请检查您的网络连接'
-  }
-  
-  if (error.message?.includes('timeout')) {
-    return '请求超时，请检查网络连接后重试'
-  }
-  
-  return '网络错误，请稍后重试'
+  if (import.meta.env.DEV) console.error('Network Error:', error)
+  if (error.message === 'Failed to fetch') return 'Network connection failed. Please check your connection.'
+  if (error.message?.includes('timeout')) return 'Request timed out. Please check your connection.'
+  return 'Network error. Please try again later.'
 }
 
 /**
- * 日志错误到控制台（开发环境）和错误监控服务（生产环境）
- * @param {Error} error - 错误对象
- * @param {Object} context - 错误上下文信息
+ * Log error to console (dev) and monitoring service (prod)
+ * @param {Error} error
+ * @param {Object} context - Error context
  */
 export function logError(error, context = {}) {
   const errorInfo = {
@@ -189,52 +210,35 @@ export function logError(error, context = {}) {
     ...context
   }
   
-  // 开发环境：输出到控制台
   if (import.meta.env.DEV) {
     console.error('Error logged:', errorInfo)
-  }
-  
-  // 生产环境：发送到错误监控服务（如Sentry）
-  if (import.meta.env.PROD) {
-    // TODO: 集成Sentry或其他错误监控服务
-    // Sentry.captureException(error, { extra: context })
+  } else if (errorInfo.type === ErrorType.NETWORK || errorInfo.type === ErrorType.CONTRACT) {
+    // In production, only log critical errors
+    console.error(`[${errorInfo.type}] ${errorInfo.message}`)
   }
 }
 
 /**
- * 错误边界处理函数
- * @param {Error} error - 错误对象
- * @param {Function} showError - 显示错误的函数（如toast）
- * @param {Object} context - 错误上下文
+ * Unified error handler - log, notify user, and handle auth errors
+ * @param {Error} error
+ * @param {Function} showError - Toast/notification function
+ * @param {Object} context - Error context
  */
 export function handleError(error, showError, context = {}) {
-  // 记录错误
   logError(error, context)
-  
-  // 获取友好的错误消息
-  const friendlyMessage = getFriendlyErrorMessage(error)
-  
-  // 显示错误提示
-  if (showError) {
-    showError(friendlyMessage)
-  }
-  
-  // 根据错误类型执行特定操作
-  const errorType = parseErrorType(error)
-  
-  if (errorType === ErrorType.AUTH) {
-    // 认证错误：可能需要重新登录
-    // 可以在这里触发登出或跳转到登录页
-    console.warn('Authentication error detected, user may need to re-login')
+  const parsed = parseError(error)
+  if (showError) showError(parsed.message)
+  if (parsed.shouldLogout) {
+    console.warn('Authentication error detected, redirecting to login')
   }
 }
 
 /**
- * 创建带重试的异步函数
- * @param {Function} fn - 要执行的异步函数
- * @param {number} maxRetries - 最大重试次数
- * @param {number} delay - 重试延迟（毫秒）
- * @returns {Promise} 执行结果
+ * Async function with retry and exponential backoff
+ * @param {Function} fn - Async function to execute
+ * @param {number} maxRetries - Max retry attempts
+ * @param {number} delay - Base delay in ms
+ * @returns {Promise} Execution result
  */
 export async function withRetry(fn, maxRetries = 3, delay = 1000) {
   let lastError
@@ -244,41 +248,39 @@ export async function withRetry(fn, maxRetries = 3, delay = 1000) {
       return await fn()
     } catch (error) {
       lastError = error
-      console.warn(`Attempt ${i + 1} failed:`, error.message)
-      
+      if (import.meta.env.DEV) console.warn(`Attempt ${i + 1} failed:`, error.message)
       if (i < maxRetries - 1) {
-        // 不是最后一次重试，等待后继续
-        await new Promise(resolve => setTimeout(resolve, delay * (i + 1)))
+        await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, i)))
       }
     }
   }
   
-  // 所有重试都失败了
+  // All retries exhausted
   throw lastError
 }
 
 /**
- * 验证钱包地址格式
- * @param {string} address - 钱包地址
- * @returns {boolean} 是否有效
+ * Validate wallet address format
+ * @param {string} address
+ * @returns {boolean}
  */
 export function isValidAddress(address) {
   return /^0x[a-fA-F0-9]{40}$/.test(address)
 }
 
 /**
- * 验证邮箱格式
- * @param {string} email - 邮箱地址
- * @returns {boolean} 是否有效
+ * Validate email format
+ * @param {string} email
+ * @returns {boolean}
  */
 export function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
 /**
- * 验证手机号格式（中国大陆）
- * @param {string} phone - 手机号
- * @returns {boolean} 是否有效
+ * Validate phone number format
+ * @param {string} phone
+ * @returns {boolean}
  */
 export function isValidPhone(phone) {
   return /^1[3-9]\d{9}$/.test(phone)
@@ -286,6 +288,7 @@ export function isValidPhone(phone) {
 
 export default {
   ErrorType,
+  parseError,
   parseErrorType,
   getFriendlyErrorMessage,
   handleApiError,
@@ -296,5 +299,5 @@ export default {
   withRetry,
   isValidAddress,
   isValidEmail,
-  isValidPhone
+  isValidPhone,
 }

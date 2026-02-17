@@ -35,8 +35,6 @@ export default function UpdateAvailabilityDialog({ open, onClose, onSuccess, cur
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
-
-  // TODO: Translate '初始化表单数据'
   useEffect(() => {
     if (currentAvailability) {
       const fromDate = currentAvailability.availableFrom 
@@ -143,8 +141,6 @@ export default function UpdateAvailabilityDialog({ open, onClose, onSuccess, cur
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-
-            {/* TODO: Translate '状态选择' */}
             <div className="space-y-3">
               <Label>当前状态 *</Label>
               <RadioGroup
@@ -165,8 +161,6 @@ export default function UpdateAvailabilityDialog({ open, onClose, onSuccess, cur
                 ))}
               </RadioGroup>
             </div>
-
-            {/* TODO: Translate '可用时间段' */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="availableFrom">可用开始日期</Label>
@@ -189,8 +183,6 @@ export default function UpdateAvailabilityDialog({ open, onClose, onSuccess, cur
                 />
               </div>
             </div>
-
-            {/* TODO: Translate '每周可用时间' */}
             <div className="space-y-2">
               <Label htmlFor="hoursPerWeek">每周可用时间 (小时) *</Label>
               <Input
@@ -207,8 +199,6 @@ export default function UpdateAvailabilityDialog({ open, onClose, onSuccess, cur
                 您每周可以投入的工作时间
               </p>
             </div>
-
-            {/* TODO: Translate '备注' */}
             <div className="space-y-2">
               <Label htmlFor="notes">备注</Label>
               <Textarea

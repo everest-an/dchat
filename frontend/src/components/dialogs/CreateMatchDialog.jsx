@@ -48,7 +48,6 @@ export default function CreateMatchDialog({ open, onClose, onSuccess }) {
       const result = await portfolioService.createOpportunityMatch(skills)
 
       if (result.success) {
-        // TODO: Translate '解析匹配结果'
         const matchIds = result.receipt?.logs
           ?.filter(log => log.topics[0] === portfolioService.contract.interface.getEvent('OpportunityMatched').topicHash)
           ?.map(log => portfolioService.contract.interface.parseLog(log))
@@ -115,8 +114,6 @@ export default function CreateMatchDialog({ open, onClose, onSuccess }) {
       addSkill()
     }
   }
-
-  // TODO: Translate '常用技能快捷添加'
   const commonSkills = [
     'Solidity',
     'React',
@@ -189,8 +186,6 @@ export default function CreateMatchDialog({ open, onClose, onSuccess }) {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-
-            {/* TODO: Translate '技能输入' */}
             <div className="space-y-2">
               <Label htmlFor="skills">需要的技能 *</Label>
               <div className="flex gap-2">
@@ -211,8 +206,6 @@ export default function CreateMatchDialog({ open, onClose, onSuccess }) {
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
-
-              {/* TODO: Translate '已添加的技能' */}
               {skills.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {skills.map((skill, index) => (
@@ -235,8 +228,6 @@ export default function CreateMatchDialog({ open, onClose, onSuccess }) {
                 已添加 {skills.length} 个技能
               </p>
             </div>
-
-            {/* TODO: Translate '常用技能快捷选择' */}
             <div className="space-y-2">
               <Label>常用技能 (点击快速添加)</Label>
               <div className="flex flex-wrap gap-2">
@@ -259,8 +250,6 @@ export default function CreateMatchDialog({ open, onClose, onSuccess }) {
                 ))}
               </div>
             </div>
-
-            {/* TODO: Translate '说明' */}
             <Alert>
               <Sparkles className="h-4 w-4" />
               <AlertDescription>

@@ -41,21 +41,15 @@ export default function PaymentDialog({ open, onClose, onSuccess, recipientAddre
       setError('请填写所有必填字段')
       return
     }
-
-    // TODO: Translate '验证地址格式'
     if (!formData.recipient.match(/^0x[a-fA-F0-9]{40}$/)) {
       setError('无效的收款地址')
       return
     }
-
-    // TODO: Translate '验证金额'
     const amount = parseFloat(formData.amount)
     if (isNaN(amount) || amount <= 0) {
       setError('无效的金额')
       return
     }
-
-    // TODO: Translate '检查余额'
     if (amount > parseFloat(balance)) {
       setError('余额不足')
       return
@@ -66,8 +60,6 @@ export default function PaymentDialog({ open, onClose, onSuccess, recipientAddre
       setError(null)
 
       const paymentService = new PaymentEscrowService(provider, signer)
-      
-      // TODO: Translate '计算超时时间'(TODO: Translate '秒')
       const timeoutDuration = parseInt(formData.timeoutDays) * 24 * 60 * 60
       
       const result = await paymentService.createEscrow(
@@ -163,8 +155,6 @@ export default function PaymentDialog({ open, onClose, onSuccess, recipientAddre
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-
-            {/* TODO: Translate '收款地址' */}
             <div className="space-y-2">
               <Label htmlFor="recipient">收款地址 *</Label>
               <Input
@@ -181,8 +171,6 @@ export default function PaymentDialog({ open, onClose, onSuccess, recipientAddre
                 </p>
               )}
             </div>
-
-            {/* TODO: Translate '金额' */}
             <div className="space-y-2">
               <Label htmlFor="amount">金额 (ETH) *</Label>
               <div className="relative">
@@ -203,8 +191,6 @@ export default function PaymentDialog({ open, onClose, onSuccess, recipientAddre
                 当前余额: {parseFloat(balance).toFixed(4)} ETH
               </p>
             </div>
-
-            {/* TODO: Translate '超时天数' */}
             <div className="space-y-2">
               <Label htmlFor="timeoutDays">托管期限 (天) *</Label>
               <Input
@@ -220,8 +206,6 @@ export default function PaymentDialog({ open, onClose, onSuccess, recipientAddre
                 超过此期限未释放,付款方可申请退款
               </p>
             </div>
-
-            {/* TODO: Translate '描述' */}
             <div className="space-y-2">
               <Label htmlFor="description">支付说明</Label>
               <Textarea
@@ -233,8 +217,6 @@ export default function PaymentDialog({ open, onClose, onSuccess, recipientAddre
                 disabled={loading}
               />
             </div>
-
-            {/* TODO: Translate '说明' */}
             <Alert>
               <Shield className="h-4 w-4" />
               <AlertDescription>

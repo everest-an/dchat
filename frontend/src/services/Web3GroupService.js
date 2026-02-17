@@ -88,7 +88,6 @@ class Web3GroupService {
         })
       });
 
-      console.log('✅ Group created on blockchain:', response);
       return response;
     } catch (error) {
       console.error('❌ Failed to create group:', error);
@@ -130,7 +129,6 @@ class Web3GroupService {
         body: JSON.stringify({ privateKey })
       });
 
-      console.log('✅ Joined group successfully:', response);
       return response;
     } catch (error) {
       console.error('❌ Failed to join group:', error);
@@ -161,7 +159,6 @@ class Web3GroupService {
         })
       });
 
-      console.log('✅ Member invited successfully:', response);
       return response;
     } catch (error) {
       console.error('❌ Failed to invite member:', error);
@@ -188,7 +185,6 @@ class Web3GroupService {
         body: JSON.stringify({ privateKey })
       });
 
-      console.log('✅ Left group successfully:', response);
       return response;
     } catch (error) {
       console.error('❌ Failed to leave group:', error);
@@ -216,7 +212,6 @@ class Web3GroupService {
         body: JSON.stringify({ privateKey })
       });
 
-      console.log('✅ Member removed successfully:', response);
       return response;
     } catch (error) {
       console.error('❌ Failed to remove member:', error);
@@ -247,7 +242,6 @@ class Web3GroupService {
         })
       });
 
-      console.log('✅ Group settings updated successfully:', response);
       return response;
     } catch (error) {
       console.error('❌ Failed to update group settings:', error);

@@ -453,8 +453,6 @@ export class LivingPortfolioService extends ContractService {
     })
   }
 }
-
-// TODO: Translate '枚举类型'
 export const AvailabilityStatus = {
   UNAVAILABLE: 0,
   AVAILABLE: 1,

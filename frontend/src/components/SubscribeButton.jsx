@@ -34,8 +34,6 @@ export default function SubscribeButton({ targetAddress, variant = 'default', si
   const [success, setSuccess] = useState(false)
 
   const portfolioService = new LivingPortfolioService(provider, signer)
-
-  // TODO: Translate '检查订阅状态'
   const checkSubscription = async () => {
     if (!account || !targetAddress || account === targetAddress) {
       setChecking(false)
@@ -59,8 +57,6 @@ export default function SubscribeButton({ targetAddress, variant = 'default', si
       checkSubscription()
     }
   }, [isConnected, account, targetAddress])
-
-  // TODO: Translate '订阅'
   const handleSubscribe = async () => {
     try {
       setLoading(true)
@@ -90,8 +86,6 @@ export default function SubscribeButton({ targetAddress, variant = 'default', si
       setLoading(false)
     }
   }
-
-  // TODO: Translate '取消订阅'
   const handleUnsubscribe = async () => {
     try {
       setLoading(true)
@@ -113,8 +107,6 @@ export default function SubscribeButton({ targetAddress, variant = 'default', si
       setLoading(false)
     }
   }
-
-  // TODO: Translate '不显示按钮的情况'
   if (!isConnected || !targetAddress || account === targetAddress || checking) {
     return null
   }

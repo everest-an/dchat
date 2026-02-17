@@ -1,14 +1,16 @@
 /**
  * Authentication Service Adapter for Go Backend
- * Provides wallet-based authentication with JWT tokens
+ * Provides wallet-based authentication with JWT tokens.
+ * Uses the unified apiClient for all HTTP requests.
  */
-
-import { API_CONFIG, API_ENDPOINTS } from '../config/api.config';
+import api from './apiClient'
+import { API_ENDPOINTS } from '../config/api.config'
+import { logError } from '../utils/errorHandler'
 
 class AuthServiceAdapter {
   constructor() {
-    this.TOKEN_KEY = 'dchat_auth_token';
-    this.USER_KEY = 'dchat_user';
+    this.TOKEN_KEY = 'dchat_auth_token'
+    this.USER_KEY = 'dchat_user'
   }
 
   /**
@@ -18,23 +20,15 @@ class AuthServiceAdapter {
    */
   async getNonce(walletAddress) {
     try {
-      const response = await fetch(`${API_CONFIG.API_BASE_URL}${API_ENDPOINTS.AUTH.NONCE}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ wallet_address: walletAddress }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get nonce');
-      }
-
-      const data = await response.json();
-      return data.nonce;
+      const data = await api.post(
+        API_ENDPOINTS.AUTH.NONCE,
+        { wallet_address: walletAddress },
+        { skipAuth: true }
+      )
+      return data.nonce
     } catch (error) {
-      console.error('Get nonce error:', error);
-      throw error;
+      logError('AuthServiceAdapter.getNonce', error)
+      throw error
     }
   }
 
@@ -46,32 +40,17 @@ class AuthServiceAdapter {
    */
   async walletLogin(walletAddress, signature) {
     try {
-      const response = await fetch(`${API_CONFIG.API_BASE_URL}${API_ENDPOINTS.AUTH.WALLET_LOGIN}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          wallet_address: walletAddress,
-          signature: signature,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Login failed');
-      }
-
-      const data = await response.json();
-      
-      // Save token and user data
-      this.saveToken(data.token);
-      this.saveUser(data.user);
-
-      return data;
+      const data = await api.post(
+        API_ENDPOINTS.AUTH.WALLET_LOGIN,
+        { wallet_address: walletAddress, signature },
+        { skipAuth: true }
+      )
+      this.saveToken(data.token)
+      this.saveUser(data.user)
+      return data
     } catch (error) {
-      console.error('Wallet login error:', error);
-      throw error;
+      logError('AuthServiceAdapter.walletLogin', error)
+      throw error
     }
   }
 
@@ -81,89 +60,58 @@ class AuthServiceAdapter {
    */
   async getCurrentUser() {
     try {
-      const token = this.getToken();
-      if (!token) {
-        throw new Error('No authentication token');
-      }
-
-      const response = await fetch(`${API_CONFIG.API_BASE_URL}${API_ENDPOINTS.USER.ME}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get user');
-      }
-
-      const data = await response.json();
-      this.saveUser(data.user);
-      return data.user;
+      if (!this.getToken()) throw new Error('No authentication token')
+      const data = await api.get(API_ENDPOINTS.USER.ME)
+      this.saveUser(data.user)
+      return data.user
     } catch (error) {
-      console.error('Get current user error:', error);
-      throw error;
+      logError('AuthServiceAdapter.getCurrentUser', error)
+      throw error
     }
   }
 
-  /**
-   * Save authentication token
-   * @param {string} token - JWT token
-   */
+  /** Save authentication token */
   saveToken(token) {
-    localStorage.setItem(this.TOKEN_KEY, token);
+    localStorage.setItem(this.TOKEN_KEY, token)
   }
 
-  /**
-   * Get authentication token
-   * @returns {string|null} JWT token
-   */
+  /** Get authentication token */
   getToken() {
-    return localStorage.getItem(this.TOKEN_KEY);
+    return localStorage.getItem(this.TOKEN_KEY)
   }
 
-  /**
-   * Save user data
-   * @param {Object} user - User object
-   */
+  /** Save user data (non-sensitive) */
   saveUser(user) {
-    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    localStorage.setItem(this.USER_KEY, JSON.stringify(user))
   }
 
-  /**
-   * Get user data
-   * @returns {Object|null} User object
-   */
+  /** Get user data */
   getUser() {
-    const userData = localStorage.getItem(this.USER_KEY);
-    return userData ? JSON.parse(userData) : null;
+    try {
+      const userData = localStorage.getItem(this.USER_KEY)
+      return userData ? JSON.parse(userData) : null
+    } catch {
+      return null
+    }
   }
 
-  /**
-   * Check if user is authenticated
-   * @returns {boolean}
-   */
+  /** Check if user is authenticated */
   isAuthenticated() {
-    return !!this.getToken();
+    return !!this.getToken()
   }
 
-  /**
-   * Logout user
-   */
+  /** Logout user and clear all auth data */
   logout() {
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.USER_KEY);
+    localStorage.removeItem(this.TOKEN_KEY)
+    localStorage.removeItem(this.USER_KEY)
   }
 
-  /**
-   * Clear all auth data
-   */
+  /** Alias for logout */
   clearAuth() {
-    this.logout();
+    this.logout()
   }
 }
 
 // Export singleton instance
-export const authServiceAdapter = new AuthServiceAdapter();
-export default authServiceAdapter;
+export const authServiceAdapter = new AuthServiceAdapter()
+export default authServiceAdapter

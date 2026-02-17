@@ -53,10 +53,7 @@ export default function CredentialCard({ credential }) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* TODO: Translate '描述' */}
         <p className="text-sm text-gray-700">{credential.description}</p>
-
-        {/* TODO: Translate '发行者信息' */}
         <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
           <Avatar className="w-10 h-10">
             <AvatarFallback>
@@ -77,21 +74,15 @@ export default function CredentialCard({ credential }) {
             <ExternalLink className="w-4 h-4" />
           </Button>
         </div>
-
-        {/* TODO: Translate '相关项目' */}
         {credential.relatedProjectId > 0 && (
           <div className="text-sm">
             <span className="text-gray-500">相关项目 ID: </span>
             <span className="font-medium">#{credential.relatedProjectId}</span>
           </div>
         )}
-
-        {/* TODO: Translate '发行日期' */}
         <div className="text-sm text-gray-500">
           发行于 {formatDate(credential.issuedAt)}
         </div>
-
-        {/* TODO: Translate '证据链接' */}
         {credential.evidenceHash && credential.evidenceHash !== '' && (
           <Button
             variant="outline"

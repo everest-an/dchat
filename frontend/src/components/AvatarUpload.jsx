@@ -5,9 +5,7 @@ import ipfsService from '../services/IPFSService'
 import { useLanguage } from '../contexts/LanguageContext'
 
 /**
- * AvatarTODO: Translate '上传组件'
- * TODO: Translate '支持图片选择'、TODO: Translate '预览'、TODO: Translate '裁剪和'IPFSTODO: Translate '上传'
- * TODO: Translate '完整的多语言支持'
+
  */
 const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
   const { t } = useLanguage()
@@ -19,11 +17,7 @@ const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
   const [selectedFile, setSelectedFile] = useState(null)
   const [error, setError] = useState(null)
   const [showUploadDialog, setShowUploadDialog] = useState(false)
-
-  // TODO: Translate '最大文件大小' (5MB)
   const MAX_FILE_SIZE = 5 * 1024 * 1024
-  
-  // TODO: Translate '支持的图片格式'
   const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 
   /**
@@ -32,20 +26,14 @@ const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
   const handleFileSelect = (event) => {
     const file = event.target.files?.[0]
     if (!file) return
-
-    // TODO: Translate '验证文件类型'
     if (!ALLOWED_TYPES.includes(file.type)) {
       setError(t('avatar.invalidType'))
       return
     }
-
-    // TODO: Translate '验证文件大小'
     if (file.size > MAX_FILE_SIZE) {
       setError(t('avatar.fileTooLarge'))
       return
     }
-
-    // TODO: Translate '创建预览'
     const reader = new FileReader()
     reader.onload = (e) => {
       setPreviewUrl(e.target.result)
@@ -72,8 +60,6 @@ const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
         fileSize: selectedFile.size,
         fileType: selectedFile.type
       })
-
-      // TODO: Translate '模拟上传进度'
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           if (prev >= 90) {
@@ -83,19 +69,13 @@ const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
           return prev + 10
         })
       }, 200)
-
-      // TODO: Translate '上传到'IPFS
       const ipfsHash = await ipfsService.uploadFile(selectedFile)
       
       clearInterval(progressInterval)
       setUploadProgress(100)
 
       console.log('✅ Avatar uploaded to IPFS:', ipfsHash)
-
-      // TODO: Translate '生成'IPFS URL
       const avatarUrl = ipfsService.getGatewayUrl(ipfsHash)
-
-      // TODO: Translate '通知父组件'
       if (onAvatarUpdate) {
         await onAvatarUpdate({
           ipfsHash,
@@ -105,8 +85,6 @@ const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
           uploadedAt: Date.now()
         })
       }
-
-      // TODO: Translate '重置状态'
       setTimeout(() => {
         setShowUploadDialog(false)
         setPreviewUrl(null)
@@ -133,8 +111,6 @@ const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
     setError(null)
     setIsUploading(false)
     setUploadProgress(0)
-    
-    // TODO: Translate '重置文件输入'
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -172,13 +148,10 @@ const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
 
   return (
     <>
-      {/* TODO: Translate '头像显示和上传按钮' */}
       <div className="relative inline-block">
         <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border-2 border-gray-300">
           {renderCurrentAvatar()}
         </div>
-        
-        {/* TODO: Translate '上传按钮' */}
         <button
           onClick={triggerFileSelect}
           className="absolute bottom-0 right-0 w-8 h-8 bg-black hover:bg-gray-800 rounded-full flex items-center justify-center text-white shadow-lg transition-colors"
@@ -186,8 +159,6 @@ const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
         >
           <Camera className="w-4 h-4" />
         </button>
-
-        {/* TODO: Translate '隐藏的文件输入' */}
         <input
           ref={fileInputRef}
           type="file"
@@ -196,12 +167,9 @@ const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
           className="hidden"
         />
       </div>
-
-      {/* TODO: Translate '上传对话框' */}
       {showUploadDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6">
-            {/* TODO: Translate '标题' */}
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-black">{t('avatar.uploadTitle')}</h3>
               <button
@@ -212,8 +180,6 @@ const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-
-            {/* TODO: Translate '预览' */}
             <div className="mb-6">
               <div className="w-48 h-48 mx-auto rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border-2 border-gray-200">
                 {previewUrl ? (
@@ -227,8 +193,6 @@ const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
                 )}
               </div>
             </div>
-
-            {/* TODO: Translate '文件信息' */}
             {selectedFile && (
               <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
                 <p className="text-sm text-gray-700 truncate font-medium">{selectedFile.name}</p>
@@ -237,8 +201,6 @@ const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
                 </p>
               </div>
             )}
-
-            {/* TODO: Translate '上传进度' */}
             {isUploading && (
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
@@ -253,15 +215,11 @@ const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
                 </div>
               </div>
             )}
-
-            {/* TODO: Translate '错误信息' */}
             {error && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-sm text-red-600">{error}</p>
               </div>
             )}
-
-            {/* TODO: Translate '提示信息' */}
             {!isUploading && !error && (
               <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
                 <p className="text-xs text-gray-600">
@@ -269,8 +227,6 @@ const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
                 </p>
               </div>
             )}
-
-            {/* TODO: Translate '按钮' */}
             <div className="flex gap-3">
               <Button
                 onClick={handleCancel}

@@ -1,10 +1,11 @@
 /**
  * Message Service Adapter for Go Backend
- * Handles message operations with the Go backend API
+ * Handles message operations with the Go backend API.
+ * Uses the unified apiClient for all HTTP requests.
  */
-
-import { API_CONFIG, API_ENDPOINTS } from '../config/api.config';
-import { authServiceAdapter } from './AuthServiceAdapter';
+import api from './apiClient'
+import { API_ENDPOINTS } from '../config/api.config'
+import { logError } from '../utils/errorHandler'
 
 class MessageServiceAdapter {
   /**
@@ -13,28 +14,11 @@ class MessageServiceAdapter {
    */
   async getConversations() {
     try {
-      const token = authServiceAdapter.getToken();
-      if (!token) {
-        throw new Error('Not authenticated');
-      }
-
-      const response = await fetch(`${API_CONFIG.API_BASE_URL}${API_ENDPOINTS.MESSAGES.CONVERSATIONS}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get conversations');
-      }
-
-      const data = await response.json();
-      return data.conversations || [];
+      const data = await api.get(API_ENDPOINTS.MESSAGES.CONVERSATIONS)
+      return data.conversations || []
     } catch (error) {
-      console.error('Get conversations error:', error);
-      throw error;
+      logError('MessageServiceAdapter.getConversations', error)
+      throw error
     }
   }
 
@@ -45,28 +29,11 @@ class MessageServiceAdapter {
    */
   async getMessages(userId) {
     try {
-      const token = authServiceAdapter.getToken();
-      if (!token) {
-        throw new Error('Not authenticated');
-      }
-
-      const response = await fetch(`${API_CONFIG.API_BASE_URL}${API_ENDPOINTS.MESSAGES.GET(userId)}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get messages');
-      }
-
-      const data = await response.json();
-      return data.messages || [];
+      const data = await api.get(API_ENDPOINTS.MESSAGES.GET(userId))
+      return data.messages || []
     } catch (error) {
-      console.error('Get messages error:', error);
-      throw error;
+      logError('MessageServiceAdapter.getMessages', error)
+      throw error
     }
   }
 
@@ -79,33 +46,15 @@ class MessageServiceAdapter {
    */
   async sendMessage(receiverId, content, encrypted = false) {
     try {
-      const token = authServiceAdapter.getToken();
-      if (!token) {
-        throw new Error('Not authenticated');
-      }
-
-      const response = await fetch(`${API_CONFIG.API_BASE_URL}${API_ENDPOINTS.MESSAGES.SEND}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          receiver_id: receiverId,
-          content: content,
-          encrypted: encrypted,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send message');
-      }
-
-      const data = await response.json();
-      return data.message;
+      const data = await api.post(API_ENDPOINTS.MESSAGES.SEND, {
+        receiver_id: receiverId,
+        content,
+        encrypted,
+      })
+      return data.message
     } catch (error) {
-      console.error('Send message error:', error);
-      throw error;
+      logError('MessageServiceAdapter.sendMessage', error)
+      throw error
     }
   }
 
@@ -116,29 +65,14 @@ class MessageServiceAdapter {
    */
   async markAsRead(senderId) {
     try {
-      const token = authServiceAdapter.getToken();
-      if (!token) {
-        throw new Error('Not authenticated');
-      }
-
-      const response = await fetch(`${API_CONFIG.API_BASE_URL}${API_ENDPOINTS.MESSAGES.MARK_READ(senderId)}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to mark messages as read');
-      }
+      await api.put(API_ENDPOINTS.MESSAGES.MARK_READ(senderId))
     } catch (error) {
-      console.error('Mark as read error:', error);
-      throw error;
+      logError('MessageServiceAdapter.markAsRead', error)
+      throw error
     }
   }
 }
 
 // Export singleton instance
-export const messageServiceAdapter = new MessageServiceAdapter();
-export default messageServiceAdapter;
+export const messageServiceAdapter = new MessageServiceAdapter()
+export default messageServiceAdapter
