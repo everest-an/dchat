@@ -1,100 +1,97 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
+
 /**
  * @title GroupPayment
- * @dev 群组支付合约 - 支持群收款、AA收款、众筹
- * @notice 用于群组内的资金管理和分摊
+ * @dev Group payment contract supporting group collection, AA (split) payments, and crowdfunding.
+ * @notice Manages fund collection and distribution within chat groups.
+ *
+ * Security features:
+ *   - ReentrancyGuard on all ETH-transferring functions
+ *   - Checks-Effects-Interactions (CEI) pattern enforced
+ *   - Pull-payment pattern for refunds (avoids unbounded-loop transfer DoS)
+ *   - Pausable for emergency circuit-breaker
+ *   - Participant count capped to prevent gas-limit DoS
  */
-contract GroupPayment {
-    
-    // 支付类型
+contract GroupPayment is Ownable, ReentrancyGuard, Pausable {
+
+    // ──────────────────────────── Constants ───────────────────────
+
+    /// @notice Maximum number of participants per payment to prevent gas DoS.
+    uint256 public constant MAX_PARTICIPANTS = 200;
+
+    // ──────────────────────────── Enums ───────────────────────────
+
     enum PaymentType {
-        GROUP_COLLECTION,   // 群收款
-        AA_PAYMENT,         // AA收款
-        CROWDFUNDING        // 众筹
+        GROUP_COLLECTION,
+        AA_PAYMENT,
+        CROWDFUNDING
     }
-    
-    // 支付状态
+
     enum PaymentStatus {
-        ACTIVE,             // 进行中
-        COMPLETED,          // 已完成
-        CANCELLED,          // 已取消
-        EXPIRED             // 已过期
+        ACTIVE,
+        COMPLETED,
+        CANCELLED,
+        EXPIRED
     }
-    
-    // 支付信息
+
+    // ──────────────────────────── Structs ─────────────────────────
+
     struct Payment {
-        bytes32 paymentId;          // 支付ID
-        string groupId;             // 群组ID
-        address initiator;          // 发起人
-        PaymentType paymentType;    // 支付类型
-        uint256 totalAmount;        // 总金额
-        uint256 collectedAmount;    // 已收集金额
-        uint256 targetAmount;       // 目标金额
-        uint256 perPersonAmount;    // 每人金额 (AA收款)
-        address[] participants;     // 参与者列表
-        mapping(address => uint256) contributions;  // 贡献金额
-        mapping(address => bool) hasPaid;           // 是否已支付
-        string description;         // 描述
-        uint256 deadline;           // 截止时间
-        PaymentStatus status;       // 状态
-        uint256 createdAt;          // 创建时间
-        bool fundsWithdrawn;        // 资金是否已提取
+        bytes32 paymentId;
+        string groupId;
+        address initiator;
+        PaymentType paymentType;
+        uint256 totalAmount;
+        uint256 collectedAmount;
+        uint256 targetAmount;
+        uint256 perPersonAmount;
+        address[] participants;
+        mapping(address => uint256) contributions;
+        mapping(address => bool) hasPaid;
+        string description;
+        uint256 deadline;
+        PaymentStatus status;
+        uint256 createdAt;
+        bool fundsWithdrawn;
     }
-    
-    // AA收款详情
-    struct AAPayment {
-        bytes32 paymentId;          // 支付ID
-        string groupId;             // 群组ID
-        address initiator;          // 发起人
-        uint256 totalAmount;        // 总金额
-        uint256 perPersonAmount;    // 每人金额
-        address[] participants;     // 参与者
-        uint256 paidCount;          // 已支付人数
-        uint256 collectedAmount;    // 已收集金额
-        string description;         // 描述
-        uint256 deadline;           // 截止时间
-        PaymentStatus status;       // 状态
-    }
-    
-    // 众筹信息
+
     struct Crowdfunding {
-        bytes32 fundingId;          // 众筹ID
-        string groupId;             // 群组ID
-        address initiator;          // 发起人
-        uint256 targetAmount;       // 目标金额
-        uint256 collectedAmount;    // 已筹集金额
-        uint256 minContribution;    // 最小贡献
-        address[] backers;          // 支持者列表
-        mapping(address => uint256) contributions;  // 贡献金额
-        string title;               // 标题
-        string description;         // 描述
-        uint256 deadline;           // 截止时间
-        PaymentStatus status;       // 状态
-        uint256 createdAt;          // 创建时间
-        bool fundsWithdrawn;        // 资金是否已提取
+        bytes32 fundingId;
+        string groupId;
+        address initiator;
+        uint256 targetAmount;
+        uint256 collectedAmount;
+        uint256 minContribution;
+        address[] backers;
+        mapping(address => uint256) contributions;
+        string title;
+        string description;
+        uint256 deadline;
+        PaymentStatus status;
+        uint256 createdAt;
+        bool fundsWithdrawn;
     }
-    
-    // 存储所有支付
+
+    // ──────────────────────────── State ───────────────────────────
+
     mapping(bytes32 => Payment) public payments;
-    
-    // 存储所有众筹
     mapping(bytes32 => Crowdfunding) public crowdfundings;
-    
-    // 群组支付列表 (群组ID => 支付ID列表)
     mapping(string => bytes32[]) public groupPayments;
-    
-    // 用户参与的支付 (用户地址 => 支付ID列表)
     mapping(address => bytes32[]) public userPayments;
-    
-    // 支付计数器
+
+    /// @notice Pull-payment: pending refund balances claimable by users.
+    mapping(address => uint256) public pendingRefunds;
+
     uint256 public paymentCounter;
-    
-    // 众筹计数器
     uint256 public crowdfundingCounter;
-    
-    // 事件
+
+    // ──────────────────────────── Events ──────────────────────────
+
     event PaymentCreated(
         bytes32 indexed paymentId,
         string indexed groupId,
@@ -103,33 +100,24 @@ contract GroupPayment {
         uint256 amount,
         uint256 timestamp
     );
-    
+
     event PaymentContributed(
         bytes32 indexed paymentId,
         address indexed contributor,
         uint256 amount,
         uint256 timestamp
     );
-    
-    event PaymentCompleted(
-        bytes32 indexed paymentId,
-        uint256 totalAmount,
-        uint256 timestamp
-    );
-    
-    event PaymentCancelled(
-        bytes32 indexed paymentId,
-        address indexed cancelledBy,
-        uint256 timestamp
-    );
-    
+
+    event PaymentCompleted(bytes32 indexed paymentId, uint256 totalAmount, uint256 timestamp);
+    event PaymentCancelled(bytes32 indexed paymentId, address indexed cancelledBy, uint256 timestamp);
+
     event FundsWithdrawn(
         bytes32 indexed paymentId,
         address indexed recipient,
         uint256 amount,
         uint256 timestamp
     );
-    
+
     event CrowdfundingCreated(
         bytes32 indexed fundingId,
         string indexed groupId,
@@ -137,110 +125,132 @@ contract GroupPayment {
         uint256 targetAmount,
         uint256 timestamp
     );
-    
+
     event CrowdfundingBacked(
         bytes32 indexed fundingId,
         address indexed backer,
         uint256 amount,
         uint256 timestamp
     );
-    
+
+    event CrowdfundingCancelled(bytes32 indexed fundingId, address indexed cancelledBy, uint256 timestamp);
+
+    event RefundCredited(address indexed user, uint256 amount);
+    event RefundWithdrawn(address indexed user, uint256 amount);
+
+    // ──────────────────────────── Constructor ─────────────────────
+
+    constructor() Ownable(msg.sender) {}
+
+    // ──────────────────────────── Group Collection ────────────────
+
     /**
-     * @dev 创建群收款
+     * @dev Create a group collection payment.
+     * @param _groupId      Chat group identifier.
+     * @param _targetAmount Target collection amount.
+     * @param _participants Array of participant addresses.
+     * @param _description  Human-readable description.
+     * @param _deadline     Unix timestamp deadline.
+     * @return paymentId    Unique payment identifier.
      */
     function createGroupCollection(
-        string memory _groupId,
+        string calldata _groupId,
         uint256 _targetAmount,
-        address[] memory _participants,
-        string memory _description,
+        address[] calldata _participants,
+        string calldata _description,
         uint256 _deadline
-    ) external returns (bytes32) {
+    ) external whenNotPaused returns (bytes32) {
         require(_targetAmount > 0, "Invalid target amount");
-        require(_participants.length > 0, "No participants");
+        require(_participants.length > 0 && _participants.length <= MAX_PARTICIPANTS, "Invalid participant count");
         require(_deadline > block.timestamp, "Invalid deadline");
-        
+
         paymentCounter++;
         bytes32 paymentId = keccak256(abi.encodePacked("payment", paymentCounter, block.timestamp));
-        
+
         Payment storage payment = payments[paymentId];
         payment.paymentId = paymentId;
         payment.groupId = _groupId;
         payment.initiator = msg.sender;
         payment.paymentType = PaymentType.GROUP_COLLECTION;
-        payment.totalAmount = 0;
-        payment.collectedAmount = 0;
         payment.targetAmount = _targetAmount;
-        payment.perPersonAmount = 0;
         payment.participants = _participants;
         payment.description = _description;
         payment.deadline = _deadline;
         payment.status = PaymentStatus.ACTIVE;
         payment.createdAt = block.timestamp;
-        payment.fundsWithdrawn = false;
-        
+
         groupPayments[_groupId].push(paymentId);
         userPayments[msg.sender].push(paymentId);
-        
+
         emit PaymentCreated(paymentId, _groupId, msg.sender, PaymentType.GROUP_COLLECTION, _targetAmount, block.timestamp);
-        
+
         return paymentId;
     }
-    
+
+    // ──────────────────────────── AA Payment ─────────────────────
+
     /**
-     * @dev 创建AA收款
+     * @dev Create an AA (split) payment.
+     * @param _groupId      Chat group identifier.
+     * @param _totalAmount  Total amount to split.
+     * @param _participants Array of participant addresses.
+     * @param _description  Human-readable description.
+     * @param _deadline     Unix timestamp deadline.
+     * @return paymentId    Unique payment identifier.
      */
     function createAAPayment(
-        string memory _groupId,
+        string calldata _groupId,
         uint256 _totalAmount,
-        address[] memory _participants,
-        string memory _description,
+        address[] calldata _participants,
+        string calldata _description,
         uint256 _deadline
-    ) external returns (bytes32) {
+    ) external whenNotPaused returns (bytes32) {
         require(_totalAmount > 0, "Invalid total amount");
-        require(_participants.length > 0, "No participants");
+        require(_participants.length > 0 && _participants.length <= MAX_PARTICIPANTS, "Invalid participant count");
         require(_deadline > block.timestamp, "Invalid deadline");
-        
-        uint256 perPersonAmount = _totalAmount / _participants.length;
-        require(perPersonAmount > 0, "Amount too small");
-        
+
+        uint256 perPerson = _totalAmount / _participants.length;
+        require(perPerson > 0, "Amount too small");
+
         paymentCounter++;
         bytes32 paymentId = keccak256(abi.encodePacked("aa", paymentCounter, block.timestamp));
-        
+
         Payment storage payment = payments[paymentId];
         payment.paymentId = paymentId;
         payment.groupId = _groupId;
         payment.initiator = msg.sender;
         payment.paymentType = PaymentType.AA_PAYMENT;
         payment.totalAmount = _totalAmount;
-        payment.collectedAmount = 0;
         payment.targetAmount = _totalAmount;
-        payment.perPersonAmount = perPersonAmount;
+        payment.perPersonAmount = perPerson;
         payment.participants = _participants;
         payment.description = _description;
         payment.deadline = _deadline;
         payment.status = PaymentStatus.ACTIVE;
         payment.createdAt = block.timestamp;
-        payment.fundsWithdrawn = false;
-        
+
         groupPayments[_groupId].push(paymentId);
         userPayments[msg.sender].push(paymentId);
-        
+
         emit PaymentCreated(paymentId, _groupId, msg.sender, PaymentType.AA_PAYMENT, _totalAmount, block.timestamp);
-        
+
         return paymentId;
     }
-    
+
+    // ──────────────────────────── Contribute ─────────────────────
+
     /**
-     * @dev 贡献支付
+     * @dev Contribute to an active payment.
+     * @param _paymentId Payment identifier.
      */
-    function contribute(bytes32 _paymentId) external payable {
+    function contribute(bytes32 _paymentId) external payable nonReentrant whenNotPaused {
         Payment storage payment = payments[_paymentId];
         require(payment.status == PaymentStatus.ACTIVE, "Payment not active");
         require(block.timestamp <= payment.deadline, "Payment expired");
         require(msg.value > 0, "Invalid amount");
         require(!payment.hasPaid[msg.sender], "Already paid");
-        
-        // 检查是否为参与者
+
+        // Participant check
         bool isParticipant = false;
         for (uint256 i = 0; i < payment.participants.length; i++) {
             if (payment.participants[i] == msg.sender) {
@@ -249,171 +259,223 @@ contract GroupPayment {
             }
         }
         require(isParticipant, "Not a participant");
-        
-        // AA收款检查金额
+
+        // AA payment requires exact amount
         if (payment.paymentType == PaymentType.AA_PAYMENT) {
             require(msg.value == payment.perPersonAmount, "Incorrect amount");
         }
-        
+
+        // --- Effects ---
         payment.contributions[msg.sender] = msg.value;
         payment.hasPaid[msg.sender] = true;
         payment.collectedAmount += msg.value;
-        
         userPayments[msg.sender].push(_paymentId);
-        
+
         emit PaymentContributed(_paymentId, msg.sender, msg.value, block.timestamp);
-        
-        // 检查是否完成
+
+        // Auto-complete when target is reached
         if (payment.collectedAmount >= payment.targetAmount) {
             payment.status = PaymentStatus.COMPLETED;
             emit PaymentCompleted(_paymentId, payment.collectedAmount, block.timestamp);
         }
     }
-    
+
+    // ──────────────────────────── Crowdfunding ───────────────────
+
     /**
-     * @dev 创建众筹
+     * @dev Create a crowdfunding campaign.
+     * @param _groupId         Chat group identifier.
+     * @param _targetAmount    Funding target.
+     * @param _minContribution Minimum contribution per backer.
+     * @param _title           Campaign title.
+     * @param _description     Campaign description.
+     * @param _deadline        Unix timestamp deadline.
+     * @return fundingId       Unique crowdfunding identifier.
      */
     function createCrowdfunding(
-        string memory _groupId,
+        string calldata _groupId,
         uint256 _targetAmount,
         uint256 _minContribution,
-        string memory _title,
-        string memory _description,
+        string calldata _title,
+        string calldata _description,
         uint256 _deadline
-    ) external returns (bytes32) {
+    ) external whenNotPaused returns (bytes32) {
         require(_targetAmount > 0, "Invalid target amount");
         require(_minContribution > 0, "Invalid min contribution");
         require(_deadline > block.timestamp, "Invalid deadline");
-        
+
         crowdfundingCounter++;
         bytes32 fundingId = keccak256(abi.encodePacked("crowdfund", crowdfundingCounter, block.timestamp));
-        
+
         Crowdfunding storage funding = crowdfundings[fundingId];
         funding.fundingId = fundingId;
         funding.groupId = _groupId;
         funding.initiator = msg.sender;
         funding.targetAmount = _targetAmount;
-        funding.collectedAmount = 0;
         funding.minContribution = _minContribution;
         funding.title = _title;
         funding.description = _description;
         funding.deadline = _deadline;
         funding.status = PaymentStatus.ACTIVE;
         funding.createdAt = block.timestamp;
-        funding.fundsWithdrawn = false;
-        
+
         groupPayments[_groupId].push(fundingId);
-        
+
         emit CrowdfundingCreated(fundingId, _groupId, msg.sender, _targetAmount, block.timestamp);
-        
+
         return fundingId;
     }
-    
+
     /**
-     * @dev 支持众筹
+     * @dev Back a crowdfunding campaign.
+     * @param _fundingId Crowdfunding identifier.
      */
-    function backCrowdfunding(bytes32 _fundingId) external payable {
+    function backCrowdfunding(bytes32 _fundingId) external payable nonReentrant whenNotPaused {
         Crowdfunding storage funding = crowdfundings[_fundingId];
         require(funding.status == PaymentStatus.ACTIVE, "Crowdfunding not active");
         require(block.timestamp <= funding.deadline, "Crowdfunding expired");
         require(msg.value >= funding.minContribution, "Below minimum contribution");
-        
+
+        // --- Effects ---
         if (funding.contributions[msg.sender] == 0) {
             funding.backers.push(msg.sender);
         }
-        
+
         funding.contributions[msg.sender] += msg.value;
         funding.collectedAmount += msg.value;
-        
+
         emit CrowdfundingBacked(_fundingId, msg.sender, msg.value, block.timestamp);
-        
-        // 检查是否达到目标
+
         if (funding.collectedAmount >= funding.targetAmount) {
             funding.status = PaymentStatus.COMPLETED;
         }
     }
-    
+
+    // ──────────────────────────── Withdraw Funds ─────────────────
+
     /**
-     * @dev 提取资金 (发起人)
+     * @dev Withdraw collected funds (initiator only, after completion).
+     * @param _paymentId Payment identifier.
      */
-    function withdrawFunds(bytes32 _paymentId) external {
+    function withdrawFunds(bytes32 _paymentId) external nonReentrant whenNotPaused {
         Payment storage payment = payments[_paymentId];
         require(payment.initiator == msg.sender, "Not initiator");
         require(payment.status == PaymentStatus.COMPLETED, "Payment not completed");
         require(!payment.fundsWithdrawn, "Funds already withdrawn");
-        
-        payment.fundsWithdrawn = true;
-        
+
+        // --- Effects ---
         uint256 amount = payment.collectedAmount;
-        payable(msg.sender).transfer(amount);
-        
+        payment.fundsWithdrawn = true;
+
+        // --- Interactions ---
+        (bool success, ) = msg.sender.call{value: amount}("");
+        require(success, "Transfer failed");
+
         emit FundsWithdrawn(_paymentId, msg.sender, amount, block.timestamp);
     }
-    
+
     /**
-     * @dev 提取众筹资金
+     * @dev Withdraw crowdfunding funds (initiator only, after completion).
+     * @param _fundingId Crowdfunding identifier.
      */
-    function withdrawCrowdfundingFunds(bytes32 _fundingId) external {
+    function withdrawCrowdfundingFunds(bytes32 _fundingId) external nonReentrant whenNotPaused {
         Crowdfunding storage funding = crowdfundings[_fundingId];
         require(funding.initiator == msg.sender, "Not initiator");
         require(funding.status == PaymentStatus.COMPLETED, "Crowdfunding not completed");
         require(!funding.fundsWithdrawn, "Funds already withdrawn");
-        
-        funding.fundsWithdrawn = true;
-        
+
+        // --- Effects ---
         uint256 amount = funding.collectedAmount;
-        payable(msg.sender).transfer(amount);
-        
+        funding.fundsWithdrawn = true;
+
+        // --- Interactions ---
+        (bool success, ) = msg.sender.call{value: amount}("");
+        require(success, "Transfer failed");
+
         emit FundsWithdrawn(_fundingId, msg.sender, amount, block.timestamp);
     }
-    
+
+    // ──────────────────────────── Cancel (Pull-Payment Refund) ───
+
     /**
-     * @dev 取消支付 (仅发起人)
+     * @dev Cancel a payment and credit refunds to participants.
+     *      Uses pull-payment pattern: refunds are credited to `pendingRefunds`
+     *      and participants call `claimRefund()` to withdraw.
+     *      This avoids unbounded-loop transfers that can cause gas-limit DoS.
+     * @param _paymentId Payment identifier.
      */
-    function cancelPayment(bytes32 _paymentId) external {
+    function cancelPayment(bytes32 _paymentId) external nonReentrant whenNotPaused {
         Payment storage payment = payments[_paymentId];
         require(payment.initiator == msg.sender, "Not initiator");
         require(payment.status == PaymentStatus.ACTIVE, "Payment not active");
-        
+
+        // --- Effects ---
         payment.status = PaymentStatus.CANCELLED;
-        
-        // 退款给所有已支付的参与者
+
+        // Credit refunds (no external calls in loop)
         for (uint256 i = 0; i < payment.participants.length; i++) {
             address participant = payment.participants[i];
             if (payment.hasPaid[participant]) {
                 uint256 amount = payment.contributions[participant];
                 if (amount > 0) {
-                    payable(participant).transfer(amount);
+                    payment.contributions[participant] = 0;
+                    payment.hasPaid[participant] = false;
+                    pendingRefunds[participant] += amount;
+                    emit RefundCredited(participant, amount);
                 }
             }
         }
-        
+
         emit PaymentCancelled(_paymentId, msg.sender, block.timestamp);
     }
-    
+
     /**
-     * @dev 取消众筹并退款
+     * @dev Cancel a crowdfunding and credit refunds to backers.
+     *      Uses pull-payment pattern (same as cancelPayment).
+     * @param _fundingId Crowdfunding identifier.
      */
-    function cancelCrowdfunding(bytes32 _fundingId) external {
+    function cancelCrowdfunding(bytes32 _fundingId) external nonReentrant whenNotPaused {
         Crowdfunding storage funding = crowdfundings[_fundingId];
         require(funding.initiator == msg.sender, "Not initiator");
         require(funding.status == PaymentStatus.ACTIVE, "Crowdfunding not active");
-        
+
+        // --- Effects ---
         funding.status = PaymentStatus.CANCELLED;
-        
-        // 退款给所有支持者
+
+        // Credit refunds (no external calls in loop)
         for (uint256 i = 0; i < funding.backers.length; i++) {
             address backer = funding.backers[i];
             uint256 amount = funding.contributions[backer];
             if (amount > 0) {
-                payable(backer).transfer(amount);
+                funding.contributions[backer] = 0;
+                pendingRefunds[backer] += amount;
+                emit RefundCredited(backer, amount);
             }
         }
+
+        emit CrowdfundingCancelled(_fundingId, msg.sender, block.timestamp);
     }
-    
+
     /**
-     * @dev 获取支付信息
+     * @dev Claim pending refund (pull-payment pattern).
+     *      Any user with a positive `pendingRefunds` balance can call this.
      */
+    function claimRefund() external nonReentrant {
+        uint256 amount = pendingRefunds[msg.sender];
+        require(amount > 0, "No pending refund");
+
+        // --- Effects ---
+        pendingRefunds[msg.sender] = 0;
+
+        // --- Interactions ---
+        (bool success, ) = msg.sender.call{value: amount}("");
+        require(success, "Refund transfer failed");
+
+        emit RefundWithdrawn(msg.sender, amount);
+    }
+
+    // ──────────────────────────── View Functions ─────────────────
+
     function getPayment(bytes32 _paymentId) external view returns (
         bytes32 paymentId,
         string memory groupId,
@@ -442,38 +504,23 @@ contract GroupPayment {
             payment.status
         );
     }
-    
-    /**
-     * @dev 获取用户在支付中的贡献
-     */
+
     function getUserContribution(bytes32 _paymentId, address _user) external view returns (uint256) {
         return payments[_paymentId].contributions[_user];
     }
-    
-    /**
-     * @dev 检查用户是否已支付
-     */
+
     function hasUserPaid(bytes32 _paymentId, address _user) external view returns (bool) {
         return payments[_paymentId].hasPaid[_user];
     }
-    
-    /**
-     * @dev 获取群组支付列表
-     */
-    function getGroupPayments(string memory _groupId) external view returns (bytes32[] memory) {
+
+    function getGroupPayments(string calldata _groupId) external view returns (bytes32[] memory) {
         return groupPayments[_groupId];
     }
-    
-    /**
-     * @dev 获取用户参与的支付
-     */
+
     function getUserPayments(address _user) external view returns (bytes32[] memory) {
         return userPayments[_user];
     }
-    
-    /**
-     * @dev 获取众筹信息
-     */
+
     function getCrowdfunding(bytes32 _fundingId) external view returns (
         bytes32 fundingId,
         string memory groupId,
@@ -500,11 +547,20 @@ contract GroupPayment {
             funding.status
         );
     }
-    
-    /**
-     * @dev 获取众筹支持者贡献
-     */
+
     function getCrowdfundingContribution(bytes32 _fundingId, address _backer) external view returns (uint256) {
         return crowdfundings[_fundingId].contributions[_backer];
+    }
+
+    // ──────────────────────────── Admin ───────────────────────────
+
+    /// @dev Pause the contract (emergency circuit-breaker).
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /// @dev Unpause the contract.
+    function unpause() external onlyOwner {
+        _unpause();
     }
 }

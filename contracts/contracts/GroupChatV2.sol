@@ -1,12 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
+
 /**
  * @title GroupChatV2
- * @dev 群组聊天管理合约 - 支持群组创建、成员管理、权限控制
- * @notice 配合 MessageStorageV2 使用，提供完整的群聊功能
+ * @dev Group chat management contract supporting group creation, member management, and access control.
+ * @notice Works with MessageStorageV2 to provide complete group chat functionality.
+ *
+ * Security features:
+ *   - Ownable for contract-level admin operations
+ *   - Pausable for emergency circuit-breaker
+ *   - Role-based access control (Owner > Admin > Member)
+ *   - Input validation on all string and array parameters
  */
-contract GroupChatV2 {
+contract GroupChatV2 is Ownable, Pausable {
     
     // 群组角色
     enum Role {
@@ -72,6 +81,10 @@ contract GroupChatV2 {
     
     // 群组计数器
     uint256 public groupCounter;
+
+    /// @notice Maximum string length for names and descriptions to prevent gas abuse.
+    uint256 public constant MAX_NAME_LENGTH = 128;
+    uint256 public constant MAX_DESCRIPTION_LENGTH = 1024;
     
     // 事件
     event GroupCreated(
@@ -125,18 +138,56 @@ contract GroupChatV2 {
         address indexed approver,
         uint256 timestamp
     );
+
+    event JoinRequestRejected(
+        string indexed groupId,
+        address indexed requester,
+        address indexed rejectedBy,
+        uint256 timestamp
+    );
+
+    event MemberMuted(
+        string indexed groupId,
+        address indexed member,
+        bool muted,
+        uint256 timestamp
+    );
+
+    event GroupInfoUpdated(
+        string indexed groupId,
+        address indexed updatedBy,
+        uint256 timestamp
+    );
+
+    event GroupDissolved(
+        string indexed groupId,
+        address indexed dissolvedBy,
+        uint256 timestamp
+    );
+
+    event GroupOwnershipTransferred(
+        string indexed groupId,
+        address indexed previousOwner,
+        address indexed newOwner,
+        uint256 timestamp
+    );
+
+    // ──────────────────────────── Constructor ─────────────────────
+
+    constructor() Ownable(msg.sender) {}
     
     /**
      * @dev 创建群组
      */
     function createGroup(
-        string memory _groupName,
-        string memory _groupAvatar,
-        string memory _description,
+        string calldata _groupName,
+        string calldata _groupAvatar,
+        string calldata _description,
         bool _isPublic,
         uint256 _maxMembers
-    ) external returns (string memory) {
-        require(bytes(_groupName).length > 0, "Group name required");
+    ) external whenNotPaused returns (string memory) {
+        require(bytes(_groupName).length > 0 && bytes(_groupName).length <= MAX_NAME_LENGTH, "Invalid group name");
+        require(bytes(_description).length <= MAX_DESCRIPTION_LENGTH, "Description too long");
         require(_maxMembers >= 2 && _maxMembers <= 1000, "Invalid max members");
         
         groupCounter++;
@@ -190,7 +241,7 @@ contract GroupChatV2 {
     /**
      * @dev 加入群组 (公开群组直接加入)
      */
-    function joinGroup(string memory _groupId) external {
+    function joinGroup(string calldata _groupId) external whenNotPaused {
         Group storage group = groups[_groupId];
         require(group.isActive, "Group not active");
         require(group.memberCount < group.settings.maxMembers, "Group is full");
@@ -217,7 +268,8 @@ contract GroupChatV2 {
     /**
      * @dev 邀请成员加入
      */
-    function inviteMember(string memory _groupId, address _member) external {
+    function inviteMember(string calldata _groupId, address _member) external whenNotPaused {
+        require(_member != address(0), "Invalid member address");
         Group storage group = groups[_groupId];
         require(group.isActive, "Group not active");
         require(isMember(_groupId, msg.sender), "Not a member");
@@ -265,6 +317,8 @@ contract GroupChatV2 {
         require(request.isPending, "No pending request");
         
         request.isPending = false;
+
+        emit JoinRequestRejected(_groupId, _requester, msg.sender, block.timestamp);
     }
     
     /**
@@ -365,6 +419,7 @@ contract GroupChatV2 {
         group.owner = _newOwner;
         
         emit RoleChanged(_groupId, _newOwner, Role.OWNER, block.timestamp);
+        emit GroupOwnershipTransferred(_groupId, msg.sender, _newOwner, block.timestamp);
     }
     
     /**
@@ -381,6 +436,8 @@ contract GroupChatV2 {
         require(target.role == Role.MEMBER, "Cannot mute admin or owner");
         
         target.isMuted = _mute;
+
+        emit MemberMuted(_groupId, _member, _mute, block.timestamp);
     }
     
     /**
@@ -430,8 +487,11 @@ contract GroupChatV2 {
             group.groupAvatar = _groupAvatar;
         }
         if (bytes(_description).length > 0) {
+            require(bytes(_description).length <= MAX_DESCRIPTION_LENGTH, "Description too long");
             group.description = _description;
         }
+
+        emit GroupInfoUpdated(_groupId, msg.sender, block.timestamp);
     }
     
     /**
@@ -442,6 +502,8 @@ contract GroupChatV2 {
         require(group.owner == msg.sender, "Only owner can dissolve");
         
         group.isActive = false;
+
+        emit GroupDissolved(_groupId, msg.sender, block.timestamp);
     }
     
     /**
@@ -535,6 +597,16 @@ contract GroupChatV2 {
     /**
      * @dev 辅助函数: uint 转 string
      */
+    /// @dev Pause the contract (emergency circuit-breaker).
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /// @dev Unpause the contract.
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
     function uint2str(uint256 _i) internal pure returns (string memory) {
         if (_i == 0) {
             return "0";

@@ -1,25 +1,28 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
  * @title NFTAvatarManager
- * @dev Manages NFT avatars for user profiles
- * 
+ * @dev Manages NFT avatars for user profiles.
+ *
  * Features:
- * - Users can set any NFT they own as their avatar
- * - Supports ERC-721 and ERC-1155 NFTs
- * - Automatic ownership verification
- * - NFT avatar history tracking
- * - Whitelist/blacklist for NFT collections
- * 
- * @author Manus AI
- * @notice This contract allows users to showcase their NFTs as profile avatars
+ *   - Users can set any NFT they own as their avatar
+ *   - Supports ERC-721 and ERC-1155 NFTs
+ *   - Automatic ownership verification
+ *   - NFT avatar history tracking
+ *   - Whitelist/blacklist for NFT collections
+ *
+ * Security features:
+ *   - Ownable for admin operations
+ *   - Pausable for emergency circuit-breaker
+ *   - NFT contract address validation
  */
-contract NFTAvatarManager is Ownable {
+contract NFTAvatarManager is Ownable, Pausable {
     
     // NFT standard types
     enum NFTStandard {
@@ -78,7 +81,8 @@ contract NFTAvatarManager is Ownable {
      * @param nftContract NFT contract address
      * @param tokenId Token ID
      */
-    function setAvatarERC721(address nftContract, uint256 tokenId) external {
+    function setAvatarERC721(address nftContract, uint256 tokenId) external whenNotPaused {
+        require(nftContract != address(0), "Invalid NFT contract");
         require(!blacklistedCollections[nftContract], "Collection is blacklisted");
         if (whitelistEnabled) {
             require(whitelistedCollections[nftContract], "Collection not whitelisted");
@@ -107,7 +111,8 @@ contract NFTAvatarManager is Ownable {
      * @param nftContract NFT contract address
      * @param tokenId Token ID
      */
-    function setAvatarERC1155(address nftContract, uint256 tokenId) external {
+    function setAvatarERC1155(address nftContract, uint256 tokenId) external whenNotPaused {
+        require(nftContract != address(0), "Invalid NFT contract");
         require(!blacklistedCollections[nftContract], "Collection is blacklisted");
         if (whitelistEnabled) {
             require(whitelistedCollections[nftContract], "Collection not whitelisted");
@@ -262,5 +267,15 @@ contract NFTAvatarManager is Ownable {
             blacklistedCollections[nftContracts[i]] = true;
             emit CollectionBlacklisted(nftContracts[i]);
         }
+    }
+
+    /// @dev Pause the contract (emergency circuit-breaker).
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /// @dev Unpause the contract.
+    function unpause() external onlyOwner {
+        _unpause();
     }
 }

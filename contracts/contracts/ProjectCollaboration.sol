@@ -1,12 +1,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
 /**
  * @title ProjectCollaboration
- * @dev 项目协作和资源共享合约
- * @notice 管理项目创建、协作者、里程碑和资源
+ * @dev Project collaboration and resource sharing contract.
+ * @notice Manages project creation, collaborators, milestones, and resources.
+ *
+ * Security features:
+ *   - Ownable for contract-level admin operations
+ *   - Pausable for emergency circuit-breaker
+ *   - ReentrancyGuard for milestone reward payments
+ *   - Input validation on all parameters
+ *   - Bounded collaborator loops
  */
-contract ProjectCollaboration {
+contract ProjectCollaboration is Ownable, Pausable, ReentrancyGuard {
+
+    uint256 public constant MAX_COLLABORATORS = 100;
+
+    constructor() Ownable(msg.sender) {}
     
     // 项目状态
     enum ProjectStatus {
@@ -142,10 +157,10 @@ contract ProjectCollaboration {
      * @return projectId 项目ID
      */
     function createProject(
-        string memory _name,
-        string memory _description,
+        string calldata _name,
+        string calldata _description,
         bool _isPublic
-    ) external returns (bytes32) {
+    ) external whenNotPaused returns (bytes32) {
         require(bytes(_name).length > 0, "Project name cannot be empty");
         
         // 生成项目ID
@@ -232,15 +247,16 @@ contract ProjectCollaboration {
     function addCollaborator(
         bytes32 _projectId,
         address _collaborator,
-        string memory _role
-    ) external {
+        string calldata _role
+    ) external whenNotPaused {
         Project storage project = projects[_projectId];
         require(project.createdAt > 0, "Project does not exist");
         require(project.owner == msg.sender, "Only owner can add collaborators");
         require(_collaborator != address(0), "Invalid collaborator address");
         
-        // 检查是否已经是协作者
+        // 检查是否已经是协作者 (bounded)
         Collaborator[] storage collaborators = projectCollaborators[_projectId];
+        require(collaborators.length < MAX_COLLABORATORS, "Max collaborators reached");
         for (uint i = 0; i < collaborators.length; i++) {
             require(
                 collaborators[i].collaboratorAddress != _collaborator,
@@ -301,11 +317,11 @@ contract ProjectCollaboration {
      */
     function addMilestone(
         bytes32 _projectId,
-        string memory _title,
-        string memory _description,
+        string calldata _title,
+        string calldata _description,
         uint256 _dueDate,
         uint256 _reward
-    ) external payable returns (bytes32) {
+    ) external payable nonReentrant whenNotPaused returns (bytes32) {
         Project storage project = projects[_projectId];
         require(project.createdAt > 0, "Project does not exist");
         require(_isCollaborator(_projectId, msg.sender), "Not a collaborator");
@@ -345,7 +361,7 @@ contract ProjectCollaboration {
     function completeMilestone(
         bytes32 _projectId,
         uint256 _milestoneIndex
-    ) external {
+    ) external nonReentrant {
         Project storage project = projects[_projectId];
         require(project.createdAt > 0, "Project does not exist");
         require(project.owner == msg.sender, "Only owner can complete milestones");
@@ -372,10 +388,10 @@ contract ProjectCollaboration {
      */
     function addResource(
         bytes32 _projectId,
-        string memory _resourceType,
-        string memory _name,
-        string memory _description
-    ) external returns (bytes32) {
+        string calldata _resourceType,
+        string calldata _name,
+        string calldata _description
+    ) external whenNotPaused returns (bytes32) {
         Project storage project = projects[_projectId];
         require(project.createdAt > 0, "Project does not exist");
         require(_isCollaborator(_projectId, msg.sender), "Not a collaborator");
@@ -492,6 +508,16 @@ contract ProjectCollaboration {
      */
     function getPublicProjects() external view returns (bytes32[] memory) {
         return publicProjects;
+    }
+
+    /// @dev Pause the contract (emergency circuit-breaker).
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /// @dev Unpause the contract.
+    function unpause() external onlyOwner {
+        _unpause();
     }
 }
 

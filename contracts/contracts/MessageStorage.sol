@@ -1,12 +1,28 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
+
 /**
  * @title MessageStorage
- * @dev 去中心化消息存储合约 - 存储消息哈希和元数据
- * @notice 用于 Dchat 平台的端到端加密消息存储
+ * @dev Decentralized message storage contract for encrypted message hashes and metadata.
+ * @notice Used by the Dchat platform for end-to-end encrypted message storage.
+ *
+ * Security features:
+ *   - Ownable for contract-level admin operations
+ *   - Pausable for emergency circuit-breaker
+ *   - Access control: only sender/recipient can view or delete messages
+ *   - Input validation on all parameters
  */
-contract MessageStorage {
+contract MessageStorage is Ownable, Pausable {
+
+    /// @notice Maximum IPFS hash length to prevent gas abuse.
+    uint256 public constant MAX_IPFS_HASH_LENGTH = 256;
+
+    // ──────────────────────────── Constructor ─────────────────────
+
+    constructor() Ownable(msg.sender) {}
     
     // 消息结构
     struct Message {
@@ -74,11 +90,11 @@ contract MessageStorage {
     function storeMessage(
         bytes32 _messageHash,
         address _recipient,
-        string memory _ipfsHash
-    ) external returns (bytes32) {
+        string calldata _ipfsHash
+    ) external whenNotPaused returns (bytes32) {
         require(_recipient != address(0), "Invalid recipient address");
         require(_recipient != msg.sender, "Cannot send message to yourself");
-        require(bytes(_ipfsHash).length > 0, "IPFS hash cannot be empty");
+        require(bytes(_ipfsHash).length > 0 && bytes(_ipfsHash).length <= MAX_IPFS_HASH_LENGTH, "Invalid IPFS hash");
         
         // 生成唯一消息ID
         bytes32 messageId = keccak256(
@@ -224,6 +240,16 @@ contract MessageStorage {
      * @param _sessionId 会话ID
      * @return ChatSession 会话结构
      */
+    /// @dev Pause the contract (emergency circuit-breaker).
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /// @dev Unpause the contract.
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
     function getSession(bytes32 _sessionId) external view returns (ChatSession memory) {
         ChatSession memory session = chatSessions[_sessionId];
         require(session.createdAt > 0, "Session does not exist");

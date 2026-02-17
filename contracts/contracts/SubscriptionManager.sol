@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 // Counters removed in OpenZeppelin v5.x, using uint256 instead
 
 /**
@@ -21,7 +23,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @author Manus AI
  * @notice This contract handles all subscription-related operations
  */
-contract SubscriptionManager is Ownable, ReentrancyGuard {
+contract SubscriptionManager is Ownable, ReentrancyGuard, Pausable {
+    using SafeERC20 for IERC20;
     
     // Subscription tiers
     enum SubscriptionTier {
@@ -149,6 +152,7 @@ contract SubscriptionManager is Ownable, ReentrancyGuard {
     
     event PaymentTokenAdded(address indexed token);
     event PaymentTokenRemoved(address indexed token);
+    event FundsWithdrawn(address indexed token, address indexed recipient, uint256 amount);
     
     /**
      * @dev Constructor
@@ -189,7 +193,7 @@ contract SubscriptionManager is Ownable, ReentrancyGuard {
         SubscriptionDuration duration,
         address paymentToken,
         bool autoRenew
-    ) external payable nonReentrant {
+    ) external payable nonReentrant whenNotPaused {
         require(tier != SubscriptionTier.FREE, "Cannot subscribe to FREE tier");
         require(supportedTokens[paymentToken], "Payment token not supported");
         
@@ -206,7 +210,7 @@ contract SubscriptionManager is Ownable, ReentrancyGuard {
         } else {
             // ERC20 payment
             require(msg.value == 0, "ETH not accepted for token payment");
-            IERC20(paymentToken).transferFrom(msg.sender, address(this), amount);
+            IERC20(paymentToken).safeTransferFrom(msg.sender, address(this), amount);
         }
         
         // Calculate subscription period
@@ -254,7 +258,7 @@ contract SubscriptionManager is Ownable, ReentrancyGuard {
     function mintNFTMembership(
         SubscriptionTier tier,
         address paymentToken
-    ) external payable nonReentrant {
+    ) external payable nonReentrant whenNotPaused {
         require(tier != SubscriptionTier.FREE, "Cannot mint FREE tier NFT");
         require(supportedTokens[paymentToken], "Payment token not supported");
         require(userNFTMemberships[msg.sender] == 0, "Already owns NFT membership");
@@ -267,7 +271,7 @@ contract SubscriptionManager is Ownable, ReentrancyGuard {
             require(msg.value == amount, "Incorrect payment amount");
         } else {
             require(msg.value == 0, "ETH not accepted for token payment");
-            IERC20(paymentToken).transferFrom(msg.sender, address(this), amount);
+            IERC20(paymentToken).safeTransferFrom(msg.sender, address(this), amount);
         }
         
         // Mint NFT
@@ -295,7 +299,7 @@ contract SubscriptionManager is Ownable, ReentrancyGuard {
      * @dev Renew subscription (manual or auto)
      * @param subscriptionId Subscription ID to renew
      */
-    function renewSubscription(uint256 subscriptionId) external payable nonReentrant {
+    function renewSubscription(uint256 subscriptionId) external payable nonReentrant whenNotPaused {
         Subscription storage sub = subscriptions[subscriptionId];
         require(sub.user == msg.sender, "Not subscription owner");
         require(sub.status == SubscriptionStatus.ACTIVE, "Subscription not active");
@@ -311,7 +315,7 @@ contract SubscriptionManager is Ownable, ReentrancyGuard {
             require(msg.value == amount, "Incorrect payment amount");
         } else {
             require(msg.value == 0, "ETH not accepted for token payment");
-            IERC20(sub.paymentToken).transferFrom(msg.sender, address(this), amount);
+            IERC20(sub.paymentToken).safeTransferFrom(msg.sender, address(this), amount);
         }
         
         // Extend subscription
@@ -352,19 +356,18 @@ contract SubscriptionManager is Ownable, ReentrancyGuard {
         // Calculate refund amount (100% within 7 days)
         uint256 refundAmount = sub.amount;
         
-        // Update subscription status
+        // --- Effects (before external calls) ---
         sub.status = SubscriptionStatus.REFUNDED;
         userTiers[msg.sender] = SubscriptionTier.FREE;
-        
-        // Process refund
-        if (sub.paymentToken == address(0)) {
-            payable(msg.sender).transfer(refundAmount);
-        } else {
-            IERC20(sub.paymentToken).transfer(msg.sender, refundAmount);
-        }
-        
-        // Update revenue
         totalRevenue[sub.paymentToken] -= refundAmount;
+        
+        // --- Interactions ---
+        if (sub.paymentToken == address(0)) {
+            (bool success, ) = msg.sender.call{value: refundAmount}("");
+            require(success, "ETH refund failed");
+        } else {
+            IERC20(sub.paymentToken).safeTransfer(msg.sender, refundAmount);
+        }
         
         emit SubscriptionRefunded(subscriptionId, msg.sender, refundAmount);
     }
@@ -495,11 +498,25 @@ contract SubscriptionManager is Ownable, ReentrancyGuard {
      * @param amount Amount to withdraw
      */
     function withdraw(address token, uint256 amount) external onlyOwner nonReentrant {
+        require(amount > 0, "Amount must be > 0");
         if (token == address(0)) {
-            payable(owner()).transfer(amount);
+            require(address(this).balance >= amount, "Insufficient ETH balance");
+            (bool success, ) = owner().call{value: amount}("");
+            require(success, "ETH withdrawal failed");
         } else {
-            IERC20(token).transfer(owner(), amount);
+            IERC20(token).safeTransfer(owner(), amount);
         }
+        emit FundsWithdrawn(token, owner(), amount);
+    }
+
+    /// @dev Pause the contract (emergency circuit-breaker).
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /// @dev Unpause the contract.
+    function unpause() external onlyOwner {
+        _unpause();
     }
     
     /**

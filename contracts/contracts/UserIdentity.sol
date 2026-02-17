@@ -1,12 +1,32 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
+
 /**
  * @title UserIdentity
- * @dev 用户身份验证和信誉系统合约
- * @notice 管理用户资料、LinkedIn 验证和信誉评分
+ * @dev User identity verification and reputation system contract.
+ * @notice Manages user profiles, LinkedIn verification, and reputation scoring.
+ *
+ * Security features:
+ *   - Ownable for contract-level admin operations
+ *   - Pausable for emergency circuit-breaker
+ *   - Input validation on all string parameters
+ *   - Reputation score overflow/underflow protection
+ *   - Rate-limiting on reputation updates
  */
-contract UserIdentity {
+contract UserIdentity is Ownable, Pausable {
+
+    uint256 public constant MAX_USERNAME_LENGTH = 64;
+    uint256 public constant MAX_COMMENT_LENGTH = 512;
+    uint256 public constant MAX_REPUTATION_SCORE = 10000;
+    uint256 public constant REPUTATION_COOLDOWN = 1 days;
+
+    /// @dev Tracks last reputation timestamp: rater => ratee => timestamp
+    mapping(address => mapping(address => uint256)) public lastReputationTime;
+
+    constructor() Ownable(msg.sender) {}
     
     // 用户资料结构
     struct UserProfile {
@@ -127,11 +147,11 @@ contract UserIdentity {
      * @param _emailHash 邮箱哈希
      */
     function registerUser(
-        string memory _username,
-        string memory _emailHash
-    ) external {
+        string calldata _username,
+        string calldata _emailHash
+    ) external whenNotPaused {
         require(userProfiles[msg.sender].createdAt == 0, "User already registered");
-        require(bytes(_username).length > 0, "Username cannot be empty");
+        require(bytes(_username).length > 0 && bytes(_username).length <= MAX_USERNAME_LENGTH, "Invalid username length");
         require(usernameToAddress[_username] == address(0), "Username already taken");
         
         userProfiles[msg.sender] = UserProfile({
@@ -159,9 +179,9 @@ contract UserIdentity {
      * @param _emailHash 新邮箱哈希
      */
     function updateProfile(
-        string memory _username,
-        string memory _emailHash
-    ) external {
+        string calldata _username,
+        string calldata _emailHash
+    ) external whenNotPaused {
         require(userProfiles[msg.sender].createdAt > 0, "User not registered");
         
         UserProfile storage profile = userProfiles[msg.sender];
@@ -190,7 +210,7 @@ contract UserIdentity {
      * @dev 验证 LinkedIn
      * @param _linkedInId LinkedIn ID
      */
-    function verifyLinkedIn(string memory _linkedInId) external {
+    function verifyLinkedIn(string calldata _linkedInId) external whenNotPaused {
         require(userProfiles[msg.sender].createdAt > 0, "User not registered");
         require(bytes(_linkedInId).length > 0, "LinkedIn ID cannot be empty");
         require(linkedInToAddress[_linkedInId] == address(0), "LinkedIn ID already linked");
@@ -234,10 +254,10 @@ contract UserIdentity {
      * @param _industry 行业
      */
     function registerCompany(
-        string memory _companyId,
-        string memory _companyName,
-        string memory _industry
-    ) external {
+        string calldata _companyId,
+        string calldata _companyName,
+        string calldata _industry
+    ) external whenNotPaused {
         require(companyProfiles[_companyId].createdAt == 0, "Company already registered");
         require(bytes(_companyName).length > 0, "Company name cannot be empty");
         
@@ -262,10 +282,10 @@ contract UserIdentity {
      * @param _startDate 开始日期
      */
     function addUserCompany(
-        string memory _companyId,
-        string memory _position,
+        string calldata _companyId,
+        string calldata _position,
         uint256 _startDate
-    ) external {
+    ) external whenNotPaused {
         require(userProfiles[msg.sender].createdAt > 0, "User not registered");
         require(companyProfiles[_companyId].createdAt > 0, "Company not registered");
         require(bytes(_position).length > 0, "Position cannot be empty");
@@ -294,12 +314,18 @@ contract UserIdentity {
     function updateReputation(
         address _toUser,
         int256 _score,
-        string memory _comment
-    ) external {
+        string calldata _comment
+    ) external whenNotPaused {
         require(userProfiles[msg.sender].createdAt > 0, "User not registered");
         require(userProfiles[_toUser].createdAt > 0, "Target user not registered");
         require(msg.sender != _toUser, "Cannot rate yourself");
         require(_score >= -5 && _score <= 5, "Score must be between -5 and 5");
+        require(bytes(_comment).length <= MAX_COMMENT_LENGTH, "Comment too long");
+        require(
+            block.timestamp >= lastReputationTime[msg.sender][_toUser] + REPUTATION_COOLDOWN,
+            "Rate-limited: wait before rating again"
+        );
+        lastReputationTime[msg.sender][_toUser] = block.timestamp;
         
         reputationRecords[_toUser].push(ReputationRecord({
             fromUser: msg.sender,
@@ -309,12 +335,14 @@ contract UserIdentity {
             timestamp: block.timestamp
         }));
         
-        // 更新信誉分数
+        // 更新信誉分数 (with overflow/underflow protection)
         UserProfile storage profile = userProfiles[_toUser];
         if (_score > 0) {
-            profile.reputationScore += uint256(_score);
-        } else if (_score < 0 && profile.reputationScore >= uint256(-_score)) {
-            profile.reputationScore -= uint256(-_score);
+            uint256 newScore = profile.reputationScore + uint256(_score);
+            profile.reputationScore = newScore > MAX_REPUTATION_SCORE ? MAX_REPUTATION_SCORE : newScore;
+        } else if (_score < 0) {
+            uint256 decrease = uint256(-_score);
+            profile.reputationScore = profile.reputationScore > decrease ? profile.reputationScore - decrease : 0;
         }
         
         emit ReputationUpdated(msg.sender, _toUser, _score, block.timestamp);
@@ -382,6 +410,16 @@ contract UserIdentity {
      */
     function isUserRegistered(address _user) external view returns (bool) {
         return userProfiles[_user].createdAt > 0;
+    }
+
+    /// @dev Pause the contract (emergency circuit-breaker).
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /// @dev Unpause the contract.
+    function unpause() external onlyOwner {
+        _unpause();
     }
 }
 

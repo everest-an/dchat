@@ -1,70 +1,74 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
+
 /**
  * @title PaymentEscrow
- * @dev 聊天内加密货币支付托管合约
- * @notice 支持安全的点对点支付和托管功能
+ * @dev Secure peer-to-peer payment and escrow contract for in-chat cryptocurrency transfers.
+ * @notice Supports instant payments and time-locked escrow with dual-party approval.
+ *
+ * Security features:
+ *   - ReentrancyGuard on every state-mutating function that transfers ETH
+ *   - Checks-Effects-Interactions (CEI) pattern enforced throughout
+ *   - Pausable for emergency circuit-breaker
+ *   - Ownable for admin operations with transferable ownership
  */
-contract PaymentEscrow {
-    
-    // 支付状态
+contract PaymentEscrow is Ownable, ReentrancyGuard, Pausable {
+
+    // ──────────────────────────── Enums ────────────────────────────
+
     enum PaymentStatus {
-        Pending,      // 待处理
-        Completed,    // 已完成
-        Refunded,     // 已退款
-        Disputed      // 有争议
+        Pending,
+        Completed,
+        Refunded,
+        Disputed
     }
-    
-    // 支付结构
+
+    // ──────────────────────────── Structs ──────────────────────────
+
     struct Payment {
-        bytes32 paymentId;        // 支付ID
-        address sender;           // 发送者
-        address recipient;        // 接收者
-        uint256 amount;           // 金额
-        uint256 createdAt;        // 创建时间
-        uint256 completedAt;      // 完成时间
-        PaymentStatus status;     // 状态
-        string description;       // 描述
-        bool isEscrow;           // 是否托管
+        bytes32 paymentId;
+        address sender;
+        address recipient;
+        uint256 amount;
+        uint256 createdAt;
+        uint256 completedAt;
+        PaymentStatus status;
+        string description;
+        bool isEscrow;
     }
-    
-    // 托管结构
+
     struct Escrow {
-        bytes32 escrowId;         // 托管ID
-        address payer;            // 付款方
-        address payee;            // 收款方
-        uint256 amount;           // 金额
-        uint256 createdAt;        // 创建时间
-        uint256 releaseTime;      // 释放时间
-        PaymentStatus status;     // 状态
-        string terms;             // 条款
-        bool payerApproved;       // 付款方确认
-        bool payeeApproved;       // 收款方确认
+        bytes32 escrowId;
+        address payer;
+        address payee;
+        uint256 amount;
+        uint256 createdAt;
+        uint256 releaseTime;
+        PaymentStatus status;
+        string terms;
+        bool payerApproved;
+        bool payeeApproved;
     }
-    
-    // 存储所有支付
+
+    // ──────────────────────────── State ────────────────────────────
+
     mapping(bytes32 => Payment) public payments;
-    
-    // 存储所有托管
     mapping(bytes32 => Escrow) public escrows;
-    
-    // 用户的支付历史
     mapping(address => bytes32[]) public userPayments;
-    
-    // 用户的托管列表
     mapping(address => bytes32[]) public userEscrows;
-    
-    // 平台费率 (基点, 1% = 100)
-    uint256 public platformFee = 50; // 0.5%
-    
-    // 平台费用累计
+
+    /// @notice Platform fee in basis points (1 bp = 0.01 %).
+    uint256 public platformFee = 50; // 0.5 %
+
+    /// @notice Accumulated platform fees available for withdrawal.
     uint256 public collectedFees;
-    
-    // 合约所有者
-    address public owner;
-    
-    // 事件
+
+    // ──────────────────────────── Events ───────────────────────────
+
     event PaymentCreated(
         bytes32 indexed paymentId,
         address indexed sender,
@@ -72,17 +76,10 @@ contract PaymentEscrow {
         uint256 amount,
         uint256 timestamp
     );
-    
-    event PaymentCompleted(
-        bytes32 indexed paymentId,
-        uint256 timestamp
-    );
-    
-    event PaymentRefunded(
-        bytes32 indexed paymentId,
-        uint256 timestamp
-    );
-    
+
+    event PaymentCompleted(bytes32 indexed paymentId, uint256 timestamp);
+    event PaymentRefunded(bytes32 indexed paymentId, uint256 timestamp);
+
     event EscrowCreated(
         bytes32 indexed escrowId,
         address indexed payer,
@@ -90,56 +87,44 @@ contract PaymentEscrow {
         uint256 amount,
         uint256 releaseTime
     );
-    
-    event EscrowReleased(
-        bytes32 indexed escrowId,
-        uint256 timestamp
-    );
-    
-    event EscrowRefunded(
-        bytes32 indexed escrowId,
-        uint256 timestamp
-    );
-    
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner can call this function");
-        _;
-    }
-    
-    constructor() {
-        owner = msg.sender;
-    }
-    
+
+    event EscrowApproved(bytes32 indexed escrowId, address indexed approver, uint256 timestamp);
+    event EscrowReleased(bytes32 indexed escrowId, uint256 timestamp);
+    event EscrowRefunded(bytes32 indexed escrowId, uint256 timestamp);
+
+    event PlatformFeeUpdated(uint256 oldFee, uint256 newFee);
+    event FeesWithdrawn(address indexed to, uint256 amount);
+
+    // ──────────────────────────── Constructor ──────────────────────
+
+    constructor() Ownable(msg.sender) {}
+
+    // ──────────────────────────── Instant Payment ─────────────────
+
     /**
-     * @dev 创建即时支付
-     * @param _recipient 接收者地址
-     * @param _description 支付描述
-     * @return paymentId 支付ID
+     * @dev Create an instant payment. Funds are transferred to the recipient
+     *      immediately (minus platform fee).
+     * @param _recipient Recipient address.
+     * @param _description Human-readable payment description.
+     * @return paymentId Unique payment identifier.
      */
     function createPayment(
         address _recipient,
-        string memory _description
-    ) external payable returns (bytes32) {
-        require(_recipient != address(0), "Invalid recipient address");
+        string calldata _description
+    ) external payable nonReentrant whenNotPaused returns (bytes32) {
+        require(_recipient != address(0), "Invalid recipient");
         require(_recipient != msg.sender, "Cannot pay yourself");
-        require(msg.value > 0, "Payment amount must be greater than 0");
-        
-        // 计算平台费用
+        require(msg.value > 0, "Amount must be > 0");
+
+        // --- Checks ---
         uint256 fee = (msg.value * platformFee) / 10000;
         uint256 netAmount = msg.value - fee;
-        
-        // 生成支付ID
+
         bytes32 paymentId = keccak256(
-            abi.encodePacked(
-                msg.sender,
-                _recipient,
-                msg.value,
-                block.timestamp,
-                block.number
-            )
+            abi.encodePacked(msg.sender, _recipient, msg.value, block.timestamp, block.number)
         );
-        
-        // 存储支付信息
+
+        // --- Effects ---
         payments[paymentId] = Payment({
             paymentId: paymentId,
             sender: msg.sender,
@@ -151,53 +136,45 @@ contract PaymentEscrow {
             description: _description,
             isEscrow: false
         });
-        
-        // 更新用户支付历史
+
         userPayments[msg.sender].push(paymentId);
         userPayments[_recipient].push(paymentId);
-        
-        // 累计平台费用
         collectedFees += fee;
-        
-        // 转账给接收者
+
+        // --- Interactions ---
         (bool success, ) = _recipient.call{value: netAmount}("");
         require(success, "Transfer failed");
-        
+
         emit PaymentCreated(paymentId, msg.sender, _recipient, msg.value, block.timestamp);
         emit PaymentCompleted(paymentId, block.timestamp);
-        
+
         return paymentId;
     }
-    
+
+    // ──────────────────────────── Escrow ───────────────────────────
+
     /**
-     * @dev 创建托管支付
-     * @param _payee 收款方地址
-     * @param _releaseTime 释放时间 (Unix 时间戳)
-     * @param _terms 托管条款
-     * @return escrowId 托管ID
+     * @dev Create a time-locked escrow. Funds are held until both parties
+     *      approve or the release time elapses.
+     * @param _payee   Payee (recipient) address.
+     * @param _releaseTime Unix timestamp after which funds can be released.
+     * @param _terms   Human-readable escrow terms.
+     * @return escrowId Unique escrow identifier.
      */
     function createEscrow(
         address _payee,
         uint256 _releaseTime,
-        string memory _terms
-    ) external payable returns (bytes32) {
-        require(_payee != address(0), "Invalid payee address");
-        require(_payee != msg.sender, "Cannot create escrow with yourself");
-        require(msg.value > 0, "Escrow amount must be greater than 0");
-        require(_releaseTime > block.timestamp, "Release time must be in the future");
-        
-        // 生成托管ID
+        string calldata _terms
+    ) external payable nonReentrant whenNotPaused returns (bytes32) {
+        require(_payee != address(0), "Invalid payee");
+        require(_payee != msg.sender, "Cannot escrow with yourself");
+        require(msg.value > 0, "Amount must be > 0");
+        require(_releaseTime > block.timestamp, "Release time must be future");
+
         bytes32 escrowId = keccak256(
-            abi.encodePacked(
-                msg.sender,
-                _payee,
-                msg.value,
-                _releaseTime,
-                block.timestamp
-            )
+            abi.encodePacked(msg.sender, _payee, msg.value, _releaseTime, block.timestamp)
         );
-        
-        // 存储托管信息
+
         escrows[escrowId] = Escrow({
             escrowId: escrowId,
             payer: msg.sender,
@@ -210,153 +187,146 @@ contract PaymentEscrow {
             payerApproved: false,
             payeeApproved: false
         });
-        
-        // 更新用户托管列表
+
         userEscrows[msg.sender].push(escrowId);
         userEscrows[_payee].push(escrowId);
-        
+
         emit EscrowCreated(escrowId, msg.sender, _payee, msg.value, _releaseTime);
-        
+
         return escrowId;
     }
-    
+
     /**
-     * @dev 释放托管资金
-     * @param _escrowId 托管ID
+     * @dev Approve and potentially release escrow funds.
+     *      Both payer and payee must approve, OR the release time must have passed.
+     * @param _escrowId Escrow identifier.
      */
-    function releaseEscrow(bytes32 _escrowId) external {
+    function releaseEscrow(bytes32 _escrowId) external nonReentrant whenNotPaused {
         Escrow storage escrow = escrows[_escrowId];
         require(escrow.createdAt > 0, "Escrow does not exist");
-        require(escrow.status == PaymentStatus.Pending, "Escrow is not pending");
+        require(escrow.status == PaymentStatus.Pending, "Escrow not pending");
         require(
             msg.sender == escrow.payer || msg.sender == escrow.payee,
             "Not authorized"
         );
-        
-        // 标记确认
+
+        // --- Checks ---
         if (msg.sender == escrow.payer) {
             escrow.payerApproved = true;
         } else {
             escrow.payeeApproved = true;
         }
-        
-        // 双方确认或时间到期后释放
-        if ((escrow.payerApproved && escrow.payeeApproved) || 
-            block.timestamp >= escrow.releaseTime) {
-            
-            // 计算平台费用
-            uint256 fee = (escrow.amount * platformFee) / 10000;
-            uint256 netAmount = escrow.amount - fee;
-            
-            // 更新状态
-            escrow.status = PaymentStatus.Completed;
-            
-            // 累计平台费用
-            collectedFees += fee;
-            
-            // 转账给收款方
-            (bool success, ) = escrow.payee.call{value: netAmount}("");
-            require(success, "Transfer failed");
-            
-            emit EscrowReleased(_escrowId, block.timestamp);
+
+        emit EscrowApproved(_escrowId, msg.sender, block.timestamp);
+
+        bool canRelease = (escrow.payerApproved && escrow.payeeApproved) ||
+                          block.timestamp >= escrow.releaseTime;
+
+        if (!canRelease) {
+            return; // Approval recorded; waiting for the other party.
         }
+
+        // --- Effects (all state changes BEFORE external call) ---
+        uint256 fee = (escrow.amount * platformFee) / 10000;
+        uint256 netAmount = escrow.amount - fee;
+
+        escrow.status = PaymentStatus.Completed;
+        collectedFees += fee;
+
+        // --- Interactions ---
+        (bool success, ) = escrow.payee.call{value: netAmount}("");
+        require(success, "Transfer failed");
+
+        emit EscrowReleased(_escrowId, block.timestamp);
     }
-    
+
     /**
-     * @dev 退款托管 (仅付款方可调用)
-     * @param _escrowId 托管ID
+     * @dev Refund escrow to the payer. Only the payer may request a refund,
+     *      and only before the payee has approved.
+     * @param _escrowId Escrow identifier.
      */
-    function refundEscrow(bytes32 _escrowId) external {
+    function refundEscrow(bytes32 _escrowId) external nonReentrant whenNotPaused {
         Escrow storage escrow = escrows[_escrowId];
         require(escrow.createdAt > 0, "Escrow does not exist");
-        require(escrow.status == PaymentStatus.Pending, "Escrow is not pending");
-        require(msg.sender == escrow.payer, "Only payer can request refund");
+        require(escrow.status == PaymentStatus.Pending, "Escrow not pending");
+        require(msg.sender == escrow.payer, "Only payer can refund");
         require(!escrow.payeeApproved, "Payee already approved");
-        
-        // 更新状态
+
+        // --- Effects ---
+        uint256 refundAmount = escrow.amount;
         escrow.status = PaymentStatus.Refunded;
-        
-        // 退款给付款方
-        (bool success, ) = escrow.payer.call{value: escrow.amount}("");
+        escrow.amount = 0; // Prevent double-refund even with reentrancy guard.
+
+        // --- Interactions ---
+        (bool success, ) = escrow.payer.call{value: refundAmount}("");
         require(success, "Refund failed");
-        
+
         emit EscrowRefunded(_escrowId, block.timestamp);
     }
-    
-    /**
-     * @dev 获取支付详情
-     * @param _paymentId 支付ID
-     * @return Payment 支付结构
-     */
+
+    // ──────────────────────────── View Functions ──────────────────
+
     function getPayment(bytes32 _paymentId) external view returns (Payment memory) {
-        Payment memory payment = payments[_paymentId];
-        require(payment.createdAt > 0, "Payment does not exist");
-        require(
-            payment.sender == msg.sender || payment.recipient == msg.sender,
-            "Not authorized to view this payment"
-        );
-        
-        return payment;
+        Payment memory p = payments[_paymentId];
+        require(p.createdAt > 0, "Payment does not exist");
+        require(p.sender == msg.sender || p.recipient == msg.sender, "Not authorized");
+        return p;
     }
-    
-    /**
-     * @dev 获取托管详情
-     * @param _escrowId 托管ID
-     * @return Escrow 托管结构
-     */
+
     function getEscrow(bytes32 _escrowId) external view returns (Escrow memory) {
-        Escrow memory escrow = escrows[_escrowId];
-        require(escrow.createdAt > 0, "Escrow does not exist");
-        require(
-            escrow.payer == msg.sender || escrow.payee == msg.sender,
-            "Not authorized to view this escrow"
-        );
-        
-        return escrow;
+        Escrow memory e = escrows[_escrowId];
+        require(e.createdAt > 0, "Escrow does not exist");
+        require(e.payer == msg.sender || e.payee == msg.sender, "Not authorized");
+        return e;
     }
-    
-    /**
-     * @dev 获取用户的支付历史
-     * @param _user 用户地址
-     * @return bytes32[] 支付ID列表
-     */
+
     function getUserPayments(address _user) external view returns (bytes32[] memory) {
         return userPayments[_user];
     }
-    
-    /**
-     * @dev 获取用户的托管列表
-     * @param _user 用户地址
-     * @return bytes32[] 托管ID列表
-     */
+
     function getUserEscrows(address _user) external view returns (bytes32[] memory) {
         return userEscrows[_user];
     }
-    
+
+    // ──────────────────────────── Admin ────────────────────────────
+
     /**
-     * @dev 设置平台费率 (仅所有者)
-     * @param _newFee 新费率 (基点)
+     * @dev Update the platform fee. Maximum 10 % (1000 bp).
+     * @param _newFee New fee in basis points.
      */
     function setPlatformFee(uint256 _newFee) external onlyOwner {
         require(_newFee <= 1000, "Fee cannot exceed 10%");
+        emit PlatformFeeUpdated(platformFee, _newFee);
         platformFee = _newFee;
     }
-    
+
     /**
-     * @dev 提取平台费用 (仅所有者)
+     * @dev Withdraw accumulated platform fees.
      */
-    function withdrawFees() external onlyOwner {
+    function withdrawFees() external onlyOwner nonReentrant {
         uint256 amount = collectedFees;
+        require(amount > 0, "No fees to withdraw");
+
+        // --- Effects ---
         collectedFees = 0;
-        
-        (bool success, ) = owner.call{value: amount}("");
+
+        // --- Interactions ---
+        (bool success, ) = owner().call{value: amount}("");
         require(success, "Withdrawal failed");
+
+        emit FeesWithdrawn(owner(), amount);
     }
-    
-    /**
-     * @dev 获取合约余额
-     * @return uint256 余额
-     */
+
+    /// @dev Pause the contract (emergency circuit-breaker).
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /// @dev Unpause the contract.
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
     function getContractBalance() external view returns (uint256) {
         return address(this).balance;
     }

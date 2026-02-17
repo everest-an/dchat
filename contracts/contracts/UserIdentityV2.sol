@@ -1,12 +1,28 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
+
 /**
  * @title UserIdentityV2
- * @dev 升级版用户身份验证和资料管理合约
- * @notice 支持完整用户资料、技能管理、LinkedIn 集成
+ * @dev Upgraded user identity and profile management contract.
+ * @notice Supports full user profiles, skill management, and LinkedIn integration.
+ *
+ * Security features:
+ *   - Ownable for contract-level admin operations
+ *   - Pausable for emergency circuit-breaker
+ *   - Input validation on all string parameters
+ *   - Endorsement loop bounded by endorser count
  */
-contract UserIdentityV2 {
+contract UserIdentityV2 is Ownable, Pausable {
+
+    uint256 public constant MAX_NAME_LENGTH = 128;
+    uint256 public constant MAX_BIO_LENGTH = 1024;
+    uint256 public constant MAX_SKILLS = 50;
+    uint256 public constant MAX_ENDORSERS_CHECK = 200;
+
+    constructor() Ownable(msg.sender) {}
     
     // 用户资料结构
     struct UserProfile {
@@ -160,11 +176,12 @@ contract UserIdentityV2 {
      * @dev 注册新用户
      */
     function registerUser(
-        string memory _username,
-        string memory _displayName,
-        string memory _email
-    ) external usernameAvailable(_username) {
-        require(bytes(_username).length > 0, "Username required");
+        string calldata _username,
+        string calldata _displayName,
+        string calldata _email
+    ) external usernameAvailable(_username) whenNotPaused {
+        require(bytes(_username).length > 0 && bytes(_username).length <= MAX_NAME_LENGTH, "Invalid username");
+        require(bytes(_displayName).length <= MAX_NAME_LENGTH, "Display name too long");
         require(!userProfiles[msg.sender].isActive, "User already registered");
         
         userProfiles[msg.sender] = UserProfile({
@@ -194,10 +211,12 @@ contract UserIdentityV2 {
      * @dev 更新用户资料
      */
     function updateProfile(
-        string memory _displayName,
-        string memory _avatar,
-        string memory _bio
-    ) external onlyRegistered {
+        string calldata _displayName,
+        string calldata _avatar,
+        string calldata _bio
+    ) external onlyRegistered whenNotPaused {
+        require(bytes(_displayName).length <= MAX_NAME_LENGTH, "Display name too long");
+        require(bytes(_bio).length <= MAX_BIO_LENGTH, "Bio too long");
         UserProfile storage profile = userProfiles[msg.sender];
         profile.displayName = _displayName;
         profile.avatar = _avatar;
@@ -211,9 +230,9 @@ contract UserIdentityV2 {
      * @dev 连接 LinkedIn 账号
      */
     function connectLinkedIn(
-        string memory _linkedInId,
-        string memory _profileUrl
-    ) external onlyRegistered {
+        string calldata _linkedInId,
+        string calldata _profileUrl
+    ) external onlyRegistered whenNotPaused {
         require(bytes(_linkedInId).length > 0, "LinkedIn ID required");
         require(linkedInToAddress[_linkedInId] == address(0), "LinkedIn already connected");
         
@@ -232,12 +251,13 @@ contract UserIdentityV2 {
      * @dev 添加技能
      */
     function addSkill(
-        string memory _name,
-        string memory _category,
+        string calldata _name,
+        string calldata _category,
         uint8 _level
-    ) external onlyRegistered {
-        require(bytes(_name).length > 0, "Skill name required");
+    ) external onlyRegistered whenNotPaused {
+        require(bytes(_name).length > 0 && bytes(_name).length <= MAX_NAME_LENGTH, "Invalid skill name");
         require(_level >= 1 && _level <= 5, "Level must be 1-5");
+        require(userSkills[msg.sender].length < MAX_SKILLS, "Max skills reached");
         
         userSkills[msg.sender].push(Skill({
             name: _name,
@@ -287,14 +307,15 @@ contract UserIdentityV2 {
     /**
      * @dev 背书技能
      */
-    function endorseSkill(address _user, uint256 _skillIndex) external onlyRegistered {
+    function endorseSkill(address _user, uint256 _skillIndex) external onlyRegistered whenNotPaused {
         require(_user != msg.sender, "Cannot endorse yourself");
         require(userProfiles[_user].isActive, "User not found");
         require(_skillIndex < userSkills[_user].length, "Invalid skill index");
         
-        // 检查是否已经背书过
+        // 检查是否已经背书过 (bounded loop)
         address[] storage endorsers = skillEndorsers[_user][_skillIndex];
-        for (uint256 i = 0; i < endorsers.length; i++) {
+        uint256 checkLen = endorsers.length > MAX_ENDORSERS_CHECK ? MAX_ENDORSERS_CHECK : endorsers.length;
+        for (uint256 i = 0; i < checkLen; i++) {
             require(endorsers[i] != msg.sender, "Already endorsed");
         }
         
@@ -308,15 +329,15 @@ contract UserIdentityV2 {
      * @dev 添加工作经历
      */
     function addWorkExperience(
-        string memory _companyId,
-        string memory _companyName,
-        string memory _position,
-        string memory _department,
-        string memory _location,
+        string calldata _companyId,
+        string calldata _companyName,
+        string calldata _position,
+        string calldata _department,
+        string calldata _location,
         uint256 _startDate,
         uint256 _endDate,
         bool _isCurrent
-    ) external onlyRegistered {
+    ) external onlyRegistered whenNotPaused {
         require(bytes(_companyName).length > 0, "Company name required");
         require(bytes(_position).length > 0, "Position required");
         
@@ -340,8 +361,8 @@ contract UserIdentityV2 {
      * @dev 从 LinkedIn 同步工作经历
      */
     function syncLinkedInWorkExperience(
-        string memory _linkedInWorkId,
-        string memory _companyId,
+        string calldata _linkedInWorkId,
+        string calldata _companyId,
         string memory _companyName,
         string memory _position,
         string memory _department,
@@ -435,6 +456,16 @@ contract UserIdentityV2 {
      */
     function getUserByUsername(string memory _username) external view returns (address) {
         return usernameToAddress[_username];
+    }
+
+    /// @dev Pause the contract (emergency circuit-breaker).
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /// @dev Unpause the contract.
+    function unpause() external onlyOwner {
+        _unpause();
     }
 }
 
