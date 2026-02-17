@@ -8,7 +8,7 @@ from flask import request, jsonify
 import jwt
 import os
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'dchat-secret-key')
+SECRET_KEY = os.environ.get('SECRET_KEY', '')  # MUST be set via environment variable
 
 def verify_token(token):
     """

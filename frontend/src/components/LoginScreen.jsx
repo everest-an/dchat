@@ -95,7 +95,7 @@ const LoginScreen = ({ onLogin }) => {
   }
 
   // Phone Login - calls backend API with fallback to demo mode
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://backend-op1c06n9l-everest-ans-projects.vercel.app'
+  const API_BASE_URL = import.meta.env.VITE_API_URL || ''''
   
   const handleSendCode = async () => {
     if (!phone || phone.length < 10) {

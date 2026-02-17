@@ -31,7 +31,7 @@ class Config:
         return f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
     
     # JWT Configuration
-    JWT_SECRET: str = os.getenv('JWT_SECRET', 'change-this-secret-key')
+    JWT_SECRET: str = os.getenv('JWT_SECRET', '')  # MUST be set via environment variable
     JWT_ALGORITHM: str = 'HS256'
     JWT_EXPIRATION_HOURS: int = 24 * 7  # 7 days
     
@@ -72,7 +72,7 @@ class Config:
         """Validate required configuration"""
         errors = []
         
-        if self.JWT_SECRET == 'change-this-secret-key':
+        if not self.JWT_SECRET:
             errors.append("JWT_SECRET must be changed in production")
         
         if not self.DB_PASSWORD:

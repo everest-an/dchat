@@ -32,7 +32,7 @@ from src.middleware.security_middleware import rate_limit
 
 custodial_wallet_bp = Blueprint('custodial_wallet', __name__)
 
-JWT_SECRET = os.getenv('JWT_SECRET', 'your-secret-key-change-in-production')
+JWT_SECRET = os.getenv('JWT_SECRET', '')  # MUST be set via environment variable
 
 # Authentication decorator
 def require_auth(f):

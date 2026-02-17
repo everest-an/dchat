@@ -11,7 +11,7 @@ import time
 
 auth_bp = Blueprint('auth', __name__)
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'dchat-secret-key')
+SECRET_KEY = os.environ.get('SECRET_KEY', '')  # MUST be set via environment variable
 
 # Nonce 存储 (生产环境应使用 Redis)
 nonce_store = {}

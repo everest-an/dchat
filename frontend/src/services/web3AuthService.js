@@ -1,9 +1,9 @@
 import axios from 'axios'
 
-// 使用环境变量或默认后端 URL
+// 使用环境变量配置后端 URL
 const API_BASE_URL = import.meta.env?.VITE_API_URL || 
   (typeof process !== 'undefined' && process.env?.REACT_APP_API_URL) || 
-  'https://backend-op1c06n9l-everest-ans-projects.vercel.app'
+  '' // MUST be set via VITE_API_URL environment variable
 
 /**
  * Web3 Authentication Service

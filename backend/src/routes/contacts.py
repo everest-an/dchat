@@ -5,7 +5,7 @@ import os
 
 contacts_bp = Blueprint('contacts', __name__)
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'dchat-secret-key')
+SECRET_KEY = os.environ.get('SECRET_KEY', '')  # MUST be set via environment variable
 
 def verify_token_helper(token):
     """验证token的辅助函数"""

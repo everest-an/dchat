@@ -25,7 +25,7 @@ export const CONTRACT_ADDRESSES = {
   ProjectCollaboration: '0x09668e0764B43E8093a65d33620DeAd9BDa1d85c',
 };
 
-export const RPC_URL = import.meta.env.VITE_RPC_URL || 'https://eth-sepolia.g.alchemy.com/v2/NgBhOA3zYpCBd3LopKZ6n-lWXJoN_IUQM'; // WARNING: Fallback specific to this repo, override in production!
+export const RPC_URL = import.meta.env.VITE_RPC_URL || ''; // MUST be set via VITE_RPC_URL environment variable
 
 export const EXPLORER_URL = 'https://sepolia.etherscan.io';
 

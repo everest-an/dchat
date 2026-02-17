@@ -20,9 +20,9 @@ from ..middleware.error_handler import handle_errors, validate_request_json, Val
 groups_web3_bp = Blueprint('groups_web3', __name__)
 
 # Load environment variables
-WEB3_PROVIDER_URL = os.getenv('WEB3_PROVIDER_URL', 'https://eth-sepolia.g.alchemy.com/v2/N-UzzxYZbLPikS4Fc6pqC')
+WEB3_PROVIDER_URL = os.getenv('WEB3_PROVIDER_URL', '') # MUST be set via environment variable
 CONTRACT_GROUP_CHAT = os.getenv('CONTRACT_GROUP_CHAT', '0x4f93AEaAE5981fd6C95cFA8096D31D3d92ae2F28')
-JWT_SECRET = os.getenv('JWT_SECRET', 'your-secret-key-change-in-production')
+JWT_SECRET = os.getenv('JWT_SECRET', '') # MUST be set via environment variable
 
 # Initialize Web3
 w3 = Web3(Web3.HTTPProvider(WEB3_PROVIDER_URL))

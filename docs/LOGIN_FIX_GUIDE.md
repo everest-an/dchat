@@ -5,7 +5,7 @@
 目前 Dchat 应用已经成功部署,但登录功能遇到了以下问题:
 
 1. ✅ **前端部署成功**: https://dechatcom.vercel.app
-2. ✅ **后端 API 运行正常**: https://backend-op1c06n9l-everest-ans-projects.vercel.app
+2. ✅ **后端 API 运行正常**: https://your-backend-url.example.com
 3. ✅ **Supabase 数据库已初始化**: 表和 RLS 策略已创建
 4. ❌ **后端代码未更新**: Vercel 后端部署未自动触发,仍在使用旧代码
 
@@ -39,7 +39,7 @@
 修复后,使用以下命令测试后端 API:
 
 ```bash
-curl -X POST https://backend-op1c06n9l-everest-ans-projects.vercel.app/api/auth/send-code \
+curl -X POST https://your-backend-url.example.com/api/auth/send-code \
   -H "Content-Type: application/json" \
   -d '{"identifier": "test@dchat.com", "type": "email"}'
 ```

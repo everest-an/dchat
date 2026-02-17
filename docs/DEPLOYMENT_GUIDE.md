@@ -49,7 +49,7 @@
 - ✅ API 错误处理
 
 ### 5. 后端 API
-- ✅ 部署地址: https://backend-op1c06n9l-everest-ans-projects.vercel.app
+- ✅ 部署地址: https://your-backend-url.example.com
 - ✅ Supabase 数据库集成
 - ✅ 用户认证系统
 - ✅ 验证码发送接口
@@ -168,12 +168,12 @@
 ### 前端环境变量
 当前配置在 `/home/ubuntu/dchat/frontend/src/config/api.js`:
 ```javascript
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://backend-op1c06n9l-everest-ans-projects.vercel.app';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://your-backend-url.example.com';
 ```
 
 ### 后端环境变量
 已在 Vercel 项目中配置:
-- `SUPABASE_URL`: https://gvjmwsltxcpyxhmfwlrs.supabase.co
+- `SUPABASE_URL`: https://<SUPABASE_PROJECT_REF>.supabase.co
 - `SUPABASE_ANON_KEY`: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 - `JWT_SECRET`: (已配置)
 

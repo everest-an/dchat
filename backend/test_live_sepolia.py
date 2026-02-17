@@ -16,9 +16,9 @@ from web3 import Web3
 import json
 import time
 
-# Test wallet credentials (Sepolia testnet only)
-TEST_WALLET_ADDRESS = '0x66794fC75C351ad9677cB00B2043868C11dfcadA'
-TEST_WALLET_PRIVATE_KEY = '0x1cc1d0830f0316a907ca7029a173939c6f283ce67d0585cb048f26f092ad1718'
+# Test wallet credentials (Sepolia testnet only) - loaded from environment variables
+TEST_WALLET_ADDRESS = os.getenv('TEST_WALLET_ADDRESS', '')
+TEST_WALLET_PRIVATE_KEY = os.getenv('TEST_WALLET_PRIVATE_KEY', '')
 
 # Sepolia RPC endpoints
 RPC_ENDPOINTS = [

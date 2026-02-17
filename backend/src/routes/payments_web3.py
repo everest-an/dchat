@@ -20,10 +20,10 @@ from ..middleware.error_handler import handle_errors, validate_request_json, Val
 payments_web3_bp = Blueprint('payments_web3', __name__)
 
 # Load environment variables
-WEB3_PROVIDER_URL = os.getenv('WEB3_PROVIDER_URL', 'https://eth-sepolia.g.alchemy.com/v2/N-UzzxYZbLPikS4Fc6pqC')
+WEB3_PROVIDER_URL = os.getenv('WEB3_PROVIDER_URL', '') # MUST be set via environment variable
 CONTRACT_GROUP_PAYMENT = os.getenv('CONTRACT_GROUP_PAYMENT', '0x788Ba6e9B0EB746F58E4bab891B9c0add8359541')
 CONTRACT_RED_PACKET = os.getenv('CONTRACT_RED_PACKET', '0x0354fCfB243639d37F84E8d00031422655219f75')
-JWT_SECRET = os.getenv('JWT_SECRET', 'your-secret-key-change-in-production')
+JWT_SECRET = os.getenv('JWT_SECRET', '') # MUST be set via environment variable
 
 # Initialize Web3
 w3 = Web3(Web3.HTTPProvider(WEB3_PROVIDER_URL))

@@ -4,7 +4,7 @@
  */
 
 // Use correct backend URL
-const API_BASE = import.meta.env?.VITE_API_URL || 'https://backend-op1c06n9l-everest-ans-projects.vercel.app';
+const API_BASE = import.meta.env?.VITE_API_URL || '''';
 
 // Demo verification data
 const DEMO_VERIFICATIONS = [];

@@ -16,7 +16,7 @@ const EmailPasswordLogin = ({ onLogin, onBack }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://backend-op1c06n9l-everest-ans-projects.vercel.app';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || '''';
 
   // Generate demo user data for fallback
   const generateDemoUser = (email, username) => {

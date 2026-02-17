@@ -324,7 +324,7 @@ export const CONTRACTS = {
   LivingPortfolio: "0x1B57F4fA3fdc02b1F6c7F1b9646Ddfa6d7f86B48"
 };
 
-export const SEPOLIA_RPC = "https://eth-sepolia.g.alchemy.com/v2/NgBhOA3zYpCBd3LopKZ6n";
+export const SEPOLIA_RPC = "https://eth-sepolia.g.alchemy.com/v2/<ALCHEMY_API_KEY>";
 ```
 
 ### 创建服务

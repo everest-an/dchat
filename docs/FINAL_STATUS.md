@@ -72,7 +72,7 @@
 
 **验证部署成功**:
 ```bash
-curl -X POST https://backend-op1c06n9l-everest-ans-projects.vercel.app/api/auth/send-code \
+curl -X POST https://your-backend-url.example.com/api/auth/send-code \
   -H "Content-Type: application/json" \
   -d '{"identifier": "test@dchat.com", "type": "email"}'
 ```
@@ -159,7 +159,7 @@ curl -X POST https://backend-op1c06n9l-everest-ans-projects.vercel.app/api/auth/
 ### 后端
 - **框架**: Node.js + Express
 - **部署**: Vercel Serverless Functions
-- **URL**: https://backend-op1c06n9l-everest-ans-projects.vercel.app
+- **URL**: https://your-backend-url.example.com
 - **API 端点**:
   - POST /api/auth/send-code - 发送验证码
   - POST /api/auth/verify-code - 验证码登录
@@ -168,7 +168,7 @@ curl -X POST https://backend-op1c06n9l-everest-ans-projects.vercel.app/api/auth/
 
 ### 数据库
 - **平台**: Supabase (PostgreSQL)
-- **URL**: https://gvjmwsltxcpyxhmfwlrs.supabase.co
+- **URL**: https://<SUPABASE_PROJECT_REF>.supabase.co
 - **表**:
   - users - 用户信息
   - verification_codes - 验证码
@@ -249,7 +249,7 @@ https://github.com/everest-an/dchat
 
 ### 在线服务
 - Vercel Dashboard: https://vercel.com/everest-ans-projects
-- Supabase Dashboard: https://supabase.com/dashboard/project/gvjmwsltxcpyxhmfwlrs
+- Supabase Dashboard: https://supabase.com/dashboard/project/<SUPABASE_PROJECT_REF>
 - 阿里云域名: https://dc.console.aliyun.com/
 
 ### 技术支持

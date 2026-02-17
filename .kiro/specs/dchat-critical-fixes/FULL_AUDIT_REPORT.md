@@ -93,8 +93,8 @@
 ### 前端 (.env)
 ```env
 # API 配置
-VITE_API_URL=https://backend-op1c06n9l-everest-ans-projects.vercel.app
-VITE_SOCKET_URL=https://backend-op1c06n9l-everest-ans-projects.vercel.app
+VITE_API_URL=https://your-backend-url.example.com
+VITE_SOCKET_URL=https://your-backend-url.example.com
 
 # IPFS/Pinata 配置 (可选)
 VITE_PINATA_API_KEY=your_pinata_api_key
@@ -110,7 +110,7 @@ VITE_INFURA_PROJECT_ID=your_infura_project_id
 ### 后端 (.env)
 ```env
 # Supabase 配置
-SUPABASE_URL=https://gvjmwsltxcpyxhmfwlrs.supabase.co
+SUPABASE_URL=https://<SUPABASE_PROJECT_REF>.supabase.co
 SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # JWT 配置

@@ -8,12 +8,13 @@ yarn-error.log*
 dist/
 build/
 
-# Environment variables
+# Environment variables - NEVER commit .env files with real credentials!
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
+!.env.*.example
+*.env
+!*.env.example
 
 # Python
 __pycache__/

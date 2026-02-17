@@ -268,7 +268,7 @@ const tabs = ['projects', 'skills', 'resources', 'seeking', 'business'];
 
 ```jsx
 // 修改 PrivadoIDService 使用正确的 API
-const API_BASE = process.env.REACT_APP_API_URL || 'https://backend-op1c06n9l-everest-ans-projects.vercel.app';
+const API_BASE = process.env.REACT_APP_API_URL || 'https://your-backend-url.example.com';
 
 // 添加 Demo 模式回退
 async getUserVerifications(userId) {

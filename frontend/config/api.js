@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://backend-op1c06n9l-everest-ans-projects.vercel.app';
+const API_BASE_URL = import.meta.env.VITE_API_URL || ''; // MUST be set via VITE_API_URL environment variable
 
 export const API_ENDPOINTS = {
   // Auth endpoints

@@ -7,7 +7,7 @@ files_bp = Blueprint('files', __name__)
 
 PINATA_API_KEY = os.environ.get('PINATA_API_KEY')
 PINATA_SECRET_KEY = os.environ.get('PINATA_SECRET_API_KEY')
-SECRET_KEY = os.environ.get('SECRET_KEY', 'dchat-secret-key')
+SECRET_KEY = os.environ.get('SECRET_KEY', '')  # MUST be set via environment variable
 
 def verify_token_from_request():
     """从请求中验证 JWT token"""

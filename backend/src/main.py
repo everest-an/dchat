@@ -71,7 +71,7 @@ except ImportError:
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 
 # 配置
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dchat-secret-key-2024')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', '')  # MUST be set via environment variable
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 # CORS配置 - 生产环境应配置具体的域名

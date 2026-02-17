@@ -10,10 +10,10 @@ const isProduction = import.meta.env.MODE === 'production';
 // API Base URLs
 export const API_CONFIG = {
   // REST API Base URL
-  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || (isProduction ? 'https://dchat.pro/api' : 'http://44.211.79.69/api'),
+  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || (isProduction ? 'https://dchat.pro/api' : 'http://localhost:8080/api'),
   
   // WebSocket URL (native WebSocket, not Socket.IO)
-  WS_URL: import.meta.env.VITE_WS_URL || (isProduction ? 'wss://dchat.pro/ws' : 'ws://44.211.79.69/ws'),
+  WS_URL: import.meta.env.VITE_WS_URL || (isProduction ? 'wss://dchat.pro/ws' : 'ws://localhost:8081/ws'),
   
   // Request timeout
   TIMEOUT: 30000,

@@ -37,7 +37,7 @@ Welcome to the comprehensive documentation for Dchat, the secure Web3-native bus
 ### Production URLs
 - **Frontend**: https://dechatcom.vercel.app
 - **Custom Domain**: https://dchat.pro (DNS configuration in progress)
-- **Backend API**: https://backend-op1c06n9l-everest-ans-projects.vercel.app
+- **Backend API**: https://your-backend-url.example.com
 
 ### Deployment Status
 - ✅ Frontend deployed on Vercel
