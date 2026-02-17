@@ -53,11 +53,11 @@ describe('ContactImport Component', () => {
       })
     })
 
-    renderComponent()
+    const { container } = renderComponent()
 
     // 创建模拟文件
     const file = new File(['BEGIN:VCARD\nFN:Test User\nTEL:1234567890\nEND:VCARD'], 'contacts.vcf', { type: 'text/vcard' })
-    const input = screen.getByLabelText(/Select Contact File/i)
+    const input = container.querySelector('input[type="file"]')
 
     // 触发上传
     fireEvent.change(input, { target: { files: [file] } })
@@ -70,6 +70,7 @@ describe('ContactImport Component', () => {
   })
 
   it('handles empty matches', async () => {
+    // Use a valid VCF so parsing succeeds and API is called
     fetch.mockResolvedValueOnce({
       json: async () => ({
         success: true,
@@ -77,10 +78,14 @@ describe('ContactImport Component', () => {
       })
     })
 
-    renderComponent()
+    const { container } = renderComponent()
 
-    const file = new File([''], 'contacts.csv', { type: 'text/csv' })
-    const input = screen.getByLabelText(/Select Contact File/i)
+    const file = new File(
+      ['BEGIN:VCARD\nFN:Nobody\nTEL:0000000000\nEND:VCARD'],
+      'contacts.vcf',
+      { type: 'text/vcard' }
+    )
+    const input = container.querySelector('input[type="file"]')
 
     fireEvent.change(input, { target: { files: [file] } })
 

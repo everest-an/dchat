@@ -98,12 +98,12 @@ func main() {
 	protected := api.Group("")
 	protected.Use(middleware.AuthMiddleware(jwtService))
 	{
-		protected.GET("/user/me", authHandler.GetCurrentUser)
+		protected.GET("/auth/me", authHandler.GetCurrentUser)
 
-		protected.POST("/messages", messageHandler.SendMessage)
+		protected.POST("/messages/send", messageHandler.SendMessage)
 		protected.GET("/messages/:user_id", messageHandler.GetMessages)
-		protected.GET("/conversations", messageHandler.GetConversations)
-		protected.PUT("/messages/read/:sender_id", messageHandler.MarkAsRead)
+		protected.GET("/messages/conversations", messageHandler.GetConversations)
+		protected.PUT("/messages/:sender_id/read", messageHandler.MarkAsRead)
 
 		protected.POST("/verifications/request", privadoHandler.CreateRequest)
 		protected.GET("/verifications/user/:userId", privadoHandler.GetUserVerifications)

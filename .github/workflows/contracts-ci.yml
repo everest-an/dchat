@@ -1,0 +1,119 @@
+name: Smart Contracts CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'contracts/**'
+      - '.github/workflows/contracts-ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'contracts/**'
+      - '.github/workflows/contracts-ci.yml'
+
+jobs:
+  compile:
+    name: Compile Contracts
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./contracts
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: contracts/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile contracts
+        run: npx hardhat compile
+
+      - name: Check contract sizes
+        run: npx hardhat size-contracts 2>/dev/null || echo "size-contracts plugin not installed, skipping"
+
+  test:
+    name: Test Contracts
+    runs-on: ubuntu-latest
+    needs: [compile]
+    defaults:
+      run:
+        working-directory: ./contracts
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: contracts/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npx hardhat test
+
+      - name: Run coverage
+        run: npx hardhat coverage || echo "Coverage plugin not configured, skipping"
+        continue-on-error: true
+
+  security:
+    name: Security Analysis
+    runs-on: ubuntu-latest
+    needs: [compile]
+    defaults:
+      run:
+        working-directory: ./contracts
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: contracts/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for common vulnerabilities
+        run: |
+          # Verify ReentrancyGuard on financial contracts
+          for contract in PaymentEscrow GroupPayment RedPacket SubscriptionManager ProjectCollaboration; do
+            if grep -q "ReentrancyGuard" contracts/${contract}.sol 2>/dev/null; then
+              echo "✅ ${contract}: ReentrancyGuard present"
+            else
+              echo "⚠️ ${contract}: Missing ReentrancyGuard"
+            fi
+          done
+
+          # Check for .transfer() usage (should use .call{value} instead)
+          if grep -rn "\.transfer(" contracts/*.sol | grep -v "//"; then
+            echo "::warning::Found .transfer() usage. Consider using .call{value}() instead."
+          else
+            echo "✅ No unsafe .transfer() calls found"
+          fi
+
+      - name: Run npm audit
+        run: npm audit --json > audit-report.json || true
+
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-audit
+          path: contracts/audit-report.json

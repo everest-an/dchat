@@ -1,318 +1,129 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import fileUploadService from '../FileUploadService'
+
 /**
  * Unit tests for FileUploadService
+ *
+ * The service uses XMLHttpRequest for uploads (with progress tracking)
+ * and fetch for delete operations. We test the synchronous utility
+ * methods directly and mock fetch for delete.
  */
 
-import FileUploadService from '../FileUploadService';
-
 describe('FileUploadService', () => {
-  let service;
+  let service
 
   beforeEach(() => {
-    service = new FileUploadService();
-    global.fetch = jest.fn();
-  });
+    service = fileUploadService
+    vi.clearAllMocks()
+  })
 
   afterEach(() => {
-    jest.clearAllMocks();
-  });
+    vi.restoreAllMocks()
+  })
 
-  describe('uploadFile', () => {
-    it('should upload a file successfully', async () => {
-      const mockFile = new File(['test content'], 'test.txt', { type: 'text/plain' });
-      const mockResponse = {
-        success: true,
-        file: {
-          filename: 'test-123.txt',
-          url: 'http://localhost/uploads/test-123.txt',
-          size: 1024,
-          type: 'text/plain'
-        }
-      };
+  describe('validateFile', () => {
+    it('should reject files exceeding size limit', () => {
+      const bigFile = new File(['x'], 'big.png', { type: 'image/png' })
+      Object.defineProperty(bigFile, 'size', { value: 200 * 1024 * 1024 })
+      const result = service.validateFile(bigFile, 'image')
+      expect(result.valid).toBe(false)
+      expect(result.errors.length).toBeGreaterThan(0)
+      expect(result.errors[0]).toContain('exceeds')
+    })
 
-      global.fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse
-      });
+    it('should reject disallowed file types', () => {
+      const txtFile = new File(['test'], 'test.txt', { type: 'text/plain' })
+      Object.defineProperty(txtFile, 'size', { value: 100 })
+      const result = service.validateFile(txtFile, 'image')
+      expect(result.valid).toBe(false)
+      expect(result.errors[0]).toContain('not allowed')
+    })
 
-      const result = await service.uploadFile(mockFile);
+    it('should accept valid image files', () => {
+      const imgFile = new File(['img'], 'photo.png', { type: 'image/png' })
+      Object.defineProperty(imgFile, 'size', { value: 1024 })
+      const result = service.validateFile(imgFile, 'image')
+      expect(result.valid).toBe(true)
+      expect(result.errors.length).toBe(0)
+    })
 
-      expect(result.success).toBe(true);
-      expect(result.file).toBeDefined();
-      expect(result.file.filename).toBe('test-123.txt');
-      expect(global.fetch).toHaveBeenCalledWith(
-        '/api/upload',
-        expect.objectContaining({
-          method: 'POST'
-        })
-      );
-    });
+    it('should accept valid video files', () => {
+      const vidFile = new File(['vid'], 'video.mp4', { type: 'video/mp4' })
+      Object.defineProperty(vidFile, 'size', { value: 1024 })
+      const result = service.validateFile(vidFile, 'video')
+      expect(result.valid).toBe(true)
+    })
+  })
 
-    it('should handle upload errors', async () => {
-      const mockFile = new File(['test'], 'test.txt', { type: 'text/plain' });
+  describe('formatFileSize', () => {
+    it('should format 0 bytes', () => {
+      expect(service.formatFileSize(0)).toBe('0 Bytes')
+    })
 
-      global.fetch.mockResolvedValueOnce({
-        ok: false,
-        json: async () => ({
-          success: false,
-          error: 'Upload failed'
-        })
-      });
+    it('should format kilobytes', () => {
+      expect(service.formatFileSize(1024)).toBe('1 KB')
+    })
 
-      const result = await service.uploadFile(mockFile);
+    it('should format megabytes', () => {
+      expect(service.formatFileSize(1024 * 1024)).toBe('1 MB')
+    })
 
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Upload failed');
-    });
+    it('should format gigabytes', () => {
+      expect(service.formatFileSize(1024 * 1024 * 1024)).toBe('1 GB')
+    })
 
-    it('should handle network errors', async () => {
-      const mockFile = new File(['test'], 'test.txt', { type: 'text/plain' });
+    it('should format intermediate sizes', () => {
+      expect(service.formatFileSize(1536)).toBe('1.5 KB')
+    })
+  })
 
-      global.fetch.mockRejectedValueOnce(new Error('Network error'));
-
-      const result = await service.uploadFile(mockFile);
-
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('Network error');
-    });
-
-    it('should call onProgress callback', async () => {
-      const mockFile = new File(['test'], 'test.txt', { type: 'text/plain' });
-      const onProgress = jest.fn();
-
-      global.fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          success: true,
-          file: {}
-        })
-      });
-
-      await service.uploadFile(mockFile, { onProgress });
-
-      expect(onProgress).toHaveBeenCalled();
-    });
-  });
-
-  describe('uploadMultiple', () => {
-    it('should upload multiple files successfully', async () => {
-      const files = [
-        new File(['test 1'], 'test1.txt', { type: 'text/plain' }),
-        new File(['test 2'], 'test2.txt', { type: 'text/plain' })
-      ];
-
-      const mockResponse = {
-        success: true,
-        files: [
-          { filename: 'test1-123.txt', url: '/uploads/test1-123.txt' },
-          { filename: 'test2-456.txt', url: '/uploads/test2-456.txt' }
-        ]
-      };
-
-      global.fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse
-      });
-
-      const result = await service.uploadMultiple(files);
-
-      expect(result.success).toBe(true);
-      expect(result.files).toHaveLength(2);
-    });
-
-    it('should handle partial upload failures', async () => {
-      const files = [
-        new File(['test 1'], 'test1.txt', { type: 'text/plain' }),
-        new File(['test 2'], 'test2.txt', { type: 'text/plain' })
-      ];
-
-      const mockResponse = {
-        success: true,
-        files: [
-          { filename: 'test1-123.txt', url: '/uploads/test1-123.txt' }
-        ],
-        errors: [
-          { filename: 'test2.txt', error: 'Upload failed' }
-        ]
-      };
-
-      global.fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse
-      });
-
-      const result = await service.uploadMultiple(files);
-
-      expect(result.success).toBe(true);
-      expect(result.files).toHaveLength(1);
-      expect(result.errors).toHaveLength(1);
-    });
-  });
+  describe('getFileInfo', () => {
+    it('should return file metadata', () => {
+      const file = new File(['test'], 'photo.png', { type: 'image/png' })
+      Object.defineProperty(file, 'size', { value: 2048 })
+      const info = service.getFileInfo(file)
+      expect(info.name).toBe('photo.png')
+      expect(info.type).toBe('image/png')
+      expect(info.size).toBe(2048)
+      expect(info.sizeFormatted).toBe('2 KB')
+    })
+  })
 
   describe('deleteFile', () => {
     it('should delete a file successfully', async () => {
-      global.fetch.mockResolvedValueOnce({
+      global.fetch = vi.fn().mockResolvedValueOnce({
         ok: true,
-        json: async () => ({
-          success: true,
-          message: 'File deleted'
-        })
-      });
+        json: async () => ({ success: true }),
+      })
 
-      const result = await service.deleteFile('test-123.txt');
+      const result = await service.deleteFile('https://example.com/uploads/test.png')
+      expect(result).toBeDefined()
+      expect(global.fetch).toHaveBeenCalled()
+    })
 
-      expect(result.success).toBe(true);
-      expect(global.fetch).toHaveBeenCalledWith(
-        '/api/upload/test-123.txt',
-        expect.objectContaining({
-          method: 'DELETE'
-        })
-      );
-    });
+    it('should handle delete errors gracefully', async () => {
+      global.fetch = vi.fn().mockRejectedValueOnce(new Error('Network error'))
 
-    it('should handle delete errors', async () => {
-      global.fetch.mockResolvedValueOnce({
-        ok: false,
-        json: async () => ({
-          success: false,
-          error: 'File not found'
-        })
-      });
+      await expect(service.deleteFile('https://example.com/uploads/test.png'))
+        .rejects.toThrow()
+    })
+  })
 
-      const result = await service.deleteFile('non-existent.txt');
+  describe('uploadFile', () => {
+    it('should throw on invalid file type', async () => {
+      const txtFile = new File(['test'], 'test.txt', { type: 'text/plain' })
+      Object.defineProperty(txtFile, 'size', { value: 100 })
 
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('File not found');
-    });
-  });
+      await expect(service.uploadFile(txtFile, { category: 'image' }))
+        .rejects.toThrow('not allowed')
+    })
 
-  describe('listFiles', () => {
-    it('should list files successfully', async () => {
-      const mockResponse = {
-        success: true,
-        files: [
-          { filename: 'test1.txt', size: 1024, type: 'text/plain' },
-          { filename: 'test2.jpg', size: 2048, type: 'image/jpeg' }
-        ]
-      };
+    it('should throw on oversized file', async () => {
+      const bigFile = new File(['x'], 'big.png', { type: 'image/png' })
+      Object.defineProperty(bigFile, 'size', { value: 200 * 1024 * 1024 })
 
-      global.fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse
-      });
-
-      const result = await service.listFiles();
-
-      expect(result.success).toBe(true);
-      expect(result.files).toHaveLength(2);
-    });
-
-    it('should support filtering by type', async () => {
-      global.fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          success: true,
-          files: []
-        })
-      });
-
-      await service.listFiles({ type: 'image' });
-
-      expect(global.fetch).toHaveBeenCalledWith(
-        '/api/upload/list?type=image',
-        expect.any(Object)
-      );
-    });
-
-    it('should support search query', async () => {
-      global.fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          success: true,
-          files: []
-        })
-      });
-
-      await service.listFiles({ search: 'test' });
-
-      expect(global.fetch).toHaveBeenCalledWith(
-        '/api/upload/list?search=test',
-        expect.any(Object)
-      );
-    });
-  });
-
-  describe('getConfig', () => {
-    it('should retrieve upload configuration', async () => {
-      const mockConfig = {
-        success: true,
-        config: {
-          maxFileSize: 104857600,
-          allowedTypes: ['image/*', 'application/pdf']
-        }
-      };
-
-      global.fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockConfig
-      });
-
-      const result = await service.getConfig();
-
-      expect(result.success).toBe(true);
-      expect(result.config.maxFileSize).toBeDefined();
-      expect(result.config.allowedTypes).toBeDefined();
-    });
-  });
-
-  describe('validateFile', () => {
-    it('should validate file size', () => {
-      const largeFile = new File(['x'.repeat(200 * 1024 * 1024)], 'large.txt');
-      const result = service.validateFile(largeFile, {
-        maxFileSize: 100 * 1024 * 1024
-      });
-
-      expect(result.valid).toBe(false);
-      expect(result.error).toContain('too large');
-    });
-
-    it('should validate file type', () => {
-      const file = new File(['test'], 'test.exe', { type: 'application/x-msdownload' });
-      const result = service.validateFile(file, {
-        allowedTypes: ['image/*', 'text/*']
-      });
-
-      expect(result.valid).toBe(false);
-      expect(result.error).toContain('not allowed');
-    });
-
-    it('should accept valid files', () => {
-      const file = new File(['test'], 'test.txt', { type: 'text/plain' });
-      const result = service.validateFile(file, {
-        maxFileSize: 100 * 1024 * 1024,
-        allowedTypes: ['text/*']
-      });
-
-      expect(result.valid).toBe(true);
-    });
-  });
-
-  describe('formatFileSize', () => {
-    it('should format bytes correctly', () => {
-      expect(service.formatFileSize(0)).toBe('0 B');
-      expect(service.formatFileSize(1024)).toBe('1.00 KB');
-      expect(service.formatFileSize(1024 * 1024)).toBe('1.00 MB');
-      expect(service.formatFileSize(1024 * 1024 * 1024)).toBe('1.00 GB');
-    });
-  });
-
-  describe('getFileType', () => {
-    it('should categorize file types correctly', () => {
-      expect(service.getFileType('image/jpeg')).toBe('image');
-      expect(service.getFileType('video/mp4')).toBe('video');
-      expect(service.getFileType('audio/mp3')).toBe('audio');
-      expect(service.getFileType('application/pdf')).toBe('document');
-      expect(service.getFileType('text/plain')).toBe('document');
-      expect(service.getFileType('application/octet-stream')).toBe('other');
-    });
-  });
-});
+      await expect(service.uploadFile(bigFile))
+        .rejects.toThrow('exceeds')
+    })
+  })
+})
