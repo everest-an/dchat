@@ -2,7 +2,7 @@ package websocket
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -16,14 +16,16 @@ const (
 	maxMessageSize = 512 * 1024 // 512 KB
 )
 
+// Client represents a single WebSocket connection.
 type Client struct {
-	ID         string
-	UserID     uint
-	Conn       *websocket.Conn
-	Hub        *Hub
-	Send       chan []byte
-	mu         sync.Mutex
-	isClosing  bool
+	ID        string
+	UserID    uint
+	Conn      *websocket.Conn
+	Hub       *Hub
+	Send      chan []byte
+	log       *slog.Logger
+	mu        sync.Mutex
+	isClosing bool
 }
 
 type Message struct {
@@ -36,13 +38,15 @@ type Message struct {
 	Data      interface{} `json:"data,omitempty"`
 }
 
-func NewClient(id string, userID uint, conn *websocket.Conn, hub *Hub) *Client {
+// NewClient creates a Client with the given connection and hub.
+func NewClient(id string, userID uint, conn *websocket.Conn, hub *Hub, log *slog.Logger) *Client {
 	return &Client{
 		ID:     id,
 		UserID: userID,
 		Conn:   conn,
 		Hub:    hub,
 		Send:   make(chan []byte, 256),
+		log:    log,
 	}
 }
 
@@ -64,14 +68,14 @@ func (c *Client) ReadPump() {
 		_, messageData, err := c.Conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("WebSocket error: %v", err)
+				c.log.Warn("websocket unexpected close", "error", err, "user_id", c.UserID)
 			}
 			break
 		}
 
 		var msg Message
 		if err := json.Unmarshal(messageData, &msg); err != nil {
-			log.Printf("Failed to unmarshal message: %v", err)
+			c.log.Warn("failed to unmarshal message", "error", err, "user_id", c.UserID)
 			continue
 		}
 

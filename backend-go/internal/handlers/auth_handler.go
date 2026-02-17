@@ -1,123 +1,181 @@
 package handlers
 
 import (
-	"net/http"
+	"log/slog"
+	"regexp"
+	"strings"
 
 	"github.com/everest-an/dchat-backend/internal/auth"
+	"github.com/everest-an/dchat-backend/internal/response"
 	"github.com/gin-gonic/gin"
 )
 
+var ethAddressRe = regexp.MustCompile(`^0x[0-9a-fA-F]{40}$`)
+
+// AuthHandler handles wallet-based authentication endpoints.
 type AuthHandler struct {
 	userService *auth.UserService
 	jwtService  *auth.JWTService
 	web3Service *auth.Web3Service
+	nonceStore  *auth.NonceStore
+	log         *slog.Logger
 }
 
-func NewAuthHandler(userService *auth.UserService, jwtService *auth.JWTService, web3Service *auth.Web3Service) *AuthHandler {
+// NewAuthHandler creates an AuthHandler with all required dependencies.
+func NewAuthHandler(
+	userService *auth.UserService,
+	jwtService *auth.JWTService,
+	web3Service *auth.Web3Service,
+	nonceStore *auth.NonceStore,
+	log *slog.Logger,
+) *AuthHandler {
 	return &AuthHandler{
 		userService: userService,
 		jwtService:  jwtService,
 		web3Service: web3Service,
+		nonceStore:  nonceStore,
+		log:         log,
 	}
 }
 
+// --- Request / Response DTOs ---
+
+// GetNonceRequest is the body for POST /api/auth/nonce.
+type GetNonceRequest struct {
+	WalletAddress string `json:"wallet_address" binding:"required"`
+}
+
+// NonceResponse is returned by GetNonce.
+type NonceResponse struct {
+	Nonce   string `json:"nonce"`
+	Message string `json:"message"`
+}
+
+// WalletLoginRequest is the body for POST /api/auth/wallet-login.
 type WalletLoginRequest struct {
 	WalletAddress string `json:"wallet_address" binding:"required"`
 	Signature     string `json:"signature" binding:"required"`
-	Message       string `json:"message" binding:"required"`
+	Nonce         string `json:"nonce" binding:"required"`
 }
 
+// LoginResponse is returned by WalletLogin.
 type LoginResponse struct {
-	Token   string      `json:"token"`
-	User    interface{} `json:"user"`
-	IsNewUser bool      `json:"is_new_user"`
+	Token     string      `json:"token"`
+	User      interface{} `json:"user"`
+	IsNewUser bool        `json:"is_new_user"`
 }
 
-// WalletLogin handles MetaMask wallet login
+// --- Handlers ---
+
+// GetNonce generates a nonce for wallet signature verification.
+// POST /api/auth/nonce
+func (h *AuthHandler) GetNonce(c *gin.Context) {
+	var req GetNonceRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.ValidationError(c, "wallet_address is required")
+		return
+	}
+
+	if !ethAddressRe.MatchString(req.WalletAddress) {
+		response.ValidationError(c, "invalid Ethereum wallet address format")
+		return
+	}
+
+	nonce, err := h.nonceStore.Generate(strings.ToLower(req.WalletAddress))
+	if err != nil {
+		h.log.Error("failed to generate nonce", "error", err, "wallet", req.WalletAddress)
+		response.InternalError(c, "failed to generate nonce")
+		return
+	}
+
+	message := "Sign this message to authenticate with dChat: " + nonce
+
+	response.OK(c, NonceResponse{
+		Nonce:   nonce,
+		Message: message,
+	})
+}
+
+// WalletLogin verifies a wallet signature and returns a JWT.
+// POST /api/auth/wallet-login
 func (h *AuthHandler) WalletLogin(c *gin.Context) {
 	var req WalletLoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		response.ValidationError(c, "wallet_address, signature, and nonce are required")
 		return
 	}
 
-	// Verify signature
-	valid, err := h.web3Service.VerifySignature(req.WalletAddress, req.Message, req.Signature)
+	if !ethAddressRe.MatchString(req.WalletAddress) {
+		response.ValidationError(c, "invalid Ethereum wallet address format")
+		return
+	}
+
+	wallet := strings.ToLower(req.WalletAddress)
+
+	// Validate nonce from Redis (one-time use).
+	valid, err := h.nonceStore.Validate(wallet, req.Nonce)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to verify signature"})
+		h.log.Error("nonce validation error", "error", err, "wallet", wallet)
+		response.InternalError(c, "failed to validate nonce")
 		return
 	}
-
 	if !valid {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid signature"})
+		response.ErrorWithCode(c, 401, response.ErrCodeNonceInvalid, "nonce is invalid or expired")
 		return
 	}
 
-	// Get or create user (ensures one wallet = one account)
-	user, isNew, err := h.userService.GetOrCreateUserByWallet(req.WalletAddress)
+	// Reconstruct the signed message and verify the signature.
+	message := "Sign this message to authenticate with dChat: " + req.Nonce
+	sigValid, err := h.web3Service.VerifySignature(req.WalletAddress, message, req.Signature)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process user"})
+		h.log.Error("signature verification error", "error", err, "wallet", wallet)
+		response.BadRequest(c, "failed to verify signature")
+		return
+	}
+	if !sigValid {
+		response.ErrorWithCode(c, 401, response.ErrCodeSignature, "invalid wallet signature")
 		return
 	}
 
-	// Generate JWT token
+	// Get or create user.
+	user, isNew, err := h.userService.GetOrCreateUserByWallet(wallet)
+	if err != nil {
+		h.log.Error("user lookup/create failed", "error", err, "wallet", wallet)
+		response.InternalError(c, "failed to process user account")
+		return
+	}
+
+	// Generate JWT.
 	token, err := h.jwtService.GenerateToken(user.ID, user.WalletAddress)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		h.log.Error("token generation failed", "error", err, "user_id", user.ID)
+		response.InternalError(c, "failed to generate authentication token")
 		return
 	}
 
-	c.JSON(http.StatusOK, LoginResponse{
+	h.log.Info("user authenticated", "user_id", user.ID, "wallet", wallet, "is_new", isNew)
+
+	response.OK(c, LoginResponse{
 		Token:     token,
 		User:      user,
 		IsNewUser: isNew,
 	})
 }
 
-type GetNonceRequest struct{
-	WalletAddress string `json:"wallet_address" binding:"required"`
-}
-
-type NonceResponse struct {
-	Nonce   string `json:"nonce"`
-	Message string `json:"message"`
-}
-
-// GetNonce generates a nonce for wallet signature
-func (h *AuthHandler) GetNonce(c *gin.Context) {
-	var req GetNonceRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
-		return
-	}
-
-	nonce, err := h.web3Service.GenerateNonce()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate nonce"})
-		return
-	}
-
-	message := "Sign this message to authenticate with dChat: " + nonce
-
-	c.JSON(http.StatusOK, NonceResponse{
-		Nonce:   nonce,
-		Message: message,
-	})
-}
-
-// GetCurrentUser returns the currently authenticated user
+// GetCurrentUser returns the profile of the authenticated user.
+// GET /api/user/me
 func (h *AuthHandler) GetCurrentUser(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		response.Unauthorized(c, "authentication required")
 		return
 	}
 
 	user, err := h.userService.GetUserByID(userID.(uint))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		response.NotFound(c, "user not found")
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	response.OK(c, user)
 }

@@ -1,15 +1,33 @@
 package middleware
 
 import (
+	"strconv"
+	"strings"
+
+	"github.com/everest-an/dchat-backend/internal/config"
 	"github.com/gin-gonic/gin"
 )
 
-func CORSMiddleware() gin.HandlerFunc {
+// CORSMiddleware returns a Gin middleware that sets CORS headers
+// based on the supplied configuration rather than hard-coded values.
+func CORSMiddleware(cfg *config.CORSConfig) gin.HandlerFunc {
+	methods := strings.Join(cfg.AllowedMethods, ", ")
+	headers := strings.Join(cfg.AllowedHeaders, ", ")
+	maxAge := strconv.Itoa(cfg.MaxAge)
+
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		origin := c.GetHeader("Origin")
+
+		if isOriginAllowed(origin, cfg.AllowedOrigins) {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+		} else if len(cfg.AllowedOrigins) == 1 && cfg.AllowedOrigins[0] == "*" {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		}
+
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", headers)
+		c.Writer.Header().Set("Access-Control-Allow-Methods", methods)
+		c.Writer.Header().Set("Access-Control-Max-Age", maxAge)
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
@@ -18,4 +36,13 @@ func CORSMiddleware() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func isOriginAllowed(origin string, allowed []string) bool {
+	for _, a := range allowed {
+		if a == "*" || strings.EqualFold(a, origin) {
+			return true
+		}
+	}
+	return false
 }

@@ -12,19 +12,20 @@ import (
 
 // Config holds all application configuration loaded from environment variables.
 type Config struct {
-	Server   ServerConfig
-	Database DatabaseConfig
-	Redis    RedisConfig
-	JWT      JWTConfig
-	Web3     Web3Config
-	CORS     CORSConfig
-	Log      LogConfig
+	Server    ServerConfig
+	Database  DatabaseConfig
+	Redis     RedisConfig
+	JWT       JWTConfig
+	Web3      Web3Config
+	CORS      CORSConfig
+	Log       LogConfig
+	PrivadoID PrivadoIDConfig
 }
 
 // ServerConfig holds HTTP and WebSocket server settings.
 type ServerConfig struct {
-	APIPort       int
-	WebSocketPort int
+	APIPort       string
+	WebSocketPort string
 	Environment   string // "development", "staging", "production"
 	ReadTimeout   time.Duration
 	WriteTimeout  time.Duration
@@ -55,7 +56,7 @@ type RedisConfig struct {
 
 // JWTConfig holds JWT authentication settings.
 type JWTConfig struct {
-	Secret          string
+	SecretKey       string
 	ExpirationHours int
 	Issuer          string
 }
@@ -82,12 +83,33 @@ type LogConfig struct {
 	Format string // "json", "text"
 }
 
+// PrivadoIDConfig holds Privado ID verification settings.
+type PrivadoIDConfig struct {
+	RPCURL            string
+	StateContract     string
+	ResolverPrefix    string
+	IPFSGateway       string
+	CircuitsDir       string
+	CallbackURL       string
+	RequestExpiration int64
+}
+
 // DSN returns the PostgreSQL connection string.
 func (d *DatabaseConfig) DSN() string {
 	return fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		d.Host, d.Port, d.User, d.Password, d.Name, d.SSLMode,
 	)
+}
+
+// RedisAddr returns the Redis address in host:port format.
+func (r *RedisConfig) RedisAddr() string {
+	return fmt.Sprintf("%s:%d", r.Host, r.Port)
+}
+
+// IsProd returns true if the environment is production.
+func (c *Config) IsProd() bool {
+	return c.Server.Environment == "production"
 }
 
 // Load reads configuration from environment variables with validation.
@@ -97,8 +119,8 @@ func Load() (*Config, error) {
 
 	cfg := &Config{
 		Server: ServerConfig{
-			APIPort:       envInt("API_PORT", 8080),
-			WebSocketPort: envInt("WEBSOCKET_PORT", 8081),
+			APIPort:       envStr("API_PORT", "8080"),
+			WebSocketPort: envStr("WEBSOCKET_PORT", "8081"),
 			Environment:   envStr("ENVIRONMENT", "development"),
 			ReadTimeout:   envDuration("SERVER_READ_TIMEOUT", 15*time.Second),
 			WriteTimeout:  envDuration("SERVER_WRITE_TIMEOUT", 15*time.Second),
@@ -123,7 +145,7 @@ func Load() (*Config, error) {
 			PoolSize: envInt("REDIS_POOL_SIZE", 100),
 		},
 		JWT: JWTConfig{
-			Secret:          envStr("JWT_SECRET", ""),
+			SecretKey:       envStr("JWT_SECRET", ""),
 			ExpirationHours: envInt("JWT_EXPIRATION_HOURS", 24),
 			Issuer:          envStr("JWT_ISSUER", "dchat"),
 		},
@@ -136,12 +158,21 @@ func Load() (*Config, error) {
 		CORS: CORSConfig{
 			AllowedOrigins: envSlice("CORS_ALLOWED_ORIGINS", []string{"http://localhost:5173"}),
 			AllowedMethods: envSlice("CORS_ALLOWED_METHODS", []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-			AllowedHeaders: envSlice("CORS_ALLOWED_HEADERS", []string{"Origin", "Content-Type", "Authorization"}),
+			AllowedHeaders: envSlice("CORS_ALLOWED_HEADERS", []string{"Origin", "Content-Type", "Authorization", "X-Request-ID"}),
 			MaxAge:         envInt("CORS_MAX_AGE", 86400),
 		},
 		Log: LogConfig{
 			Level:  envStr("LOG_LEVEL", "info"),
 			Format: envStr("LOG_FORMAT", "json"),
+		},
+		PrivadoID: PrivadoIDConfig{
+			RPCURL:            envStr("PRIVADO_RPC_URL", "https://rpc-amoy.polygon.technology"),
+			StateContract:     envStr("PRIVADO_STATE_CONTRACT", "0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124"),
+			ResolverPrefix:    envStr("PRIVADO_RESOLVER_PREFIX", "polygon:amoy"),
+			IPFSGateway:       envStr("PRIVADO_IPFS_GATEWAY", "https://ipfs.io/ipfs/"),
+			CircuitsDir:       envStr("PRIVADO_CIRCUITS_DIR", "./circuits"),
+			CallbackURL:       envStr("PRIVADO_CALLBACK_URL", ""),
+			RequestExpiration: int64(envInt("PRIVADO_REQUEST_EXPIRATION", 3600)),
 		},
 	}
 
@@ -169,9 +200,9 @@ func (c *Config) validate() error {
 		errs = append(errs, "DB_NAME is required")
 	}
 
-	if c.JWT.Secret == "" {
+	if c.JWT.SecretKey == "" {
 		errs = append(errs, "JWT_SECRET is required")
-	} else if len(c.JWT.Secret) < 32 {
+	} else if len(c.JWT.SecretKey) < 32 {
 		errs = append(errs, "JWT_SECRET must be at least 32 characters")
 	}
 
@@ -189,11 +220,6 @@ func (c *Config) validate() error {
 		return fmt.Errorf("%s", strings.Join(errs, "; "))
 	}
 	return nil
-}
-
-// IsProd returns true if the environment is production.
-func (c *Config) IsProd() bool {
-	return c.Server.Environment == "production"
 }
 
 // --- Helper functions for reading environment variables ---

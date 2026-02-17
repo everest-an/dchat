@@ -1,99 +1,147 @@
 package main
 
 import (
-	"log"
+	"context"
+	"errors"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/everest-an/dchat-backend/internal/auth"
 	"github.com/everest-an/dchat-backend/internal/config"
 	"github.com/everest-an/dchat-backend/internal/database"
 	"github.com/everest-an/dchat-backend/internal/handlers"
+	"github.com/everest-an/dchat-backend/internal/logger"
 	"github.com/everest-an/dchat-backend/internal/middleware"
 	"github.com/everest-an/dchat-backend/internal/privadoid"
 	privadoidHandlers "github.com/everest-an/dchat-backend/internal/privadoid/handlers"
+	"github.com/everest-an/dchat-backend/internal/response"
+	"github.com/everest-an/dchat-backend/pkg/utils"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	// Load configuration
+	// Load configuration.
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
+		panic("failed to load config: " + err.Error())
 	}
 
-	// Initialize database
-	db, err := database.New(&cfg.Database)
+	// Initialize structured logger.
+	log := logger.New(cfg.Log.Level, cfg.Log.Format)
+
+	// Initialize database.
+	db, err := database.New(&cfg.Database, log)
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		log.Error("failed to connect to database", "error", err)
+		os.Exit(1)
 	}
 	defer db.Close()
 
-	// Initialize services
+	// Initialize Redis.
+	redis, err := utils.NewRedisClient(&cfg.Redis, log)
+	if err != nil {
+		log.Error("failed to connect to redis", "error", err)
+		os.Exit(1)
+	}
+	defer redis.Close()
+
+	// Initialize services.
 	jwtService := auth.NewJWTService(&cfg.JWT)
 	web3Service := auth.NewWeb3Service()
 	userService := auth.NewUserService(db.DB)
+	nonceStore := auth.NewNonceStore(redis, cfg.Web3.NonceExpiry)
 
-	// Initialize handlers
-	authHandler := handlers.NewAuthHandler(userService, jwtService, web3Service)
-	messageHandler := handlers.NewMessageHandler(db.DB)
+	// Initialize handlers.
+	authHandler := handlers.NewAuthHandler(userService, jwtService, web3Service, nonceStore, log)
+	messageHandler := handlers.NewMessageHandler(db.DB, log)
 
-	// Initialize Privado ID
-	privadoConfig := privadoid.LoadConfig()
-	sqlDB, _ := db.DB.DB() // Get underlying *sql.DB from GORM
-	privadoHandler := privadoidHandlers.NewVerificationHandler(sqlDB, privadoConfig)
+	// Initialize Privado ID.
+	privadoConfig := privadoid.NewConfigFromApp(&cfg.PrivadoID)
+	sqlDB, _ := db.DB.DB()
+	privadoHandler := privadoidHandlers.NewVerificationHandler(sqlDB, privadoConfig, log)
 
-	// Setup Gin router
-	if cfg.Server.Environment == "production" {
+	// Setup Gin router.
+	if cfg.IsProd() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	router := gin.Default()
+	router := gin.New()
+	router.Use(gin.Recovery())
+	router.Use(response.RequestIDMiddleware())
+	router.Use(middleware.CORSMiddleware(&cfg.CORS))
 
-	// Apply middleware
-	router.Use(middleware.CORSMiddleware())
-
-	// Health check
+	// Health check.
 	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"status":  "ok",
+		dbErr := db.Ping()
+		status := "ok"
+		if dbErr != nil {
+			status = "degraded"
+		}
+		response.OK(c, gin.H{
+			"status":  status,
 			"service": "dChat API",
 			"version": "2.0.0-go",
 		})
 	})
 
-	// Public routes
+	// Public routes.
 	api := router.Group("/api")
 	{
 		api.POST("/auth/nonce", authHandler.GetNonce)
 		api.POST("/auth/wallet-login", authHandler.WalletLogin)
 	}
 
-	// Protected routes
+	// Protected routes.
 	protected := api.Group("")
 	protected.Use(middleware.AuthMiddleware(jwtService))
 	{
-		// User routes
 		protected.GET("/user/me", authHandler.GetCurrentUser)
 
-		// Message routes
 		protected.POST("/messages", messageHandler.SendMessage)
 		protected.GET("/messages/:user_id", messageHandler.GetMessages)
 		protected.GET("/conversations", messageHandler.GetConversations)
 		protected.PUT("/messages/read/:sender_id", messageHandler.MarkAsRead)
 
-		// Privado ID verification routes
 		protected.POST("/verifications/request", privadoHandler.CreateRequest)
 		protected.GET("/verifications/user/:userId", privadoHandler.GetUserVerifications)
 		protected.DELETE("/verifications/:id", privadoHandler.DeleteVerification)
 	}
 
-	// Public Privado ID routes
+	// Public Privado ID routes.
 	api.POST("/verifications/verify", privadoHandler.VerifyProof)
 	api.GET("/verifications/types", privadoHandler.GetVerificationTypes)
 
-	// Start server
-	port := ":" + cfg.Server.APIPort
-	log.Printf("🚀 dChat API server starting on port %s", port)
-	if err := router.Run(port); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+	// Graceful shutdown.
+	addr := ":" + cfg.Server.APIPort
+	srv := &http.Server{
+		Addr:         addr,
+		Handler:      router,
+		ReadTimeout:  cfg.Server.ReadTimeout,
+		WriteTimeout: cfg.Server.WriteTimeout,
+		IdleTimeout:  cfg.Server.IdleTimeout,
 	}
+
+	go func() {
+		log.Info("dChat API server starting", "addr", addr, "env", cfg.Server.Environment)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Error("server error", "error", err)
+			os.Exit(1)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	log.Info("shutting down server...")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Error("server forced to shutdown", "error", err)
+	}
+	log.Info("server stopped")
 }

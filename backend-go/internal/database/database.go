@@ -2,49 +2,60 @@ package database
 
 import (
 	"fmt"
-	"log"
-	"time"
+	"log/slog"
 
 	"github.com/everest-an/dchat-backend/internal/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	gormlogger "gorm.io/gorm/logger"
 )
 
+// Database wraps a GORM DB connection with lifecycle helpers.
 type Database struct {
 	DB *gorm.DB
 }
 
-func New(cfg *config.DatabaseConfig) (*Database, error) {
+// New opens a PostgreSQL connection using the supplied configuration.
+// Connection pool parameters are applied from cfg rather than hard-coded.
+func New(cfg *config.DatabaseConfig, log *slog.Logger) (*Database, error) {
 	dsn := cfg.DSN()
 
-	gormConfig := &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
-		NowFunc: func() time.Time {
-			return time.Now().UTC()
-		},
+	gormCfg := &gorm.Config{
+		Logger:                                   gormlogger.Default.LogMode(gormlogger.Warn),
+		DisableForeignKeyConstraintWhenMigrating: true,
 	}
 
-	db, err := gorm.Open(postgres.Open(dsn), gormConfig)
+	db, err := gorm.Open(postgres.Open(dsn), gormCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get database instance: %w", err)
+		return nil, fmt.Errorf("failed to get underlying sql.DB: %w", err)
 	}
 
-	// Connection pool settings for high concurrency
-	sqlDB.SetMaxOpenConns(100)
-	sqlDB.SetMaxIdleConns(10)
-	sqlDB.SetConnMaxLifetime(time.Hour)
+	// Apply pool settings from config instead of hard-coded values.
+	sqlDB.SetMaxOpenConns(cfg.MaxOpenConns)
+	sqlDB.SetMaxIdleConns(cfg.MaxIdleConns)
+	sqlDB.SetConnMaxLifetime(cfg.ConnMaxLifetime)
 
-	log.Println("✅ Database connected successfully")
+	if err := sqlDB.Ping(); err != nil {
+		return nil, fmt.Errorf("database ping failed: %w", err)
+	}
+
+	log.Info("database connected",
+		"host", cfg.Host,
+		"port", cfg.Port,
+		"name", cfg.Name,
+		"max_open", cfg.MaxOpenConns,
+		"max_idle", cfg.MaxIdleConns,
+	)
 
 	return &Database{DB: db}, nil
 }
 
+// Close releases the underlying database connection.
 func (d *Database) Close() error {
 	sqlDB, err := d.DB.DB()
 	if err != nil {
@@ -53,6 +64,7 @@ func (d *Database) Close() error {
 	return sqlDB.Close()
 }
 
+// Ping verifies the database connection is alive.
 func (d *Database) Ping() error {
 	sqlDB, err := d.DB.DB()
 	if err != nil {
