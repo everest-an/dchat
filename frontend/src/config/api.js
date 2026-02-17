@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || ''; // MUST be set via VITE_API_URL environment variable
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''; // MUST be set via VITE_API_BASE_URL environment variable
 
 export const API_ENDPOINTS = {
   // Auth endpoints

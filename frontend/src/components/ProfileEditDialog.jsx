@@ -5,7 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import axios from 'axios';
 
 // Use correct backend URL with fallback
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 
 /**
  * Profile Edit Dialog

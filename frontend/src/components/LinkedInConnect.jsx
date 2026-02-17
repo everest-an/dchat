@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Linkedin, CheckCircle2, AlertCircle, Download, User } from 'lucide-react'
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 
 const LinkedInConnect = ({ onConnect, isConnected, onProfileImport }) => {
   const [isConnecting, setIsConnecting] = useState(false)

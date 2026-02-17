@@ -53,7 +53,7 @@ const ChatTransferDialog = ({
       
       const token = localStorage.getItem('auth_token')
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/custodial-wallet/balance`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/custodial-wallet/balance`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -94,7 +94,7 @@ const ChatTransferDialog = ({
       
       const authToken = localStorage.getItem('auth_token')
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/chat-transfer/create`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/chat-transfer/create`,
         {
           recipient_address: recipientAddress,
           token: token,

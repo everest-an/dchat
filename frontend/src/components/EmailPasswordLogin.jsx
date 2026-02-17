@@ -16,7 +16,7 @@ const EmailPasswordLogin = ({ onLogin, onBack }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
   // Generate demo user data for fallback
   const generateDemoUser = (email, username) => {

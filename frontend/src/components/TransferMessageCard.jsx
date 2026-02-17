@@ -30,7 +30,7 @@ const TransferMessageCard = ({ transfer, isSender, onClaim }) => {
       
       const token = localStorage.getItem('auth_token')
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/chat-transfer/claim/${transfer.transfer_id}`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/chat-transfer/claim/${transfer.transfer_id}`,
         {},
         {
           headers: {
@@ -65,7 +65,7 @@ const TransferMessageCard = ({ transfer, isSender, onClaim }) => {
       
       const token = localStorage.getItem('auth_token')
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/chat-transfer/cancel/${transfer.transfer_id}`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/chat-transfer/cancel/${transfer.transfer_id}`,
         {},
         {
           headers: {

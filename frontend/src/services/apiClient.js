@@ -11,7 +11,7 @@
  * - Request timeout
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || ''
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 const DEFAULT_TIMEOUT = 30000 // 30 seconds
 
 /** Custom API error with status code and response data */

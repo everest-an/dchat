@@ -1,9 +1,9 @@
 import axios from 'axios'
 
 // 使用环境变量配置后端 URL
-const API_BASE_URL = import.meta.env?.VITE_API_URL || 
+const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 
   (typeof process !== 'undefined' && process.env?.REACT_APP_API_URL) || 
-  '' // MUST be set via VITE_API_URL environment variable
+  '' // MUST be set via VITE_API_BASE_URL environment variable
 
 /**
  * Web3 Authentication Service
