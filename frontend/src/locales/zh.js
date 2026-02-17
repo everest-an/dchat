@@ -344,6 +344,24 @@ export default {
     noCredentials: '暂无凭证'
   },
 
+  // Subscription
+  subscription: {
+    loading: '加载订阅数据...',
+    unsubscribeFailed: '取消订阅失败',
+    mySubscriptions: '我的订阅',
+    followingUsers: '正在关注的用户',
+    mySubscribers: '我的订阅者',
+    followers: '关注我的用户',
+    subscribers: '订阅者',
+    noSubscriptions: '您还没有订阅任何用户',
+    subscriptionHint: '订阅用户后,您将收到他们的更新通知',
+    subscribed: '已订阅',
+    unsubscribe: '取消订阅',
+    noSubscribers: '还没有用户订阅您',
+    subscribersHint: '创建优质的作品集和项目,吸引更多订阅者',
+    subscriber: '订阅者'
+  },
+
   // Common
   common: {
     save: '保存',

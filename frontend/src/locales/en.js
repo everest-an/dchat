@@ -344,6 +344,24 @@ export default {
     noCredentials: 'No credentials yet'
   },
 
+  // Subscription
+  subscription: {
+    loading: 'Loading subscription data...',
+    unsubscribeFailed: 'Failed to unsubscribe',
+    mySubscriptions: 'My Subscriptions',
+    followingUsers: 'Following users',
+    mySubscribers: 'My Subscribers',
+    followers: 'Followers',
+    subscribers: 'Subscribers',
+    noSubscriptions: 'You haven\'t subscribed to any users yet',
+    subscriptionHint: 'Subscribe to users to receive their updates',
+    subscribed: 'Subscribed',
+    unsubscribe: 'Unsubscribe',
+    noSubscribers: 'No one has subscribed to you yet',
+    subscribersHint: 'Create quality portfolios and projects to attract more subscribers',
+    subscriber: 'Subscriber'
+  },
+
   // Common
   common: {
     save: 'Save',
