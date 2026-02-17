@@ -113,7 +113,7 @@ const ContactImport = () => {
   }
 
   const handleAddFriend = (user) => {
-    navigate(`/chat/${user.wallet_address}`)
+    navigate(`/app/chat/${user.wallet_address}`)
   }
 
   const [inviting, setInviting] = useState(null)

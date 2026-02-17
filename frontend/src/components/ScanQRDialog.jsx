@@ -40,7 +40,7 @@ const ScanQRDialog = ({ isOpen, onClose }) => {
         // Trigger refresh event
         window.dispatchEvent(new CustomEvent('contactAdded'))
         
-        navigate(`/chat/${parsed.address}`)
+        navigate(`/app/chat/${parsed.address}`)
         handleClose()
         return true
       }
@@ -61,7 +61,7 @@ const ScanQRDialog = ({ isOpen, onClose }) => {
         // Trigger refresh event
         window.dispatchEvent(new CustomEvent('contactAdded'))
         
-        navigate(`/chat/${data}`)
+        navigate(`/app/chat/${data}`)
         handleClose()
         return true
       }
@@ -174,7 +174,7 @@ const ScanQRDialog = ({ isOpen, onClose }) => {
       })
       
       success('Contact Added', `Added ${username}`)
-      navigate(`/chat/${address}`)
+      navigate(`/app/chat/${address}`)
       handleClose()
     } else if (address) {
       error('Invalid Address', 'Please enter a valid Ethereum address')

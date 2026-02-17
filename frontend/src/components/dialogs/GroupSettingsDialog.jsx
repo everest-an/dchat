@@ -173,7 +173,7 @@ const GroupSettingsDialog = ({ isOpen, onClose, groupId }) => {
       await GroupService.leaveGroup(groupId, account)
       success(t('group.leftGroup'), t('group.leftGroupDesc'))
       onClose()
-      navigate('/chats')
+      navigate('/app')
     } catch (err) {
       console.error('Error leaving group:', err)
       showError(t('error'), err.message)
@@ -189,7 +189,7 @@ const GroupSettingsDialog = ({ isOpen, onClose, groupId }) => {
       await GroupService.deleteGroup(groupId, account)
       success(t('group.deleted'), t('group.deletedDesc'))
       onClose()
-      navigate('/chats')
+      navigate('/app')
     } catch (err) {
       console.error('Error deleting group:', err)
       showError(t('error'), err.message)

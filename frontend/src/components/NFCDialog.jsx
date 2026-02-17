@@ -46,7 +46,7 @@ const NFCDialog = ({ isOpen, onClose }) => {
 
                 success('NFC Contact Added', `Added ${data.username}`)
                 window.dispatchEvent(new CustomEvent('contactAdded'))
-                navigate(`/chat/${data.address}`)
+                navigate(`/app/chat/${data.address}`)
                 onClose()
                 return
               }

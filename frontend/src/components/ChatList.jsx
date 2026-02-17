@@ -209,13 +209,13 @@ const ChatList = ({ user }) => {
         setConversations(convs)
       }
 
-      navigate(`/chat/${chatData.address}`)
+      navigate(`/app/chat/${chatData.address}`)
     }
   }
 
   const handleGroupCreated = (group) => {
     loadConversations()
-    navigate(`/group/${group.id}`)
+    navigate(`/app/group/${group.id}`)
   }
 
   // TODO: Translate {t('format_time')}
@@ -237,7 +237,7 @@ const ChatList = ({ user }) => {
   const renderConversation = (conv) => (
     <div
       key={conv.address}
-      onClick={() => navigate(conv.type === 'group' ? `/group/${conv.id}` : `/chat/${conv.address}`)}
+      onClick={() => navigate(conv.type === 'group' ? `/app/group/${conv.id}` : `/app/chat/${conv.address}`)}
       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b"
     >
       <div className="relative">
