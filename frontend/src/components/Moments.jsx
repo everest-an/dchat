@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { Plus, MessageCircle, Heart, Share, MoreHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useToast } from '../contexts/ToastContext'
 import CreateMomentDialog from './CreateMomentDialog'
 
 
 const Moments = () => {
   const { t } = useLanguage()
+  const { info } = useToast()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
 
   // Mock current user - in production, get from auth context
@@ -144,7 +146,7 @@ const Moments = () => {
               
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-400">{post.timestamp}</span>
-                <Button variant="ghost" size="icon" className="w-8 h-8">
+                <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => info('More options coming soon')}>
                   <MoreHorizontal className="w-4 h-4" />
                 </Button>
               </div>
@@ -175,12 +177,12 @@ const Moments = () => {
                   <span>{post.likes}</span>
                 </button>
                 
-                <button className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-500 transition-colors">
+                <button className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-500 transition-colors" onClick={() => info('Comments coming soon')}>
                   <MessageCircle className="w-4 h-4" />
                   <span>{post.comments}</span>
                 </button>
                 
-                <button className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-500 transition-colors">
+                <button className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-500 transition-colors" onClick={() => info('Share coming soon')}>
                   <Share className="w-4 h-4" />
                   <span>{t("share_moment")}</span>
                 </button>

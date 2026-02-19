@@ -191,6 +191,8 @@ func (h *SSOHandler) CallbackOIDC(c *gin.Context) {
 // CreateProvider creates a new SSO provider (admin only).
 // POST /api/admin/sso/providers
 func (h *SSOHandler) CreateProvider(c *gin.Context) {
+	_ = mustUserID(c)
+
 	var provider models.SSOProvider
 	if err := c.ShouldBindJSON(&provider); err != nil {
 		response.ValidationError(c, "invalid provider configuration")
@@ -209,6 +211,8 @@ func (h *SSOHandler) CreateProvider(c *gin.Context) {
 // UpdateProvider updates an SSO provider (admin only).
 // PUT /api/admin/sso/providers/:id
 func (h *SSOHandler) UpdateProvider(c *gin.Context) {
+	_ = mustUserID(c)
+
 	providerID, err := parseUintParam(c, "id")
 	if err != nil {
 		response.ValidationError(c, "invalid provider id")
@@ -240,6 +244,8 @@ func (h *SSOHandler) UpdateProvider(c *gin.Context) {
 // DeleteProvider deletes an SSO provider (admin only).
 // DELETE /api/admin/sso/providers/:id
 func (h *SSOHandler) DeleteProvider(c *gin.Context) {
+	_ = mustUserID(c)
+
 	providerID, err := parseUintParam(c, "id")
 	if err != nil {
 		response.ValidationError(c, "invalid provider id")

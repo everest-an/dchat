@@ -240,7 +240,9 @@ func (h *TwoFAHandler) Validate2FALogin(user *models.User, code string) bool {
 	for i, sc := range storedCodes {
 		if sc == hashed {
 			// Remove used backup code.
-			remaining := append(storedCodes[:i], storedCodes[i+1:]...)
+			remaining := make([]string, 0, len(storedCodes)-1)
+			remaining = append(remaining, storedCodes[:i]...)
+			remaining = append(remaining, storedCodes[i+1:]...)
 			h.db.Model(user).Update("backup_codes", strings.Join(remaining, ","))
 			return true
 		}

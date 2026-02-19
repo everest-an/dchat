@@ -15,7 +15,7 @@
  */
 
 import socketService from './socketService';
-import api from './api';
+import api from './apiClient';
 
 class WebRTCService {
   constructor() {

@@ -182,7 +182,7 @@ class PrivadoIDService {
    */
   async verifyProof(proofData) {
     try {
-      const result = await this.apiRequest('POST', '/api/verifications/callback', proofData);
+      const result = await this.apiRequest('POST', '/api/verifications/verify', proofData);
       return result;
     } catch (error) {
       console.error('Failed to verify proof:', error);

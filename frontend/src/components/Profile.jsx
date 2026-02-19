@@ -11,12 +11,14 @@ import TwoFactorSetup from './auth/TwoFactorSetup'
 import VerificationManager from './PrivadoID/VerificationManager'
 import VerificationBadge from './PrivadoID/VerificationBadge'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useToast } from '../contexts/ToastContext'
 import { UserProfileService } from '../services/UserProfileService'
 import PrivadoIDService from '../services/privadoid/PrivadoIDService'
 
 const Profile = ({ user, onLogout }) => {
   const navigate = useNavigate()
   const { t } = useLanguage()
+  const { info } = useToast()
   const [showWalletAddress, setShowWalletAddress] = useState(false)
   const [linkedInData, setLinkedInData] = useState(null)
   const [showLinkedInMessages, setShowLinkedInMessages] = useState(false)
@@ -99,7 +101,7 @@ const Profile = ({ user, onLogout }) => {
       id: 'notifications',
       label: t('profile.notificationSettings'),
       icon: Bell,
-      action: () => console.log('Notification settings')
+      action: () => info('Notification settings coming soon')
     },
     {
       id: 'security',
@@ -111,7 +113,7 @@ const Profile = ({ user, onLogout }) => {
       id: 'wallet',
       label: t('profile.walletManagement'),
       icon: Wallet,
-      action: () => console.log('Wallet management')
+      action: () => info('Wallet management coming soon')
     },
     {
       id: 'tasks',
@@ -197,6 +199,7 @@ const Profile = ({ user, onLogout }) => {
               variant="ghost"
               size="icon"
               className="w-10 h-10 rounded-full"
+              onClick={() => info('Settings coming soon')}
             >
               <Settings className="w-5 h-5" />
             </Button>

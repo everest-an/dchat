@@ -119,7 +119,10 @@ func (h *AdminHandler) Login(c *gin.Context) {
 
 	response.OK(c, gin.H{
 		"token": token,
-		"user":  user,
+		"user": gin.H{
+			"id": user.ID, "email": user.Email, "username": user.Username,
+			"name": user.Name, "role": user.Role, "wallet_address": user.WalletAddress,
+		},
 	})
 }
 
@@ -147,7 +150,10 @@ func (h *AdminHandler) GetMe(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, user)
+	response.OK(c, gin.H{
+		"id": user.ID, "email": user.Email, "username": user.Username,
+		"name": user.Name, "role": user.Role, "wallet_address": user.WalletAddress,
+	})
 }
 
 // --- Dashboard ---
@@ -250,8 +256,13 @@ type UpdateRoleRequest struct {
 // PUT /api/admin/users/:id/role
 func (h *AdminHandler) UpdateUserRole(c *gin.Context) {
 	adminID := mustUserID(c)
-	role, _ := c.Get("role")
-	if role.(string) != "super_admin" {
+	roleVal, exists := c.Get("role")
+	if !exists {
+		response.Forbidden(c, "role not found")
+		return
+	}
+	roleStr, ok := roleVal.(string)
+	if !ok || roleStr != "super_admin" {
 		response.Forbidden(c, "only super_admin can change roles")
 		return
 	}
@@ -379,8 +390,13 @@ func (h *AdminHandler) UnbanUser(c *gin.Context) {
 // DELETE /api/admin/users/:id
 func (h *AdminHandler) DeleteUser(c *gin.Context) {
 	adminID := mustUserID(c)
-	role, _ := c.Get("role")
-	if role.(string) != "super_admin" {
+	roleVal, exists := c.Get("role")
+	if !exists {
+		response.Forbidden(c, "role not found")
+		return
+	}
+	roleStr, ok := roleVal.(string)
+	if !ok || roleStr != "super_admin" {
 		response.Forbidden(c, "only super_admin can delete users")
 		return
 	}
@@ -527,8 +543,13 @@ type UpdateSettingsRequest struct {
 // PUT /api/admin/settings
 func (h *AdminHandler) UpdateSettings(c *gin.Context) {
 	adminID := mustUserID(c)
-	role, _ := c.Get("role")
-	if role.(string) != "super_admin" {
+	roleVal, exists := c.Get("role")
+	if !exists {
+		response.Forbidden(c, "role not found")
+		return
+	}
+	roleStr, ok := roleVal.(string)
+	if !ok || roleStr != "super_admin" {
 		response.Forbidden(c, "only super_admin can update settings")
 		return
 	}

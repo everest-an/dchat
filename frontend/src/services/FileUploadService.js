@@ -5,7 +5,7 @@
 
 class FileUploadService {
   constructor() {
-    this.uploadEndpoint = import.meta.env.VITE_UPLOAD_ENDPOINT || '/api/upload';
+    this.uploadEndpoint = import.meta.env.VITE_UPLOAD_ENDPOINT || '/api/files/upload';
     this.maxFileSize = 100 * 1024 * 1024; // 100MB
     this.allowedTypes = {
       image: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],

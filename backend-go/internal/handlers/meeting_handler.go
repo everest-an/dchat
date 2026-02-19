@@ -80,6 +80,8 @@ func (h *MeetingHandler) CreateMeeting(c *gin.Context) {
 // EndMeeting marks a meeting as ended and calculates duration.
 // PUT /api/meetings/:id/end
 func (h *MeetingHandler) EndMeeting(c *gin.Context) {
+	_ = mustUserID(c)
+
 	id, err := parseUintParam(c, "id")
 	if err != nil {
 		response.ValidationError(c, "invalid meeting id")
@@ -114,6 +116,8 @@ func (h *MeetingHandler) EndMeeting(c *gin.Context) {
 // UpdateTranscript updates or appends to the meeting transcript.
 // PUT /api/meetings/:id/transcript
 func (h *MeetingHandler) UpdateTranscript(c *gin.Context) {
+	_ = mustUserID(c)
+
 	id, err := parseUintParam(c, "id")
 	if err != nil {
 		response.ValidationError(c, "invalid meeting id")
@@ -149,6 +153,8 @@ func (h *MeetingHandler) UpdateTranscript(c *gin.Context) {
 // TranscribeAudio transcribes an uploaded audio file and appends to meeting transcript.
 // POST /api/meetings/:id/transcribe
 func (h *MeetingHandler) TranscribeAudio(c *gin.Context) {
+	_ = mustUserID(c)
+
 	if !h.transcriber.IsConfigured() {
 		response.BadRequest(c, "transcription service is not configured")
 		return
@@ -204,6 +210,8 @@ func (h *MeetingHandler) TranscribeAudio(c *gin.Context) {
 // Summarize generates a meeting summary and action items from the transcript using AI.
 // POST /api/meetings/:id/summarize
 func (h *MeetingHandler) Summarize(c *gin.Context) {
+	_ = mustUserID(c)
+
 	if !h.aiClient.IsConfigured() {
 		response.BadRequest(c, "AI service is not configured")
 		return
@@ -271,6 +279,8 @@ Keep the same language as the transcript.`
 // GetMeeting returns a single meeting.
 // GET /api/meetings/:id
 func (h *MeetingHandler) GetMeeting(c *gin.Context) {
+	_ = mustUserID(c)
+
 	id, err := parseUintParam(c, "id")
 	if err != nil {
 		response.ValidationError(c, "invalid meeting id")

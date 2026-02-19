@@ -49,7 +49,7 @@ func (h *DAOHandler) CreateProposal(c *gin.Context) {
 		Description: req.Description,
 		Category:    coalesce(req.Category, "general"),
 		Status:      "active",
-		Quorum:      max(req.Quorum, 1),
+		Quorum:      maxInt(req.Quorum, 1),
 		EndsAt:      time.Now().AddDate(0, 0, duration),
 	}
 
@@ -151,7 +151,7 @@ func (h *DAOHandler) CastVote(c *gin.Context) {
 		return
 	}
 
-	weight := max(req.Weight, 1)
+	weight := maxInt(req.Weight, 1)
 
 	vote := models.Vote{
 		ProposalID: proposalID,
@@ -195,7 +195,7 @@ func (h *DAOHandler) GetTreasury(c *gin.Context) {
 	response.Paginated(c, txs, total, page, pageSize)
 }
 
-func max(a, b int) int {
+func maxInt(a, b int) int {
 	if a > b {
 		return a
 	}

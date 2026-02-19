@@ -3,7 +3,7 @@ import { X, Lock, Shield, Download, Upload, Key, AlertTriangle, CheckCircle } fr
 import { Button } from '../ui/button'
 import { useWeb3 } from '../../contexts/Web3Context'
 import { useToast } from '../../contexts/ToastContext'
-import { encryptionService } from '../../services/EncryptionService'
+import encryptionService from '../../services/EncryptionService'
 
 const KeyManagementDialog = ({ isOpen, onClose }) => {
   const { account } = useWeb3()

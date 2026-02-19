@@ -10,6 +10,7 @@ import {
   CheckCircle, XCircle, Search, Filter 
 } from 'lucide-react';
 import FileUploadService from '../services/FileUploadService';
+import apiClient from '../services/apiClient';
 
 const FileManager = ({ onSelectFile = null }) => {
   const [files, setFiles] = useState([]);
@@ -26,32 +27,12 @@ const FileManager = ({ onSelectFile = null }) => {
 
   const loadFiles = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/upload/list');
-      // const data = await response.json();
-      
-      // Mock data for now
-      const mockFiles = [
-        {
-          filename: 'example1.jpg',
-          url: '/uploads/example1.jpg',
-          size: 1024000,
-          type: 'image/jpeg',
-          category: 'image',
-          uploadedAt: new Date().toISOString()
-        }
-      ];
-      
-      setFiles(mockFiles);
-    } catch (error) {
-      console.error('Failed to load files:', error);
-      setError('Failed to load files');
-    } finally {
-      setLoading(false);
+      const response = await apiClient.get('/api/files');
+      setFiles(response.data?.data || []);
+    } catch {
+      setFiles([]);
     }
+    setLoading(false);
   };
 
   const handleUpload = async (event) => {

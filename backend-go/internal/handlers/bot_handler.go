@@ -162,7 +162,11 @@ func (h *BotHandler) RegenerateToken(c *gin.Context) {
 	}
 
 	newToken := generateHexToken(64)
-	h.db.Model(&bot).Update("api_token", newToken)
+	if err := h.db.Model(&bot).Update("api_token", newToken).Error; err != nil {
+		h.log.Error("failed to regenerate token", "error", err)
+		response.InternalError(c, "failed to regenerate token")
+		return
+	}
 
 	response.OK(c, gin.H{"api_token": newToken})
 }
@@ -185,7 +189,11 @@ func (h *BotHandler) GetBotEvents(c *gin.Context) {
 	}
 
 	var events []models.BotEvent
-	h.db.Where("bot_id = ?", id).Order("created_at DESC").Limit(50).Find(&events)
+	if err := h.db.Where("bot_id = ?", id).Order("created_at DESC").Limit(50).Find(&events).Error; err != nil {
+		h.log.Error("failed to get bot events", "error", err)
+		response.InternalError(c, "failed to get bot events")
+		return
+	}
 
 	response.OK(c, events)
 }

@@ -17,7 +17,7 @@ import { Alert, AlertDescription } from './ui/alert'
 import { useWeb3 } from '../contexts/Web3Context'
 import { useToast } from '../contexts/ToastContext'
 import { web3SubscriptionService, SUBSCRIPTION_TIERS, SUBSCRIPTION_PERIODS } from '../services/Web3SubscriptionService'
-import PaymentModal from './PaymentModal'
+import PaymentModal from './Web3PaymentModal'
 
 const Web3SubscriptionPlans = () => {
   const { account, isConnected } = useWeb3()

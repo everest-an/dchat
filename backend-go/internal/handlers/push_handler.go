@@ -85,6 +85,8 @@ func (h *PushHandler) UnregisterToken(c *gin.Context) {
 // SendNotification sends a push notification to a user.
 // POST /api/push-notifications/send
 func (h *PushHandler) SendNotification(c *gin.Context) {
+	_ = mustUserID(c)
+
 	var req struct {
 		RecipientID uint              `json:"recipient_id" binding:"required"`
 		Title       string            `json:"title" binding:"required"`

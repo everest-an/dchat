@@ -502,6 +502,8 @@ func (h *MessageHandler) ExportMessages(c *gin.Context) {
 // ExportGroupMessages exports group chat history.
 // GET /api/groups/:id/messages/export?format=json|txt&from=2024-01-01&to=2024-12-31
 func (h *MessageHandler) ExportGroupMessages(c *gin.Context) {
+	_ = mustUserID(c)
+
 	groupID, err := parseUintParam(c, "id")
 	if err != nil {
 		response.ValidationError(c, "invalid group id")

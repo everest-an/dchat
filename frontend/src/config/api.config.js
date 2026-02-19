@@ -34,8 +34,8 @@ export const API_ENDPOINTS = {
     MARK_READ: (senderId) => `/api/messages/${senderId}/read`,
   },
   GROUPS: {
-    CREATE: '/api/groups/create',
-    LIST: '/api/groups/list',
+    CREATE: '/api/groups',
+    LIST: '/api/groups',
     GET: (id) => `/api/groups/${id}`,
     MESSAGES: (id) => `/api/groups/${id}/messages`,
     SEND_MESSAGE: (id) => `/api/groups/${id}/messages`,

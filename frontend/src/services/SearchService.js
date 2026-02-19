@@ -15,7 +15,7 @@
  * @date 2024-11-05
  */
 
-import api from './api';
+import api from './apiClient';
 
 class SearchService {
   constructor() {

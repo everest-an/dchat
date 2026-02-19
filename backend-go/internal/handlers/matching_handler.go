@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"math"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/everest-an/dchat-backend/internal/models"
@@ -84,8 +85,8 @@ func (h *MatchingHandler) GetRecommendations(c *gin.Context) {
 
 	limit := 20
 	if l := c.Query("limit"); l != "" {
-		if v, err := parseUintParam(c, ""); err == nil && v > 0 {
-			limit = int(v)
+		if v, err := strconv.Atoi(l); err == nil && v > 0 {
+			limit = v
 		}
 	}
 	if limit > len(results) {

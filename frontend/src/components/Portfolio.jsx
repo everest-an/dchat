@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useWeb3 } from '../contexts/Web3Context'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useToast } from '../contexts/ToastContext'
 import { LivingPortfolioService, AvailabilityStatus, ProjectStatus } from '../services/LivingPortfolioService'
 import { Button } from './ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
@@ -30,6 +31,7 @@ import CredentialCard from './cards/CredentialCard'
  */
 export default function Portfolio({ user }) {
   const { t } = useLanguage()
+  const { info } = useToast()
   const { account, provider, signer, isConnected } = useWeb3()
   
   // useWeb3 accountTODO: Translate '或'user.walletAddress
@@ -109,15 +111,15 @@ export default function Portfolio({ user }) {
   const getAvailabilityStatusText = (status) => {
     switch (status) {
       case AvailabilityStatus.AVAILABLE:
-        return '可用'
+        return 'Available'
       case AvailabilityStatus.PARTIALLY_AVAILABLE:
-        return '部分可用'
+        return 'Partially Available'
       case AvailabilityStatus.BUSY:
-        return '忙碌'
+        return 'Busy'
       case AvailabilityStatus.UNAVAILABLE:
-        return '不可用'
+        return 'Unavailable'
       default:
-        return '未知'
+        return 'Unknown'
     }
   }
   const getAvailabilityStatusColor = (status) => {
@@ -259,7 +261,7 @@ export default function Portfolio({ user }) {
                 </Badge>
               </div>
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => info('Edit coming soon')}>
               <Edit className="w-4 h-4 mr-2" />
               {t('common.edit')}
             </Button>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useWeb3 } from '../contexts/Web3Context'
 import { LivingPortfolioService } from '../services/LivingPortfolioService'
 import { UserIdentityService } from '../services/UserIdentityService'
@@ -28,7 +29,8 @@ import SubscribeButton from './SubscribeButton'
  */
 export default function OpportunityMatching({ user }) {
   const { account, provider, signer, isConnected } = useWeb3()
-  
+  const navigate = useNavigate()
+
   // Use account from useWeb3 or user.walletAddress
   const userAddress = account || user?.walletAddress
   const [matches, setMatches] = useState([])
@@ -299,7 +301,7 @@ export default function OpportunityMatching({ user }) {
 
                         {/* Action Buttons */}
                         <div className="flex items-center gap-2 mt-4">
-                          <Button size="sm">
+                          <Button size="sm" onClick={() => navigate('/app/chat')}>
                             <MessageCircle className="w-4 h-4 mr-2" />
                             Send Message
                           </Button>
@@ -308,7 +310,7 @@ export default function OpportunityMatching({ user }) {
                             variant="outline"
                             size="sm"
                           />
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => navigate('/app/portfolio')}>
                             View Portfolio
                           </Button>
                         </div>

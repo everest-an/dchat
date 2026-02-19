@@ -197,7 +197,7 @@ class EncryptedFileTransfer {
         recipientId
       }));
 
-      const response = await fetch('/api/upload', {
+      const response = await fetch('/api/files/upload', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
