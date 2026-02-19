@@ -36,15 +36,25 @@ class AuthServiceAdapter {
    * Login with wallet signature
    * @param {string} walletAddress - Wallet address
    * @param {string} signature - Signed message
-   * @returns {Promise<Object>} User data and token
+   * @param {string} [totpCode] - Optional TOTP code for 2FA
+   * @returns {Promise<Object>} User data and token, or { requires_2fa: true }
    */
-  async walletLogin(walletAddress, signature) {
+  async walletLogin(walletAddress, signature, totpCode) {
     try {
+      const body = { wallet_address: walletAddress, signature }
+      if (totpCode) body.totp_code = totpCode
+
       const data = await api.post(
         API_ENDPOINTS.AUTH.WALLET_LOGIN,
-        { wallet_address: walletAddress, signature },
+        body,
         { skipAuth: true }
       )
+
+      // If 2FA is required, return early without saving token.
+      if (data.requires_2fa) {
+        return { requires_2fa: true, wallet_address: walletAddress, signature }
+      }
+
       this.saveToken(data.token)
       this.saveUser(data.user)
       return data

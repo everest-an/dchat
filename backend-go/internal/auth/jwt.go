@@ -11,6 +11,7 @@ import (
 type Claims struct {
 	UserID        uint   `json:"user_id"`
 	WalletAddress string `json:"wallet_address"`
+	Role          string `json:"role"`
 	jwt.RegisteredClaims
 }
 
@@ -26,10 +27,11 @@ func NewJWTService(cfg *config.JWTConfig) *JWTService {
 	}
 }
 
-func (s *JWTService) GenerateToken(userID uint, walletAddress string) (string, error) {
+func (s *JWTService) GenerateToken(userID uint, walletAddress string, role string) (string, error) {
 	claims := Claims{
 		UserID:        userID,
 		WalletAddress: walletAddress,
+		Role:          role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * time.Duration(s.expirationHours))),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

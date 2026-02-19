@@ -35,6 +35,7 @@ func AuthMiddleware(jwtService *auth.JWTService) gin.HandlerFunc {
 
 		c.Set("user_id", claims.UserID)
 		c.Set("wallet_address", claims.WalletAddress)
+		c.Set("role", claims.Role)
 		c.Next()
 	}
 }

@@ -42,15 +42,34 @@ rtc:
 room:
   # Auto-create rooms when participants join
   auto_create: true
-  
+
   # Empty room timeout (seconds)
   empty_timeout: 300  # 5 minutes
-  
+
   # Max participants per room
   max_participants: 8  # Adjust based on your needs
-  
+
   # Enable room recording
   enable_recording: false
+
+# Quality / bandwidth configuration
+codec:
+  mime: video/VP8   # VP8 has good compatibility; use VP9 or H264 for better quality
+  fmtp: ""
+
+# Adaptive streaming / simulcast
+video:
+  dynacast: true          # Only forward video to active subscribers
+  simulcast:
+    enabled: true         # Enable simulcast for adaptive quality
+    # Layers: high (720p), medium (360p), low (180p)
+
+# Congestion control
+congestion_control:
+  enabled: true
+  # Pacer settings for smooth sending
+  min_send_rate: 100000    # 100 kbps minimum
+  probe_bw: true           # Probe for available bandwidth
 
 # API keys (can also be set via environment variables)
 # keys:

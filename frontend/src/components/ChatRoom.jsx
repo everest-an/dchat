@@ -10,15 +10,23 @@
  *   - ChatInput: bottom input with file upload
  *   - useChatRoom: all business logic (messaging, encryption, sockets)
  */
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from './ui/button'
 import UpgradeDialog from './dialogs/UpgradeDialog'
 import PaymentDialog from './dialogs/PaymentDialog'
 import { ChatHeader, MessageList, ChatInput } from './chat'
 import { useChatRoom } from './chat/useChatRoom'
+import AIAssistant from './chat/AIAssistant'
+import ForwardDialog from './chat/ForwardDialog'
+import ExportChatDialog from './chat/ExportChatDialog'
+import api from '../services/apiClient'
 
 const ChatRoom = () => {
   const navigate = useNavigate()
+  const [showAI, setShowAI] = useState(false)
+  const [forwardMessages, setForwardMessages] = useState([])
+  const [showExport, setShowExport] = useState(false)
   const {
     // State
     message,
@@ -36,6 +44,7 @@ const ChatRoom = () => {
     showUpgradeDialog,
     upgradeMessage,
     showPaymentDialog,
+    editingMessage,
     // Actions
     setMessage,
     setShowMenu,
@@ -44,6 +53,11 @@ const ChatRoom = () => {
     handleSendMessage,
     handleFileUpload,
     handlePaymentSuccess,
+    handleRecallMessage,
+    handleStartEdit,
+    handleSaveEdit,
+    handleCancelEdit,
+    handleVoiceSend,
     info,
   } = useChatRoom()
 
@@ -68,6 +82,7 @@ const ChatRoom = () => {
         showMenu={showMenu}
         onToggleMenu={() => setShowMenu(!showMenu)}
         onInfoToast={info}
+        onExportChat={() => setShowExport(true)}
       />
 
       <MessageList
@@ -76,7 +91,18 @@ const ChatRoom = () => {
         recipientAddress={recipientAddress}
         recipientProfile={recipientProfile}
         account={account}
+        onRecall={handleRecallMessage}
+        onEdit={handleStartEdit}
+        onForward={(msg) => setForwardMessages([msg])}
       />
+
+      {showAI && (
+        <AIAssistant
+          messages={messages}
+          onInsertText={(text) => { setMessage(text); setShowAI(false) }}
+          onClose={() => setShowAI(false)}
+        />
+      )}
 
       <ChatInput
         message={message}
@@ -88,6 +114,11 @@ const ChatRoom = () => {
         uploading={uploading}
         uploadProgress={uploadProgress}
         isFileTransfer={isFileTransfer}
+        editingMessage={editingMessage}
+        onCancelEdit={handleCancelEdit}
+        onSaveEdit={handleSaveEdit}
+        onVoiceSend={handleVoiceSend}
+        onToggleAI={() => setShowAI(!showAI)}
       />
 
       <UpgradeDialog
@@ -103,6 +134,26 @@ const ChatRoom = () => {
         onSuccess={handlePaymentSuccess}
         recipientAddress={recipientAddress}
         userAddress={account}
+      />
+
+      <ExportChatDialog
+        open={showExport}
+        onClose={() => setShowExport(false)}
+        userId={recipientAddress}
+      />
+
+      <ForwardDialog
+        open={forwardMessages.length > 0}
+        messages={forwardMessages}
+        onClose={() => setForwardMessages([])}
+        onForward={async (messageIds, receiverIds, groupIds) => {
+          await api.post('/api/messages/forward', {
+            message_ids: messageIds,
+            receiver_ids: receiverIds,
+            group_ids: groupIds,
+          })
+          info('Forwarded', 'Message forwarded successfully')
+        }}
       />
     </div>
   )

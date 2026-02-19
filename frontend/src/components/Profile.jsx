@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
-import { Settings, Edit, Wallet, Shield, Bell, HelpCircle, LogOut, ChevronRight, Github, FileText, ExternalLink, BadgeCheck } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Settings, Edit, Wallet, Shield, Bell, HelpCircle, LogOut, ChevronRight, Github, FileText, ExternalLink, BadgeCheck, ListTodo, ScrollText, Users, Search, Bot } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import LinkedInConnect from './LinkedInConnect'
 import LinkedInMessages from './LinkedInMessages'
 import LanguageSwitcher from './LanguageSwitcher'
 import AvatarUpload from './AvatarUpload'
 import ProfileEditDialog from './ProfileEditDialog'
+import TwoFactorSetup from './auth/TwoFactorSetup'
 import VerificationManager from './PrivadoID/VerificationManager'
 import VerificationBadge from './PrivadoID/VerificationBadge'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -13,6 +15,7 @@ import { UserProfileService } from '../services/UserProfileService'
 import PrivadoIDService from '../services/privadoid/PrivadoIDService'
 
 const Profile = ({ user, onLogout }) => {
+  const navigate = useNavigate()
   const { t } = useLanguage()
   const [showWalletAddress, setShowWalletAddress] = useState(false)
   const [linkedInData, setLinkedInData] = useState(null)
@@ -21,6 +24,8 @@ const Profile = ({ user, onLogout }) => {
   const [avatarData, setAvatarData] = useState(null)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showVerificationManager, setShowVerificationManager] = useState(false)
+  const [showSecurity, setShowSecurity] = useState(false)
+  const [is2FAEnabled, setIs2FAEnabled] = useState(user?.is_2fa_enabled || false)
   const [verifications, setVerifications] = useState([])
 
   // Load user profile and verifications
@@ -100,7 +105,7 @@ const Profile = ({ user, onLogout }) => {
       id: 'security',
       label: t('profile.securityPrivacy'),
       icon: Shield,
-      action: () => console.log('Security settings')
+      action: () => setShowSecurity(true)
     },
     {
       id: 'wallet',
@@ -109,10 +114,40 @@ const Profile = ({ user, onLogout }) => {
       action: () => console.log('Wallet management')
     },
     {
+      id: 'tasks',
+      label: 'Tasks & Calendar',
+      icon: ListTodo,
+      action: () => navigate('/app/tasks')
+    },
+    {
+      id: 'dao',
+      label: 'DAO Governance',
+      icon: ScrollText,
+      action: () => navigate('/app/dao')
+    },
+    {
+      id: 'crm',
+      label: 'CRM',
+      icon: Users,
+      action: () => navigate('/app/crm')
+    },
+    {
+      id: 'explorer',
+      label: 'Blockchain Explorer',
+      icon: Search,
+      action: () => navigate('/app/explorer')
+    },
+    {
+      id: 'bots',
+      label: 'Bots & Webhooks',
+      icon: Bot,
+      action: () => navigate('/app/bots')
+    },
+    {
       id: 'help',
       label: t('profile.helpSupport'),
       icon: HelpCircle,
-      action: () => console.log('Help')
+      action: () => navigate('/app/support')
     }
   ]
 
@@ -422,6 +457,98 @@ const Profile = ({ user, onLogout }) => {
         userId={user?.id}
         authToken={localStorage.getItem('authToken')}
       />
+
+      {/* Security & 2FA Dialog */}
+      {showSecurity && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h2 className="text-lg font-bold">Security & Privacy</h2>
+              <button
+                onClick={() => setShowSecurity(false)}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[70vh] space-y-6">
+              <TwoFactorSetup
+                enabled={is2FAEnabled}
+                onStatusChange={(enabled) => setIs2FAEnabled(enabled)}
+              />
+
+              {/* GDPR Data & Privacy */}
+              <div className="border-t pt-4">
+                <h3 className="text-sm font-semibold mb-3">Data & Privacy (GDPR)</h3>
+                <div className="space-y-2">
+                  <button
+                    onClick={async () => {
+                      try {
+                        const token = localStorage.getItem('token')
+                        const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
+                        const res = await fetch(`${baseUrl}/api/gdpr/export`, {
+                          headers: { Authorization: `Bearer ${token}` },
+                        })
+                        const blob = await res.blob()
+                        const url = URL.createObjectURL(blob)
+                        const a = document.createElement('a')
+                        a.href = url
+                        a.download = 'dchat_data_export.json'
+                        a.click()
+                        URL.revokeObjectURL(url)
+                      } catch (err) {
+                        console.error('Export failed:', err)
+                      }
+                    }}
+                    className="w-full text-left px-3 py-2.5 rounded-lg border text-sm hover:bg-gray-50 flex items-center gap-2"
+                  >
+                    <FileText className="w-4 h-4 text-gray-500" />
+                    <div>
+                      <div className="font-medium">Export My Data</div>
+                      <div className="text-xs text-gray-400">Download all your data as JSON</div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={async () => {
+                      const confirmed = window.confirm(
+                        'Are you sure you want to permanently delete your account? This action cannot be undone.'
+                      )
+                      if (!confirmed) return
+                      const doubleConfirm = window.prompt(
+                        'Type DELETE to confirm account deletion:'
+                      )
+                      if (doubleConfirm !== 'DELETE') return
+                      try {
+                        const token = localStorage.getItem('token')
+                        const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
+                        await fetch(`${baseUrl}/api/gdpr/delete-account`, {
+                          method: 'DELETE',
+                          headers: {
+                            Authorization: `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({ confirm: 'DELETE' }),
+                        })
+                        localStorage.clear()
+                        window.location.href = '/'
+                      } catch (err) {
+                        console.error('Account deletion failed:', err)
+                      }
+                    }}
+                    className="w-full text-left px-3 py-2.5 rounded-lg border border-red-200 text-sm hover:bg-red-50 flex items-center gap-2"
+                  >
+                    <LogOut className="w-4 h-4 text-red-500" />
+                    <div>
+                      <div className="font-medium text-red-600">Delete My Account</div>
+                      <div className="text-xs text-red-400">Permanently remove all data</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Verification Manager Dialog */}
       {showVerificationManager && (

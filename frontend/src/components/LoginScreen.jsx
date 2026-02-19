@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Wallet, Mail, Phone, ArrowLeft, Loader2 } from 'lucide-react'
+import { Wallet, Mail, Phone, ArrowLeft, Loader2, Building2 } from 'lucide-react'
 import { useWeb3 } from '../contexts/Web3Context'
 import { useLanguage } from '../contexts/LanguageContext'
 import DchatLogo from './DchatLogo'
@@ -298,6 +298,16 @@ const LoginScreen = ({ onLogin }) => {
               <Phone className="w-5 h-5" />
               Phone
             </Button>
+
+            {/* Enterprise SSO */}
+            <Button
+              onClick={() => setLoginMethod('sso')}
+              variant="outline"
+              className="w-full h-14 border-2 border-gray-200 hover:border-gray-300 hover:bg-white text-black rounded-full text-base font-medium flex items-center justify-center gap-3 transition-all duration-200 bg-white"
+            >
+              <Building2 className="w-5 h-5" />
+              Enterprise SSO
+            </Button>
           </div>
 
           {/* Security Features */}
@@ -502,7 +512,136 @@ const LoginScreen = ({ onLogin }) => {
     )
   }
 
+  // SSO Login Screen
+  if (loginMethod === 'sso') {
+    return (
+      <SSOLoginScreen
+        onLogin={onLogin}
+        onBack={resetLoginFlow}
+      />
+    )
+  }
+
   return null
+}
+
+function SSOLoginScreen({ onLogin, onBack }) {
+  const [ssoEmail, setSsoEmail] = useState('')
+  const [ssoLoading, setSsoLoading] = useState(false)
+  const [ssoError, setSsoError] = useState('')
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
+
+  const handleSSOLogin = async (e) => {
+    e.preventDefault()
+    if (!ssoEmail || !ssoEmail.includes('@')) {
+      setSsoError('Please enter your work email')
+      return
+    }
+
+    setSsoLoading(true)
+    setSsoError('')
+
+    try {
+      const domain = ssoEmail.split('@')[1]
+
+      // Check if SSO provider exists for this domain.
+      const res = await fetch(`${API_BASE_URL}/api/sso/providers/domain/${domain}`)
+      if (!res.ok) {
+        throw new Error('No SSO provider configured for this domain. Contact your IT administrator.')
+      }
+
+      const provider = await res.json()
+      const data = provider.data || provider
+
+      // Initiate SSO flow.
+      const initRes = await fetch(`${API_BASE_URL}/api/sso/initiate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider_id: data.id }),
+      })
+
+      if (!initRes.ok) throw new Error('Failed to initiate SSO')
+
+      const initData = await initRes.json()
+      const ssoData = initData.data || initData
+
+      // Store state for callback verification.
+      sessionStorage.setItem('sso_state', ssoData.state)
+      sessionStorage.setItem('sso_provider_id', String(data.id))
+
+      // Redirect to IdP.
+      window.location.href = ssoData.redirect_url
+    } catch (err) {
+      setSsoError(err.message || 'SSO login failed')
+    } finally {
+      setSsoLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
+      <div className="w-full max-w-md">
+        <button
+          onClick={onBack}
+          className="mb-6 flex items-center gap-2 text-gray-600 hover:text-black transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          Back
+        </button>
+
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+          <div className="flex flex-col items-center mb-8">
+            <Building2 className="w-12 h-12 text-black mb-4" />
+            <h2 className="text-2xl font-bold text-black mb-2">Enterprise SSO</h2>
+            <p className="text-gray-500 text-center">
+              Sign in with your organization's identity provider
+            </p>
+          </div>
+
+          {ssoError && (
+            <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+              <p className="text-sm text-red-800">{ssoError}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSSOLogin} className="space-y-4">
+            <input
+              type="email"
+              value={ssoEmail}
+              onChange={(e) => setSsoEmail(e.target.value)}
+              placeholder="Work email (e.g. you@company.com)"
+              className="w-full h-14 px-4 border-2 border-gray-200 rounded-full focus:border-black focus:outline-none transition-colors text-base"
+              disabled={ssoLoading}
+              autoFocus
+              required
+            />
+
+            <Button
+              type="submit"
+              disabled={ssoLoading}
+              className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-full text-base font-medium flex items-center justify-center gap-3 transition-all duration-200"
+            >
+              {ssoLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Connecting...
+                </>
+              ) : (
+                <>
+                  <Building2 className="w-5 h-5" />
+                  Continue with SSO
+                </>
+              )}
+            </Button>
+          </form>
+
+          <p className="mt-6 text-xs text-center text-gray-400">
+            Your organization must have SSO configured. Contact your IT admin if you need help.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default LoginScreen

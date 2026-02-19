@@ -16,6 +16,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import webrtcService from '../services/webrtc';
+import NetworkQualityIndicator from './call/NetworkQualityIndicator';
 
 const VideoCall = ({ callData, onEndCall }) => {
   const [isMuted, setIsMuted] = useState(false);
@@ -119,6 +120,9 @@ const VideoCall = ({ callData, onEndCall }) => {
         <div className="call-info">
           <h3>{callData?.type === 'video' ? 'Video Call' : 'Voice Call'}</h3>
           <p className="call-duration">{formatDuration(callDuration)}</p>
+        </div>
+        <div style={{ position: 'absolute', top: 20, right: 20 }}>
+          <NetworkQualityIndicator peerConnection={webrtcService.peerConnection} />
         </div>
       </div>
       

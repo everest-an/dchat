@@ -32,10 +32,12 @@ type Message struct {
 	Type      string      `json:"type"`
 	From      uint        `json:"from"`
 	To        uint        `json:"to"`
+	GroupID   uint        `json:"group_id,omitempty"`
 	Content   string      `json:"content"`
 	Encrypted bool        `json:"encrypted"`
 	Timestamp time.Time   `json:"timestamp"`
 	Data      interface{} `json:"data,omitempty"`
+	MessageID uint        `json:"message_id,omitempty"`
 }
 
 // NewClient creates a Client with the given connection and hub.

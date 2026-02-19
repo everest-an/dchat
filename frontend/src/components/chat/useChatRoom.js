@@ -46,6 +46,7 @@ export function useChatRoom() {
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
   const [upgradeMessage, setUpgradeMessage] = useState({ title: '', description: '' })
   const [showPaymentDialog, setShowPaymentDialog] = useState(false)
+  const [editingMessage, setEditingMessage] = useState(null) // {id, text} when editing
 
   // --- Recipient profile ---
   useEffect(() => {
@@ -205,6 +206,7 @@ export function useChatRoom() {
           hour: '2-digit',
           minute: '2-digit',
         }),
+        createdAtMs: data.timestamp || Date.now(),
         isRead: false,
         type: 'text',
         encrypted: isEncrypted,
@@ -220,9 +222,39 @@ export function useChatRoom() {
       updateConversationsList(decryptedText)
     })
 
+    // Listen for recall events from the other party
+    const unsubRecall = socketService.onRecall((data) => {
+      if (data.message_id == null) return
+      setMessages((prev) => {
+        const updated = prev.map((m) =>
+          m.id === data.message_id || m.backendId === data.message_id
+            ? { ...m, recalled: true, text: 'This message has been recalled' }
+            : m
+        )
+        localStorage.setItem(getStorageKey(), JSON.stringify(updated))
+        return updated
+      })
+    })
+
+    // Listen for edit events from the other party
+    const unsubEdit = socketService.onEdit((data) => {
+      if (data.message_id == null || !data.content) return
+      setMessages((prev) => {
+        const updated = prev.map((m) =>
+          m.id === data.message_id || m.backendId === data.message_id
+            ? { ...m, text: data.content, edited: true }
+            : m
+        )
+        localStorage.setItem(getStorageKey(), JSON.stringify(updated))
+        return updated
+      })
+    })
+
     return () => {
       socketService.leaveRoom(roomId)
       unsubscribe()
+      unsubRecall()
+      unsubEdit()
     }
   }, [account, recipientAddress, userKeys, getStorageKey, updateConversationsList])
 
@@ -241,6 +273,7 @@ export function useChatRoom() {
           text: messageText,
           sender: 'me',
           timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          createdAtMs: Date.now(),
           isRead: true,
           type: 'text',
         }
@@ -268,6 +301,7 @@ export function useChatRoom() {
         text: messageText,
         sender: 'me',
         timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        createdAtMs: Date.now(),
         isRead: false,
         type: 'text',
         encrypted: true,
@@ -415,6 +449,103 @@ export function useChatRoom() {
     [messages, getStorageKey, success]
   )
 
+  // --- Recall message ---
+  const handleRecallMessage = useCallback(
+    (msgId) => {
+      setMessages((prev) => {
+        const updated = prev.map((m) =>
+          m.id === msgId ? { ...m, recalled: true, text: 'This message has been recalled' } : m
+        )
+        localStorage.setItem(getStorageKey(), JSON.stringify(updated))
+        return updated
+      })
+
+      // Notify via socket
+      const roomId = [account, recipientAddress].sort().join('_')
+      socketService.recallMessage(roomId, msgId)
+      info('Recalled', 'Message has been recalled')
+    },
+    [account, recipientAddress, getStorageKey, info]
+  )
+
+  // --- Start editing ---
+  const handleStartEdit = useCallback(
+    (msg) => {
+      setEditingMessage({ id: msg.id, text: msg.text })
+      setMessage(msg.text)
+    },
+    []
+  )
+
+  // --- Save edit ---
+  const handleSaveEdit = useCallback(
+    (newContent) => {
+      if (!editingMessage || !newContent.trim()) return
+
+      setMessages((prev) => {
+        const updated = prev.map((m) =>
+          m.id === editingMessage.id ? { ...m, text: newContent.trim(), edited: true } : m
+        )
+        localStorage.setItem(getStorageKey(), JSON.stringify(updated))
+        return updated
+      })
+
+      // Notify via socket
+      const roomId = [account, recipientAddress].sort().join('_')
+      socketService.editMessage(roomId, editingMessage.id, newContent.trim())
+
+      setEditingMessage(null)
+      setMessage('')
+      info('Edited', 'Message has been updated')
+    },
+    [editingMessage, account, recipientAddress, getStorageKey, info]
+  )
+
+  // --- Cancel edit ---
+  const handleCancelEdit = useCallback(() => {
+    setEditingMessage(null)
+    setMessage('')
+  }, [])
+
+  // --- Voice message ---
+  const handleVoiceSend = useCallback(
+    (fileData) => {
+      const newMsg = {
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        text: 'Voice message',
+        sender: 'me',
+        timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        createdAtMs: Date.now(),
+        isRead: false,
+        type: 'audio',
+        fileUrl: fileData.file_url,
+        fileName: fileData.file_name,
+        fileSize: fileData.file_size,
+        duration: fileData.duration,
+      }
+
+      const updated = [...messages, newMsg]
+      setMessages(updated)
+      localStorage.setItem(getStorageKey(), JSON.stringify(updated))
+      updateConversationsList('Voice message')
+
+      // Send via Socket.IO
+      if (!isFileTransfer) {
+        const roomId = [account, recipientAddress].sort().join('_')
+        socketService.sendMessage(roomId, JSON.stringify({
+          type: 'audio',
+          file_url: fileData.file_url,
+          file_name: fileData.file_name,
+          file_size: fileData.file_size,
+          duration: fileData.duration,
+        }), newMsg.id, false)
+      }
+
+      success('Sent!', 'Voice message sent')
+    },
+    [messages, isFileTransfer, account, recipientAddress, getStorageKey, updateConversationsList, success]
+  )
+
   return {
     // State
     message,
@@ -432,6 +563,7 @@ export function useChatRoom() {
     showUpgradeDialog,
     upgradeMessage,
     showPaymentDialog,
+    editingMessage,
     // Actions
     setMessage,
     setShowMenu,
@@ -440,6 +572,11 @@ export function useChatRoom() {
     handleSendMessage,
     handleFileUpload,
     handlePaymentSuccess,
+    handleRecallMessage,
+    handleStartEdit,
+    handleSaveEdit,
+    handleCancelEdit,
+    handleVoiceSend,
     info,
   }
 }

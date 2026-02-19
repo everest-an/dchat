@@ -5,7 +5,8 @@
  * and upload progress indicator.
  */
 import { useRef } from 'react'
-import { Send, Paperclip, DollarSign, Loader2 } from 'lucide-react'
+import { Send, Paperclip, DollarSign, Loader2, Check, X, Sparkles } from 'lucide-react'
+import VoiceRecorder from './VoiceRecorder'
 
 /**
  * @param {{
@@ -17,7 +18,11 @@ import { Send, Paperclip, DollarSign, Loader2 } from 'lucide-react'
  *   sending: boolean,
  *   uploading: boolean,
  *   uploadProgress: number,
- *   isFileTransfer: boolean
+ *   isFileTransfer: boolean,
+ *   editingMessage: object|null,
+ *   onCancelEdit: () => void,
+ *   onSaveEdit: (content: string) => void,
+ *   onVoiceSend?: (fileData: object) => void,
  * }} props
  */
 const ChatInput = ({
@@ -30,13 +35,27 @@ const ChatInput = ({
   uploading,
   uploadProgress,
   isFileTransfer,
+  editingMessage,
+  onCancelEdit,
+  onSaveEdit,
+  onVoiceSend,
+  onToggleAI,
 }) => {
   const fileInputRef = useRef(null)
+
+  const isEditing = !!editingMessage
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      onSend()
+      if (isEditing) {
+        onSaveEdit?.(message)
+      } else {
+        onSend()
+      }
+    }
+    if (e.key === 'Escape' && isEditing) {
+      onCancelEdit?.()
     }
   }
 
@@ -55,6 +74,20 @@ const ChatInput = ({
               style={{ width: `${uploadProgress}%` }}
             />
           </div>
+        </div>
+      )}
+
+      {/* Editing Banner */}
+      {isEditing && (
+        <div className="px-4 py-2 bg-blue-50 border-t border-blue-100 flex items-center justify-between">
+          <span className="text-sm text-blue-700 font-medium">Editing message</span>
+          <button
+            onClick={onCancelEdit}
+            className="p-1 hover:bg-blue-100 rounded-full text-blue-600"
+            title="Cancel edit"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -78,6 +111,15 @@ const ChatInput = ({
               <DollarSign className="w-5 h-5" />
             </button>
           )}
+          {onToggleAI && (
+            <button
+              onClick={onToggleAI}
+              className="p-2 hover:bg-gray-100 rounded-full text-purple-600"
+              title="AI Assistant"
+            >
+              <Sparkles className="w-5 h-5" />
+            </button>
+          )}
           <input
             ref={fileInputRef}
             type="file"
@@ -94,13 +136,34 @@ const ChatInput = ({
             disabled={sending || uploading}
             className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-black disabled:opacity-50"
           />
-          <button
-            onClick={onSend}
-            disabled={!message.trim() || sending || uploading}
-            className="p-2 bg-black text-white rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-          </button>
+          {/* Show send button when there's text, voice recorder when empty */}
+          {message.trim() || isEditing ? (
+            <button
+              onClick={isEditing ? () => onSaveEdit?.(message) : onSend}
+              disabled={!message.trim() || sending || uploading}
+              className={`p-2 text-white rounded-full disabled:opacity-50 disabled:cursor-not-allowed ${
+                isEditing ? 'bg-blue-600 hover:bg-blue-700' : 'bg-black hover:bg-gray-800'
+              }`}
+            >
+              {sending ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : isEditing ? (
+                <Check className="w-5 h-5" />
+              ) : (
+                <Send className="w-5 h-5" />
+              )}
+            </button>
+          ) : onVoiceSend ? (
+            <VoiceRecorder onVoiceSend={onVoiceSend} disabled={uploading || sending} />
+          ) : (
+            <button
+              onClick={onSend}
+              disabled
+              className="p-2 text-white rounded-full bg-black opacity-50 cursor-not-allowed"
+            >
+              <Send className="w-5 h-5" />
+            </button>
+          )}
         </div>
       </div>
     </>

@@ -40,7 +40,7 @@ func TestAuthMiddleware_ValidToken(t *testing.T) {
 	jwtSvc := newTestJWT()
 	router := setupRouter(jwtSvc)
 
-	token, _ := jwtSvc.GenerateToken(42, "0xabcdef1234567890abcdef1234567890abcdef12")
+	token, _ := jwtSvc.GenerateToken(42, "0xabcdef1234567890abcdef1234567890abcdef12", "user")
 
 	req := httptest.NewRequest("GET", "/protected", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
@@ -120,7 +120,7 @@ func TestAuthMiddleware_WrongSecret(t *testing.T) {
 		SecretKey:       "other-secret-key-at-least-32-chars!!",
 		ExpirationHours: 24,
 	})
-	token, _ := otherJWT.GenerateToken(1, "0x1234567890abcdef1234567890abcdef12345678")
+	token, _ := otherJWT.GenerateToken(1, "0x1234567890abcdef1234567890abcdef12345678", "user")
 
 	req := httptest.NewRequest("GET", "/protected", nil)
 	req.Header.Set("Authorization", "Bearer "+token)

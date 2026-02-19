@@ -12,8 +12,15 @@ import SubscriptionManager from './SubscriptionManager'
 import PaymentManager from './PaymentManager'
 import NotificationCenter from './NotificationCenter'
 import GroupChat from './GroupChat'
+import GroupSettingsPanel from './group/GroupSettingsPanel'
 import SubscriptionPage from './SubscriptionPage'
 import EncryptionSettings from './EncryptionSettings'
+import TicketList from './support/TicketList'
+import TaskCalendarPage from './task/TaskCalendarPage'
+import DAOPage from './dao/DAOPage'
+import CRMPage from './crm/CRMPage'
+import BlockchainExplorer from './blockchain/BlockchainExplorer'
+import BotManager from './bot/BotManager'
 
 const MainApp = ({ user, onLogout }) => {
   const location = useLocation()
@@ -36,6 +43,7 @@ const MainApp = ({ user, onLogout }) => {
           <Route path="/" element={<ChatList user={user} />} />
           <Route path="/chat/:id" element={<ChatRoom />} />
           <Route path="/group/:id" element={<GroupChat />} />
+          <Route path="/group/:id/settings" element={<GroupSettingsPanel />} />
           <Route path="/moments" element={<Moments />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/portfolio" element={<Portfolio user={user} />} />
@@ -45,6 +53,12 @@ const MainApp = ({ user, onLogout }) => {
           <Route path="/profile" element={<Profile user={user} onLogout={onLogout} />} />
           <Route path="/subscription" element={<SubscriptionPage />} />
           <Route path="/encryption" element={<EncryptionSettings />} />
+          <Route path="/support" element={<TicketList />} />
+          <Route path="/tasks" element={<TaskCalendarPage />} />
+          <Route path="/dao" element={<DAOPage />} />
+          <Route path="/crm" element={<CRMPage />} />
+          <Route path="/explorer" element={<BlockchainExplorer />} />
+          <Route path="/bots" element={<BotManager />} />
         </Routes>
       </div>
 

@@ -20,6 +20,22 @@ type Config struct {
 	CORS      CORSConfig
 	Log       LogConfig
 	PrivadoID PrivadoIDConfig
+	Upload       UploadConfig
+	AI           AIConfig
+	Notification NotificationConfig
+}
+
+// NotificationConfig holds email and SMS provider settings.
+type NotificationConfig struct {
+	EmailHost     string
+	EmailPort     int
+	EmailUsername string
+	EmailPassword string
+	EmailFrom     string
+	EmailFromName string
+	SMSAccountSID string
+	SMSAuthToken  string
+	SMSFromNumber string
 }
 
 // ServerConfig holds HTTP and WebSocket server settings.
@@ -92,6 +108,21 @@ type PrivadoIDConfig struct {
 	CircuitsDir       string
 	CallbackURL       string
 	RequestExpiration int64
+}
+
+// UploadConfig holds file upload settings.
+type UploadConfig struct {
+	Dir     string // directory to store uploaded files
+	MaxSize int64  // max file size in bytes
+}
+
+// AIConfig holds AI/LLM integration settings.
+type AIConfig struct {
+	Provider  string // "openai" or "anthropic"
+	APIKey    string
+	Model     string
+	MaxTokens int
+	BaseURL   string // optional custom endpoint
 }
 
 // DSN returns the PostgreSQL connection string.
@@ -173,6 +204,28 @@ func Load() (*Config, error) {
 			CircuitsDir:       envStr("PRIVADO_CIRCUITS_DIR", "./circuits"),
 			CallbackURL:       envStr("PRIVADO_CALLBACK_URL", ""),
 			RequestExpiration: int64(envInt("PRIVADO_REQUEST_EXPIRATION", 3600)),
+		},
+		Upload: UploadConfig{
+			Dir:     envStr("UPLOAD_DIR", "./uploads"),
+			MaxSize: int64(envInt("UPLOAD_MAX_SIZE", 20*1024*1024)), // 20MB default
+		},
+		AI: AIConfig{
+			Provider:  envStr("AI_PROVIDER", "openai"),
+			APIKey:    envStr("AI_API_KEY", ""),
+			Model:     envStr("AI_MODEL", "gpt-4o-mini"),
+			MaxTokens: envInt("AI_MAX_TOKENS", 1024),
+			BaseURL:   envStr("AI_BASE_URL", ""),
+		},
+		Notification: NotificationConfig{
+			EmailHost:     envStr("EMAIL_HOST", ""),
+			EmailPort:     envInt("EMAIL_PORT", 587),
+			EmailUsername: envStr("EMAIL_USERNAME", ""),
+			EmailPassword: envStr("EMAIL_PASSWORD", ""),
+			EmailFrom:     envStr("EMAIL_FROM", ""),
+			EmailFromName: envStr("EMAIL_FROM_NAME", "dChat"),
+			SMSAccountSID: envStr("SMS_ACCOUNT_SID", ""),
+			SMSAuthToken:  envStr("SMS_AUTH_TOKEN", ""),
+			SMSFromNumber: envStr("SMS_FROM_NUMBER", ""),
 		},
 	}
 

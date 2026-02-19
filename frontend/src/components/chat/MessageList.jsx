@@ -15,10 +15,13 @@ import MessageBubble from './MessageBubble'
  *   loading: boolean,
  *   recipientAddress: string,
  *   recipientProfile: object|null,
- *   account: string
+ *   account: string,
+ *   onRecall: (id: string) => void,
+ *   onEdit: (msg: object) => void,
+ *   onForward: (msg: object) => void,
  * }} props
  */
-const MessageList = ({ messages, loading, recipientAddress, recipientProfile, account }) => {
+const MessageList = ({ messages, loading, recipientAddress, recipientProfile, account, onRecall, onEdit, onForward }) => {
   const messagesEndRef = useRef(null)
 
   // Auto-scroll to bottom when new messages arrive
@@ -59,6 +62,9 @@ const MessageList = ({ messages, loading, recipientAddress, recipientProfile, ac
           isMe={msg.sender === 'me'}
           recipientAddress={recipientAddress}
           account={account}
+          onRecall={onRecall}
+          onEdit={onEdit}
+          onForward={onForward}
         />
       ))}
       <div ref={messagesEndRef} />

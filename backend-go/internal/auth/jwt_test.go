@@ -17,7 +17,7 @@ func newTestJWTService(secret string, hours int) *JWTService {
 
 func TestGenerateToken_Success(t *testing.T) {
 	svc := newTestJWTService("test-secret-key-at-least-32-chars!!", 24)
-	token, err := svc.GenerateToken(1, "0xabcdef1234567890abcdef1234567890abcdef12")
+	token, err := svc.GenerateToken(1, "0xabcdef1234567890abcdef1234567890abcdef12", "user")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -30,7 +30,7 @@ func TestValidateToken_Success(t *testing.T) {
 	svc := newTestJWTService("test-secret-key-at-least-32-chars!!", 24)
 	wallet := "0xabcdef1234567890abcdef1234567890abcdef12"
 
-	token, err := svc.GenerateToken(42, wallet)
+	token, err := svc.GenerateToken(42, wallet, "user")
 	if err != nil {
 		t.Fatalf("generate failed: %v", err)
 	}
@@ -51,7 +51,7 @@ func TestValidateToken_InvalidSecret(t *testing.T) {
 	svc1 := newTestJWTService("secret-one-at-least-32-characters!!", 24)
 	svc2 := newTestJWTService("secret-two-at-least-32-characters!!", 24)
 
-	token, _ := svc1.GenerateToken(1, "0x1234567890abcdef1234567890abcdef12345678")
+	token, _ := svc1.GenerateToken(1, "0x1234567890abcdef1234567890abcdef12345678", "user")
 	_, err := svc2.ValidateToken(token)
 	if err == nil {
 		t.Fatal("expected error for wrong secret, got nil")
@@ -102,8 +102,8 @@ func TestValidateToken_EmptyToken(t *testing.T) {
 
 func TestGenerateToken_DifferentUsersGetDifferentTokens(t *testing.T) {
 	svc := newTestJWTService("test-secret-key-at-least-32-chars!!", 24)
-	t1, _ := svc.GenerateToken(1, "0x1111111111111111111111111111111111111111")
-	t2, _ := svc.GenerateToken(2, "0x2222222222222222222222222222222222222222")
+	t1, _ := svc.GenerateToken(1, "0x1111111111111111111111111111111111111111", "user")
+	t2, _ := svc.GenerateToken(2, "0x2222222222222222222222222222222222222222", "user")
 	if t1 == t2 {
 		t.Error("expected different tokens for different users")
 	}

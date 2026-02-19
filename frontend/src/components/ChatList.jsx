@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Plus, QrCode, ScanLine, Settings, User, Users } from 'lucide-react'
+import { Search, Plus, QrCode, ScanLine, Settings, User, Users, Pin, PinOff } from 'lucide-react'
+import * as ContextMenu from '@radix-ui/react-context-menu'
 import { Button } from './ui/button'
 import { useWeb3 } from '../contexts/Web3Context'
 import { useToast } from '../contexts/ToastContext'
 import { UnifiedUserService } from '../services/UnifiedUserService'
 import GroupService from '../services/GroupService'
+import api from '../services/apiClient'
 import QRCodeDialog from './QRCodeDialog'
 import ScanQRDialog from './ScanQRDialog'
 import EditProfileDialog from './dialogs/EditProfileDialog'
@@ -35,6 +37,7 @@ const ChatList = ({ user }) => {
   const [showCreateGroup, setShowCreateGroup] = useState(false)
   const [showNFC, setShowNFC] = useState(false)
   const [myProfile, setMyProfile] = useState(null)
+  const [pinnedMap, setPinnedMap] = useState({}) // { "user:address" or "group:id" => pinRecord }
 
   // TODO: Translate {t('load_user_profile')}
   const loadMyProfile = () => {
@@ -83,6 +86,24 @@ const ChatList = ({ user }) => {
     return () => window.removeEventListener('contactAdded', handleContactAdded)
   }, [userAddress])
 
+  // Load pinned conversations from backend.
+  useEffect(() => {
+    const loadPins = async () => {
+      try {
+        const res = await api.get('/api/conversations/pinned')
+        const pins = res?.data || res || []
+        const map = {}
+        pins.forEach((p) => {
+          map[`${p.target_type}:${p.target_id}`] = p
+        })
+        setPinnedMap(map)
+      } catch {
+        // Silently fail — pins are non-critical
+      }
+    }
+    if (userAddress) loadPins()
+  }, [userAddress])
+
   // TODO: Translate {t('load_chat_list')}
   useEffect(() => {
     loadConversations()
@@ -90,7 +111,7 @@ const ChatList = ({ user }) => {
     // TODO: Translate {t('per_message')}5TODO: Translate {t('refresh_every_second')}
     const interval = setInterval(loadConversations, 5000)
     return () => clearInterval(interval)
-  }, [userAddress])
+  }, [userAddress, pinnedMap])
 
   const loadConversations = () => {
     try {
@@ -154,8 +175,12 @@ const ChatList = ({ user }) => {
       const allWithDefaults = [...newDefaults, ...allConvs]
 
       const sorted = allWithDefaults.sort((a, b) => {
-        // Always keep File Transfer Assistant at top if pinned (optional logic)
-        // For now just sort by time
+        const aKey = a.type === 'group' ? `group:${a.id}` : `user:${a.address}`
+        const bKey = b.type === 'group' ? `group:${b.id}` : `user:${b.address}`
+        const aPinned = !!pinnedMap[aKey]
+        const bPinned = !!pinnedMap[bKey]
+        if (aPinned && !bPinned) return -1
+        if (!aPinned && bPinned) return 1
         return b.timestamp - a.timestamp
       })
 
@@ -233,51 +258,105 @@ const ChatList = ({ user }) => {
     return new Date(timestamp).toLocaleDateString()
   }
 
-  // Render conversation item - forced update v2
-  const renderConversation = (conv) => (
-    <div
-      key={conv.address}
-      onClick={() => navigate(conv.type === 'group' ? `/app/group/${conv.id}` : `/app/chat/${conv.address}`)}
-      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b"
-    >
-      <div className="relative">
-        {conv.isSystem || conv.type === 'group' ? (
-          <div className={`w-12 h-12 rounded-full ${conv.isSelf ? 'bg-blue-100 text-blue-600' :
-            conv.type === 'group' ? 'bg-purple-100 text-purple-600' : 'bg-gray-200'
-            } flex items-center justify-center text-2xl`}>
-            {conv.avatar}
+  // Pin / unpin a conversation.
+  const handleTogglePin = async (conv) => {
+    const targetType = conv.type === 'group' ? 'group' : 'user'
+    const targetId = conv.type === 'group' ? String(conv.id) : conv.address
+    const pinKey = `${targetType}:${targetId}`
+
+    if (pinnedMap[pinKey]) {
+      // Unpin
+      try {
+        await api.delete(`/api/conversations/pin/${pinnedMap[pinKey].id}`)
+        setPinnedMap((prev) => {
+          const next = { ...prev }
+          delete next[pinKey]
+          return next
+        })
+        success('Unpinned', 'Conversation unpinned')
+      } catch {
+        // ignore
+      }
+    } else {
+      // Pin
+      try {
+        const res = await api.post('/api/conversations/pin', {
+          target_id: targetId,
+          target_type: targetType,
+        })
+        const pin = res?.data || res
+        setPinnedMap((prev) => ({ ...prev, [pinKey]: pin }))
+        success('Pinned', 'Conversation pinned to top')
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  // Render conversation item with context menu for pinning.
+  const renderConversation = (conv) => {
+    const pinKey = conv.type === 'group' ? `group:${conv.id}` : `user:${conv.address}`
+    const isPinned = !!pinnedMap[pinKey]
+
+    return (
+      <ContextMenu.Root key={conv.address}>
+        <ContextMenu.Trigger asChild>
+          <div
+            onClick={() => navigate(conv.type === 'group' ? `/app/group/${conv.id}` : `/app/chat/${conv.address}`)}
+            className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b ${isPinned ? 'bg-amber-50/50' : ''}`}
+          >
+            <div className="relative">
+              {conv.isSystem || conv.type === 'group' ? (
+                <div className={`w-12 h-12 rounded-full ${conv.isSelf ? 'bg-blue-100 text-blue-600' :
+                  conv.type === 'group' ? 'bg-purple-100 text-purple-600' : 'bg-gray-200'
+                  } flex items-center justify-center text-2xl`}>
+                  {conv.avatar}
+                </div>
+              ) : (
+                <UserAvatar address={conv.address} size="lg" />
+              )}
+              {conv.type !== 'group' && !conv.isSystem && (
+                <div className="absolute bottom-0 right-0">
+                  <StatusBadge userId={conv.address} size="sm" />
+                </div>
+              )}
+              {conv.unread > 0 && (
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs text-white font-bold">
+                  {conv.unread > 9 ? '9+' : conv.unread}
+                </div>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="font-semibold text-gray-900 truncate flex items-center gap-1">
+                  {isPinned && <Pin className="w-3 h-3 text-amber-500 flex-shrink-0" />}
+                  {conv.isSystem ? conv.username : UnifiedUserService.getDisplayName(conv.address) || conv.username}
+                  {conv.type === 'group' && <Users className="w-3 h-3 text-gray-400" />}
+                </h3>
+                <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
+                  {formatTime(conv.timestamp)}
+                </span>
+              </div>
+              <p className="text-sm text-gray-600 truncate">
+                {conv.lastMessage}
+              </p>
+            </div>
           </div>
-        ) : (
-          <UserAvatar address={conv.address} size="lg" />
-        )}
-        {/* Online status badge - only for direct chats */}
-        {conv.type !== 'group' && !conv.isSystem && (
-          <div className="absolute bottom-0 right-0">
-            <StatusBadge userId={conv.address} size="sm" />
-          </div>
-        )}
-        {conv.unread > 0 && (
-          <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs text-white font-bold">
-            {conv.unread > 9 ? '9+' : conv.unread}
-          </div>
-        )}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between mb-1">
-          <h3 className="font-semibold text-gray-900 truncate flex items-center gap-1">
-            {conv.isSystem ? conv.username : UnifiedUserService.getDisplayName(conv.address) || conv.username}
-            {conv.type === 'group' && <Users className="w-3 h-3 text-gray-400" />}
-          </h3>
-          <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
-            {formatTime(conv.timestamp)}
-          </span>
-        </div>
-        <p className="text-sm text-gray-600 truncate">
-          {conv.lastMessage}
-        </p>
-      </div>
-    </div>
-  )
+        </ContextMenu.Trigger>
+        <ContextMenu.Portal>
+          <ContextMenu.Content className="min-w-[160px] bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+            <ContextMenu.Item
+              className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer outline-none"
+              onSelect={() => handleTogglePin(conv)}
+            >
+              {isPinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
+              {isPinned ? 'Unpin' : 'Pin to Top'}
+            </ContextMenu.Item>
+          </ContextMenu.Content>
+        </ContextMenu.Portal>
+      </ContextMenu.Root>
+    )
+  }
 
   return (
     <div className="flex flex-col h-full bg-white">

@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"fmt"
 	"log/slog"
 	"regexp"
 	"strings"
 
 	"github.com/everest-an/dchat-backend/internal/auth"
 	"github.com/everest-an/dchat-backend/internal/response"
+	"github.com/everest-an/dchat-backend/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,11 +16,13 @@ var ethAddressRe = regexp.MustCompile(`^0x[0-9a-fA-F]{40}$`)
 
 // AuthHandler handles wallet-based authentication endpoints.
 type AuthHandler struct {
-	userService *auth.UserService
-	jwtService  *auth.JWTService
-	web3Service *auth.Web3Service
-	nonceStore  *auth.NonceStore
-	log         *slog.Logger
+	userService  *auth.UserService
+	jwtService   *auth.JWTService
+	web3Service  *auth.Web3Service
+	nonceStore   *auth.NonceStore
+	twofaHandler *TwoFAHandler
+	auditService *services.AuditService
+	log          *slog.Logger
 }
 
 // NewAuthHandler creates an AuthHandler with all required dependencies.
@@ -36,6 +40,16 @@ func NewAuthHandler(
 		nonceStore:  nonceStore,
 		log:         log,
 	}
+}
+
+// SetTwoFAHandler injects the 2FA handler for login verification.
+func (h *AuthHandler) SetTwoFAHandler(tfa *TwoFAHandler) {
+	h.twofaHandler = tfa
+}
+
+// SetAuditService injects the audit service for login event logging.
+func (h *AuthHandler) SetAuditService(as *services.AuditService) {
+	h.auditService = as
 }
 
 // --- Request / Response DTOs ---
@@ -56,13 +70,15 @@ type WalletLoginRequest struct {
 	WalletAddress string `json:"wallet_address" binding:"required"`
 	Signature     string `json:"signature" binding:"required"`
 	Nonce         string `json:"nonce" binding:"required"`
+	TotpCode      string `json:"totp_code"` // optional, required when 2FA is enabled
 }
 
 // LoginResponse is returned by WalletLogin.
 type LoginResponse struct {
-	Token     string      `json:"token"`
-	User      interface{} `json:"user"`
-	IsNewUser bool        `json:"is_new_user"`
+	Token       string      `json:"token"`
+	User        interface{} `json:"user"`
+	IsNewUser   bool        `json:"is_new_user"`
+	Requires2FA bool        `json:"requires_2fa,omitempty"`
 }
 
 // --- Handlers ---
@@ -145,8 +161,23 @@ func (h *AuthHandler) WalletLogin(c *gin.Context) {
 		return
 	}
 
+	// Check 2FA requirement.
+	if user.Is2FAEnabled && h.twofaHandler != nil {
+		if req.TotpCode == "" {
+			// 2FA is required but no code provided — tell client.
+			response.OK(c, LoginResponse{
+				Requires2FA: true,
+			})
+			return
+		}
+		if !h.twofaHandler.Validate2FALogin(user, req.TotpCode) {
+			response.ErrorWithCode(c, 401, response.ErrCodeUnauthorized, "invalid 2FA code")
+			return
+		}
+	}
+
 	// Generate JWT.
-	token, err := h.jwtService.GenerateToken(user.ID, user.WalletAddress)
+	token, err := h.jwtService.GenerateToken(user.ID, user.WalletAddress, user.Role)
 	if err != nil {
 		h.log.Error("token generation failed", "error", err, "user_id", user.ID)
 		response.InternalError(c, "failed to generate authentication token")
@@ -154,6 +185,15 @@ func (h *AuthHandler) WalletLogin(c *gin.Context) {
 	}
 
 	h.log.Info("user authenticated", "user_id", user.ID, "wallet", wallet, "is_new", isNew)
+
+	// Audit log: user login.
+	if h.auditService != nil {
+		action := "user_login"
+		if isNew {
+			action = "user_register"
+		}
+		h.auditService.Log(user.ID, action, fmt.Sprintf("user:%d", user.ID), wallet, c.ClientIP())
+	}
 
 	response.OK(c, LoginResponse{
 		Token:     token,

@@ -5,7 +5,7 @@
  * and action buttons (call, video, menu).
  */
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Phone, Video, MoreVertical } from 'lucide-react'
+import { ArrowLeft, Phone, Video, MoreVertical, Download } from 'lucide-react'
 import { Button } from '../ui/button'
 import { UserAvatar } from '../ui/UserAvatar'
 
@@ -16,7 +16,8 @@ import { UserAvatar } from '../ui/UserAvatar'
  *   isFileTransfer: boolean,
  *   showMenu: boolean,
  *   onToggleMenu: () => void,
- *   onInfoToast: (title: string, msg: string) => void
+ *   onInfoToast: (title: string, msg: string) => void,
+ *   onExportChat: () => void,
  * }} props
  */
 const ChatHeader = ({
@@ -26,6 +27,7 @@ const ChatHeader = ({
   showMenu,
   onToggleMenu,
   onInfoToast,
+  onExportChat,
 }) => {
   const navigate = useNavigate()
 
@@ -96,12 +98,25 @@ const ChatHeader = ({
             </button>
           </>
         )}
-        <button
-          onClick={onToggleMenu}
-          className="p-2 hover:bg-gray-100 rounded-full"
-        >
-          <MoreVertical className="w-5 h-5" />
-        </button>
+        <div className="relative">
+          <button
+            onClick={onToggleMenu}
+            className="p-2 hover:bg-gray-100 rounded-full"
+          >
+            <MoreVertical className="w-5 h-5" />
+          </button>
+          {showMenu && (
+            <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+              <button
+                onClick={() => { onExportChat?.(); onToggleMenu(); }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                <Download className="w-4 h-4" />
+                Export Chat
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

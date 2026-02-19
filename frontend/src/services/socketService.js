@@ -14,6 +14,8 @@ class SocketService {
     this.statusHandlers = new Set();
     this.typingHandlers = new Set();
     this.messageStatusHandlers = new Set();
+    this.recallHandlers = new Set();
+    this.editHandlers = new Set();
     this.pendingListeners = []; // Store listeners registered before socket is ready
   }
 
@@ -159,6 +161,16 @@ class SocketService {
         ...data,
         status: 'all_read'
       }));
+    });
+
+    // Message recalled
+    this.socket.on('message_recalled', (data) => {
+      this.recallHandlers.forEach(handler => handler(data));
+    });
+
+    // Message edited
+    this.socket.on('message_edited', (data) => {
+      this.editHandlers.forEach(handler => handler(data));
     });
   }
 
@@ -342,6 +354,52 @@ class SocketService {
   onTyping(handler) {
     this.typingHandlers.add(handler);
     return () => this.typingHandlers.delete(handler);
+  }
+
+  /**
+   * Recall a message
+   * @param {string} roomId - Room ID
+   * @param {number} messageId - Database message ID
+   */
+  recallMessage(roomId, messageId) {
+    if (!this.socket || !this.connected) return;
+    this.socket.emit('recall_message', {
+      room_id: roomId,
+      message_id: messageId
+    });
+  }
+
+  /**
+   * Edit a message
+   * @param {string} roomId - Room ID
+   * @param {number} messageId - Database message ID
+   * @param {string} newContent - New message content
+   */
+  editMessage(roomId, messageId, newContent) {
+    if (!this.socket || !this.connected) return;
+    this.socket.emit('edit_message', {
+      room_id: roomId,
+      message_id: messageId,
+      content: newContent
+    });
+  }
+
+  /**
+   * Register a recall handler
+   * @param {Function} handler - Callback for recall events
+   */
+  onRecall(handler) {
+    this.recallHandlers.add(handler);
+    return () => this.recallHandlers.delete(handler);
+  }
+
+  /**
+   * Register an edit handler
+   * @param {Function} handler - Callback for edit events
+   */
+  onEdit(handler) {
+    this.editHandlers.add(handler);
+    return () => this.editHandlers.delete(handler);
   }
 
   /**

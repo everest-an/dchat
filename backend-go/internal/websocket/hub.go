@@ -78,6 +78,14 @@ func (h *Hub) HandleMessage(client *Client, msg *Message) {
 		h.handleTypingIndicator(client, msg)
 	case "read":
 		h.handleReadReceipt(client, msg)
+	case "recall":
+		h.handleRecallMessage(client, msg)
+	case "edit":
+		h.handleEditMessage(client, msg)
+	case "group_chat":
+		h.handleGroupChatMessage(client, msg)
+	case "group_typing":
+		h.handleGroupTypingIndicator(client, msg)
 	default:
 		h.log.Warn("unknown message type", "type", msg.Type, "from", client.UserID)
 	}
@@ -160,6 +168,131 @@ func (h *Hub) handleReadReceipt(client *Client, msg *Message) {
 	}
 }
 
+func (h *Hub) handleRecallMessage(client *Client, msg *Message) {
+	if msg.MessageID == 0 {
+		h.log.Warn("recall: missing message_id", "from", client.UserID)
+		return
+	}
+
+	var dbMsg models.Message
+	if err := h.db.First(&dbMsg, msg.MessageID).Error; err != nil {
+		h.log.Warn("recall: message not found", "id", msg.MessageID)
+		return
+	}
+
+	if dbMsg.SenderID != client.UserID {
+		h.log.Warn("recall: not the sender", "user", client.UserID, "msg", msg.MessageID)
+		return
+	}
+
+	if dbMsg.Recalled {
+		return
+	}
+
+	if time.Since(dbMsg.CreatedAt) > 2*time.Minute {
+		h.log.Warn("recall: window expired", "msg", msg.MessageID)
+		return
+	}
+
+	now := time.Now()
+	h.db.Model(&dbMsg).Updates(map[string]interface{}{
+		"recalled":    true,
+		"recalled_at": now,
+		"content":     "This message has been recalled",
+	})
+
+	// Notify recipient
+	h.mu.RLock()
+	recipientClient, online := h.Clients[dbMsg.ReceiverID]
+	h.mu.RUnlock()
+
+	if online {
+		recipientClient.SendMessage(&Message{
+			Type:      "recall",
+			From:      client.UserID,
+			To:        dbMsg.ReceiverID,
+			MessageID: msg.MessageID,
+			Timestamp: now,
+		})
+	}
+
+	// Confirm to sender
+	client.SendMessage(&Message{
+		Type:      "recall_confirmed",
+		From:      client.UserID,
+		To:        dbMsg.ReceiverID,
+		MessageID: msg.MessageID,
+		Timestamp: now,
+	})
+}
+
+func (h *Hub) handleEditMessage(client *Client, msg *Message) {
+	if msg.MessageID == 0 {
+		h.log.Warn("edit: missing message_id", "from", client.UserID)
+		return
+	}
+
+	if msg.Content == "" {
+		h.log.Warn("edit: empty content", "from", client.UserID)
+		return
+	}
+
+	var dbMsg models.Message
+	if err := h.db.First(&dbMsg, msg.MessageID).Error; err != nil {
+		h.log.Warn("edit: message not found", "id", msg.MessageID)
+		return
+	}
+
+	if dbMsg.SenderID != client.UserID {
+		h.log.Warn("edit: not the sender", "user", client.UserID, "msg", msg.MessageID)
+		return
+	}
+
+	if dbMsg.Recalled {
+		h.log.Warn("edit: message already recalled", "msg", msg.MessageID)
+		return
+	}
+
+	if time.Since(dbMsg.CreatedAt) > 5*time.Minute {
+		h.log.Warn("edit: window expired", "msg", msg.MessageID)
+		return
+	}
+
+	now := time.Now()
+	h.db.Model(&dbMsg).Updates(map[string]interface{}{
+		"original_content": dbMsg.Content,
+		"content":          msg.Content,
+		"edited":           true,
+		"edited_at":        now,
+	})
+
+	// Notify recipient
+	h.mu.RLock()
+	recipientClient, online := h.Clients[dbMsg.ReceiverID]
+	h.mu.RUnlock()
+
+	if online {
+		recipientClient.SendMessage(&Message{
+			Type:      "edit",
+			From:      client.UserID,
+			To:        dbMsg.ReceiverID,
+			MessageID: msg.MessageID,
+			Content:   msg.Content,
+			Timestamp: now,
+		})
+	}
+
+	// Confirm to sender
+	client.SendMessage(&Message{
+		Type:      "edit_confirmed",
+		From:      client.UserID,
+		To:        dbMsg.ReceiverID,
+		MessageID: msg.MessageID,
+		Content:   msg.Content,
+		Timestamp: now,
+	})
+}
+
 // broadcastStatusLocked sends an online/offline status to all connected
 // clients except the subject. Caller MUST hold h.mu (at least RLock).
 func (h *Hub) broadcastStatusLocked(userID uint, online bool) {
@@ -178,6 +311,102 @@ func (h *Hub) broadcastStatusLocked(userID uint, online bool) {
 			client.SendMessage(statusMsg)
 		}
 	}
+}
+
+// --- Group message handlers ---
+
+func (h *Hub) handleGroupChatMessage(client *Client, msg *Message) {
+	if msg.GroupID == 0 {
+		h.log.Warn("group_chat: missing group_id", "from", client.UserID)
+		return
+	}
+
+	// Check membership.
+	var memberCount int64
+	h.db.Model(&models.GroupMember{}).
+		Where("group_id = ? AND user_id = ?", msg.GroupID, client.UserID).
+		Count(&memberCount)
+	if memberCount == 0 {
+		h.log.Warn("group_chat: not a member", "user", client.UserID, "group", msg.GroupID)
+		return
+	}
+
+	// Check mute.
+	var member models.GroupMember
+	h.db.Where("group_id = ? AND user_id = ?", msg.GroupID, client.UserID).First(&member)
+	if member.IsMuted {
+		if member.MutedUntil == nil || member.MutedUntil.After(time.Now()) {
+			h.log.Warn("group_chat: user is muted", "user", client.UserID, "group", msg.GroupID)
+			return
+		}
+	}
+
+	// Save message.
+	dbMsg := models.GroupMessage{
+		GroupID:     msg.GroupID,
+		SenderID:    client.UserID,
+		Content:     msg.Content,
+		MessageType: "text",
+		Encrypted:   msg.Encrypted,
+	}
+	if err := h.db.Create(&dbMsg).Error; err != nil {
+		h.log.Error("failed to save group message", "error", err, "group", msg.GroupID)
+		return
+	}
+	h.db.Preload("Sender").First(&dbMsg, dbMsg.ID)
+
+	// Get all group member IDs.
+	var memberIDs []uint
+	h.db.Model(&models.GroupMember{}).
+		Where("group_id = ?", msg.GroupID).
+		Pluck("user_id", &memberIDs)
+
+	// Broadcast to all online group members.
+	outMsg := &Message{
+		Type:      "group_chat",
+		From:      client.UserID,
+		GroupID:   msg.GroupID,
+		Content:   msg.Content,
+		Encrypted: msg.Encrypted,
+		Timestamp: dbMsg.CreatedAt,
+		Data:      dbMsg,
+	}
+
+	h.mu.RLock()
+	for _, uid := range memberIDs {
+		if c, online := h.Clients[uid]; online {
+			c.SendMessage(outMsg)
+		}
+	}
+	h.mu.RUnlock()
+}
+
+func (h *Hub) handleGroupTypingIndicator(client *Client, msg *Message) {
+	if msg.GroupID == 0 {
+		return
+	}
+
+	var memberIDs []uint
+	h.db.Model(&models.GroupMember{}).
+		Where("group_id = ?", msg.GroupID).
+		Pluck("user_id", &memberIDs)
+
+	outMsg := &Message{
+		Type:      "group_typing",
+		From:      client.UserID,
+		GroupID:   msg.GroupID,
+		Timestamp: time.Now(),
+	}
+
+	h.mu.RLock()
+	for _, uid := range memberIDs {
+		if uid != client.UserID {
+			if c, online := h.Clients[uid]; online {
+				c.SendMessage(outMsg)
+			}
+		}
+	}
+	h.mu.RUnlock()
 }
 
 // GetOnlineUsers returns a slice of currently connected user IDs.
