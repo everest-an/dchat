@@ -1,0 +1,172 @@
+================================================
+  dChat Integration Test Suite
+  Thu Mar  5 07:06:09 EST 2026
+================================================
+
+[1;33m🔍 TEST[0m: Health Check
+[0;32m✅ PASS[0m: Health check — server is running
+
+━━━ 1. WALLET AUTHENTICATION ━━━
+[1;33m🔍 TEST[0m: Get nonce for wallet 1
+[0;32m✅ PASS[0m: Get nonce — nonce received: 64453b9831038d293030...
+[1;33m🔍 TEST[0m: Get nonce for wallet 2
+[0;32m✅ PASS[0m: Get nonce for wallet 2 — nonce received
+[1;33m🔍 TEST[0m: Creating test users directly in DB and generating JWTs...
+INSERT 0 2
+[0;32m✅ PASS[0m: Test users created — User1 ID: 1, User2 ID: 2
+[0;32m✅ PASS[0m: JWT tokens generated for both users
+[1;33m🔍 TEST[0m: Test GET /api/auth/me for User 1
+[0;32m✅ PASS[0m: GET /api/auth/me — User 1 profile retrieved
+
+━━━ 2. MESSAGING ━━━
+[1;33m🔍 TEST[0m: Send message from User 1 to User 2
+[0;32m✅ PASS[0m: Send message — Message ID: 1
+[1;33m🔍 TEST[0m: Send reply from User 2 to User 1
+[0;32m✅ PASS[0m: Send reply — Message sent
+[1;33m🔍 TEST[0m: Get message history between User 1 and User 2
+[0;32m✅ PASS[0m: Get message history — 2 messages found
+[1;33m🔍 TEST[0m: Get conversations list
+[0;32m✅ PASS[0m: Get conversations — List retrieved
+[1;33m🔍 TEST[0m: Mark messages as read
+[0;32m✅ PASS[0m: Mark as read — Messages marked
+[1;33m🔍 TEST[0m: Recall message
+[0;32m✅ PASS[0m: Recall message — Message recalled
+[1;33m🔍 TEST[0m: Edit message
+[0;32m✅ PASS[0m: Edit message endpoint works — cannot edit a recalled message (expected for recalled msg)
+[1;33m🔍 TEST[0m: Forward message
+[0;32m✅ PASS[0m: Forward message — Message forwarded
+
+━━━ 3. FRIEND SYSTEM ━━━
+[1;33m🔍 TEST[0m: Send friend request from User 1 to User 2
+[0;32m✅ PASS[0m: Send friend request — Request ID: 1
+[1;33m🔍 TEST[0m: List received friend requests for User 2
+[0;32m✅ PASS[0m: List friend requests — 1 pending requests
+[1;33m🔍 TEST[0m: Accept friend request
+[0;32m✅ PASS[0m: Accept friend request — Friendship established
+[1;33m🔍 TEST[0m: List friends for User 1
+[0;32m✅ PASS[0m: List friends — 1 friends found
+[1;33m🔍 TEST[0m: Search users
+[0;32m✅ PASS[0m: Search users — Search works
+
+━━━ 4. NFC FRIEND REQUEST ━━━
+INSERT 0 1
+[1;33m🔍 TEST[0m: Send friend request by wallet address (NFC)
+[0;32m✅ PASS[0m: NFC friend request — Request sent via wallet address
+
+━━━ 5. INVITE FRIEND ━━━
+[1;33m🔍 TEST[0m: Invite friend via email
+[0;32m✅ PASS[0m: Invite friend — Invitation sent
+
+━━━ 6. PROFILE UPDATE ━━━
+[1;33m🔍 TEST[0m: Update user profile
+[0;32m✅ PASS[0m: Update profile — Name: Updated Name
+
+━━━ 7. SKILLS CRUD ━━━
+[1;33m🔍 TEST[0m: Create skill
+[0;32m✅ PASS[0m: Create skill — Skill ID: 1
+[1;33m🔍 TEST[0m: List skills
+[0;32m✅ PASS[0m: List skills — 1 skills found
+[1;33m🔍 TEST[0m: Update skill
+[0;32m✅ PASS[0m: Update skill — Category updated
+[1;33m🔍 TEST[0m: Delete skill
+[0;32m✅ PASS[0m: Delete skill — Skill deleted (204)
+
+━━━ 8. PROJECTS CRUD ━━━
+[1;33m🔍 TEST[0m: Create project
+[0;32m✅ PASS[0m: Create project — Project ID: 1
+[1;33m🔍 TEST[0m: List projects
+[0;32m✅ PASS[0m: List projects — Projects retrieved
+
+━━━ 9. RESOURCES CRUD ━━━
+[1;33m🔍 TEST[0m: Create resource
+[0;32m✅ PASS[0m: Create resource — Resource created
+[1;33m🔍 TEST[0m: List resources
+[0;32m✅ PASS[0m: List resources — Resources retrieved
+
+━━━ 10. SEEKING CRUD ━━━
+[1;33m🔍 TEST[0m: Create seeking item
+[0;32m✅ PASS[0m: Create seeking — Seeking item created
+[1;33m🔍 TEST[0m: List seeking items
+[0;32m✅ PASS[0m: List seeking — Seeking items retrieved
+
+━━━ 11. BUSINESS INFO ━━━
+[1;33m🔍 TEST[0m: Create/update business info
+[0;32m✅ PASS[0m: Upsert business info — Business info saved
+[1;33m🔍 TEST[0m: Get business info
+[0;32m✅ PASS[0m: Get business info — Company: DChat Inc
+
+━━━ 12. BUSINESS MATCHING ━━━
+[1;33m🔍 TEST[0m: Get matching recommendations
+[0;32m✅ PASS[0m: Get recommendations — Matching endpoint works
+[1;33m🔍 TEST[0m: Record matching feedback
+[0;32m✅ PASS[0m: Record feedback — Feedback recorded
+
+━━━ 13. GROUP SYSTEM ━━━
+[1;33m🔍 TEST[0m: Create group
+[0;32m✅ PASS[0m: Create group — Group ID: 1
+[1;33m🔍 TEST[0m: Get group details
+[0;32m✅ PASS[0m: Get group — Group details retrieved
+[1;33m🔍 TEST[0m: Add member to group
+[0;32m✅ PASS[0m: Add member — User 2 added to group
+[1;33m🔍 TEST[0m: Send group message
+[0;32m✅ PASS[0m: Send group message — Message sent
+[1;33m🔍 TEST[0m: Get group messages
+[0;32m✅ PASS[0m: Get group messages — Messages retrieved
+[1;33m🔍 TEST[0m: List my groups
+[0;32m✅ PASS[0m: List my groups — Groups retrieved
+[1;33m🔍 TEST[0m: Create group announcement
+[0;32m✅ PASS[0m: Create announcement — Announcement created
+[1;33m🔍 TEST[0m: Mute member
+[0;32m✅ PASS[0m: Mute member — Member muted
+
+━━━ 14. AI ASSISTANT ━━━
+[1;33m🔍 TEST[0m: AI Summarize (will fail without real API key, testing endpoint)
+[0;32m✅ PASS[0m: AI endpoint reachable — Status: VALIDATION_ERROR
+
+━━━ 15. MENTIONS ━━━
+[1;33m🔍 TEST[0m: Get unread mentions
+[0;32m✅ PASS[0m: Get unread mentions — Endpoint works
+[1;33m🔍 TEST[0m: Get unread mention count
+[0;32m✅ PASS[0m: Get mention count — Endpoint works
+
+━━━ 16. TWO-FACTOR AUTH ━━━
+[1;33m🔍 TEST[0m: Setup 2FA
+[0;32m✅ PASS[0m: Setup 2FA — QR code/secret generated
+
+━━━ 17. ADMIN DASHBOARD ━━━
+UPDATE 1
+[1;33m🔍 TEST[0m: Admin dashboard stats
+[0;32m✅ PASS[0m: Admin dashboard — Stats retrieved
+[1;33m🔍 TEST[0m: Admin list users
+[0;32m✅ PASS[0m: Admin list users — Users listed
+[1;33m🔍 TEST[0m: Admin analytics - user growth
+[0;32m✅ PASS[0m: Analytics user growth — Data retrieved
+
+━━━ 18. REPORTS ━━━
+[1;33m🔍 TEST[0m: Create report
+[0;32m✅ PASS[0m: Create report — Report submitted
+
+━━━ 19. MEETINGS ━━━
+[1;33m🔍 TEST[0m: Create meeting
+[0;32m✅ PASS[0m: Create meeting — Meeting created
+[1;33m🔍 TEST[0m: List meetings
+[0;32m✅ PASS[0m: List meetings — Meetings retrieved
+
+━━━ 20. PIN CONVERSATIONS ━━━
+[1;33m🔍 TEST[0m: Pin conversation
+[0;32m✅ PASS[0m: Pin conversation — Conversation pinned
+[1;33m🔍 TEST[0m: Get pinned conversations
+[0;32m✅ PASS[0m: Get pinned — Pinned conversations retrieved
+
+━━━ 21. GDPR ━━━
+[1;33m🔍 TEST[0m: Export user data
+[0;32m✅ PASS[0m: GDPR export — Data exported (raw JSON with user+messages)
+
+================================================
+  TEST SUMMARY
+================================================
+  [0;32mPassed: 57[0m
+  [0;31mFailed: 0[0m
+  Total:  57
+  [0;32mALL TESTS PASSED![0m
+================================================

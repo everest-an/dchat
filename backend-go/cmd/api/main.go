@@ -74,6 +74,9 @@ func main() {
 		&models.Proposal{}, &models.Vote{}, &models.TreasuryTransaction{},
 		&models.CRMContact{}, &models.CRMDeal{}, &models.CRMActivity{},
 		&models.Bot{}, &models.BotEvent{},
+		&models.UserSkill{}, &models.UserProject{}, &models.UserResource{},
+		&models.UserSeeking{}, &models.UserBusiness{},
+		&models.FriendRequest{}, &models.Friendship{},
 	)
 
 	// Initialize handlers.
@@ -101,6 +104,8 @@ func main() {
 	crmHandler := handlers.NewCRMHandler(db.DB, log)
 	matchingHandler := handlers.NewMatchingHandler(db.DB, log)
 	botHandler := handlers.NewBotHandler(db.DB, log)
+	profileHandler := handlers.NewProfileHandler(db.DB, log)
+	friendHandler := handlers.NewFriendHandler(db.DB, log)
 
 	// Initialize notification service (email + SMS).
 	notifService := notification.NewService(&notification.Config{
@@ -190,12 +195,12 @@ func main() {
 
 		protected.POST("/messages/send", messageHandler.SendMessage)
 		protected.POST("/messages/forward", messageHandler.ForwardMessage)
-		protected.GET("/messages/:user_id", messageHandler.GetMessages)
 		protected.GET("/messages/conversations", messageHandler.GetConversations)
-		protected.PUT("/messages/:sender_id/read", messageHandler.MarkAsRead)
+		protected.GET("/messages/export/:user_id", messageHandler.ExportMessages)
+		protected.GET("/messages/:id", messageHandler.GetMessages)
+		protected.PUT("/messages/:id/read", messageHandler.MarkAsRead)
 		protected.PUT("/messages/:id/recall", messageHandler.RecallMessage)
 		protected.PUT("/messages/:id/edit", messageHandler.EditMessage)
-		protected.GET("/messages/export/:user_id", messageHandler.ExportMessages)
 
 		// Pin conversation routes.
 		protected.POST("/conversations/pin", pinHandler.PinConversation)
@@ -334,6 +339,52 @@ func main() {
 			crm.POST("/activities", crmHandler.CreateActivity)
 			crm.GET("/activities", crmHandler.ListActivities)
 		}
+
+		// User profile update.
+		protected.PUT("/user/me", profileHandler.UpdateMe)
+
+		// Profile sub-resource routes.
+		profile := protected.Group("/profile")
+		{
+			profile.GET("/skills", profileHandler.ListSkills)
+			profile.POST("/skills", profileHandler.CreateSkill)
+			profile.PUT("/skills/:id", profileHandler.UpdateSkill)
+			profile.DELETE("/skills/:id", profileHandler.DeleteSkill)
+
+			profile.GET("/projects", profileHandler.ListProjects)
+			profile.POST("/projects", profileHandler.CreateProject)
+			profile.PUT("/projects/:id", profileHandler.UpdateProject)
+			profile.DELETE("/projects/:id", profileHandler.DeleteProject)
+
+			profile.GET("/resources", profileHandler.ListResources)
+			profile.POST("/resources", profileHandler.CreateResource)
+			profile.PUT("/resources/:id", profileHandler.UpdateResource)
+			profile.DELETE("/resources/:id", profileHandler.DeleteResource)
+
+			profile.GET("/seeking", profileHandler.ListSeeking)
+			profile.POST("/seeking", profileHandler.CreateSeeking)
+			profile.PUT("/seeking/:id", profileHandler.UpdateSeeking)
+			profile.DELETE("/seeking/:id", profileHandler.DeleteSeeking)
+
+			profile.GET("/business", profileHandler.GetBusiness)
+			profile.PUT("/business", profileHandler.UpsertBusiness)
+		}
+
+		// Friend routes.
+		friends := protected.Group("/friends")
+		{
+			friends.GET("", friendHandler.ListFriends)
+			friends.DELETE("/:id", friendHandler.RemoveFriend)
+			friends.GET("/search", friendHandler.SearchUsers)
+			friends.POST("/request", friendHandler.SendFriendRequest)
+			friends.POST("/request-by-wallet", friendHandler.SendFriendRequestByWallet)
+			friends.GET("/requests", friendHandler.ListFriendRequests)
+			friends.POST("/requests/:id/accept", friendHandler.AcceptFriendRequest)
+			friends.POST("/requests/:id/reject", friendHandler.RejectFriendRequest)
+		}
+
+		// Invite friend (public-facing endpoint for email/phone invites).
+		protected.POST("/account/invite-friend", friendHandler.InviteFriend)
 
 		// Smart matching routes.
 		protected.GET("/matching/recommendations", matchingHandler.GetRecommendations)

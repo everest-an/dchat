@@ -92,11 +92,11 @@ func (h *MessageHandler) SendMessage(c *gin.Context) {
 }
 
 // GetMessages retrieves the message history between two users.
-// GET /api/messages/:user_id
+// GET /api/messages/:id
 func (h *MessageHandler) GetMessages(c *gin.Context) {
 	currentUserID := mustUserID(c)
 
-	otherUserID, err := parseUintParam(c, "user_id")
+	otherUserID, err := parseUintParam(c, "id")
 	if err != nil {
 		response.ValidationError(c, "invalid user_id parameter")
 		return
@@ -188,13 +188,13 @@ func (h *MessageHandler) GetConversations(c *gin.Context) {
 }
 
 // MarkAsRead marks all messages from a sender as read.
-// PUT /api/messages/read/:sender_id
+// PUT /api/messages/:id/read
 func (h *MessageHandler) MarkAsRead(c *gin.Context) {
 	currentUserID := mustUserID(c)
 
-	senderID, err := parseUintParam(c, "sender_id")
+	senderID, err := parseUintParam(c, "id")
 	if err != nil {
-		response.ValidationError(c, "invalid sender_id parameter")
+		response.ValidationError(c, "invalid id parameter")
 		return
 	}
 

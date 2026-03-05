@@ -1,0 +1,16 @@
+All 37 tables created:
+audit_log, bot, bot_event, calendar_event, crm_activity, crm_contact, crm_deal,
+device_token, event_participant, friend_request, friendship, group, group_announcement,
+group_join_request, group_member, group_message, meeting, mention, message,
+notification_preference, pinned_conversation, proposal, report, sso_provider,
+sso_session, system_setting, task, ticket, ticket_message, treasury_transaction,
+user, user_business, user_project, user_resource, user_seeking, user_skill, vote
+
+New tables added in this session:
+- friend_request
+- friendship
+- user_business
+- user_project
+- user_resource
+- user_seeking
+- user_skill

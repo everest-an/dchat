@@ -15,6 +15,8 @@ type User struct {
 	Name            string         `gorm:"size:100;not null" json:"name"`
 	Company         string         `gorm:"size:200" json:"company"`
 	Position        string         `gorm:"size:200" json:"position"`
+	Bio             string         `gorm:"type:text" json:"bio"`
+	Avatar          string         `gorm:"size:500" json:"avatar"`
 	LinkedInID      string         `gorm:"column:linkedin_id;size:100" json:"linkedin_id"`
 	PhoneNumber     string         `gorm:"uniqueIndex;size:20" json:"phone_number"`
 	IsEmailVerified bool           `json:"is_email_verified"`

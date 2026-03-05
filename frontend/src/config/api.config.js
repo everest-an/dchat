@@ -23,8 +23,31 @@ export const API_ENDPOINTS = {
   },
   USER: {
     ME: '/api/auth/me',
+    UPDATE_ME: '/api/user/me',
     PROFILE: '/api/users/profile',
     UPDATE: '/api/users/update',
+  },
+  PROFILE: {
+    SKILLS: '/api/profile/skills',
+    SKILL: (id) => `/api/profile/skills/${id}`,
+    PROJECTS: '/api/profile/projects',
+    PROJECT: (id) => `/api/profile/projects/${id}`,
+    RESOURCES: '/api/profile/resources',
+    RESOURCE: (id) => `/api/profile/resources/${id}`,
+    SEEKING: '/api/profile/seeking',
+    SEEKING_ITEM: (id) => `/api/profile/seeking/${id}`,
+    BUSINESS: '/api/profile/business',
+  },
+  FRIENDS: {
+    LIST: '/api/friends',
+    REMOVE: (id) => `/api/friends/${id}`,
+    SEARCH: '/api/friends/search',
+    SEND_REQUEST: '/api/friends/request',
+    SEND_REQUEST_BY_WALLET: '/api/friends/request-by-wallet',
+    REQUESTS: '/api/friends/requests',
+    ACCEPT: (id) => `/api/friends/requests/${id}/accept`,
+    REJECT: (id) => `/api/friends/requests/${id}/reject`,
+    INVITE: '/api/account/invite-friend',
   },
   MESSAGES: {
     CONVERSATIONS: '/api/messages/conversations',
@@ -128,6 +151,20 @@ export const API_ENDPOINTS = {
   MATCHING: {
     RECOMMENDATIONS: '/api/matching/recommendations',
     FEEDBACK: '/api/matching/feedback',
+  },
+  MENTIONS: {
+    UNREAD: '/api/mentions/unread',
+    UNREAD_COUNT: '/api/mentions/unread/count',
+    MARK_READ: (id) => `/api/mentions/${id}/read`,
+    MARK_ALL_READ: '/api/mentions/read-all',
+  },
+  MEETINGS: {
+    CREATE: '/api/meetings',
+    LIST: '/api/meetings',
+    GET: (id) => `/api/meetings/${id}`,
+    END: (id) => `/api/meetings/${id}/end`,
+    TRANSCRIBE: (id) => `/api/meetings/${id}/transcribe`,
+    SUMMARIZE: (id) => `/api/meetings/${id}/summarize`,
   },
   BOTS: {
     LIST: '/api/bots',

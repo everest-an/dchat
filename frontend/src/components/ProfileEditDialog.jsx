@@ -112,10 +112,10 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
         loadDemoData();
       } else {
         setDemoMode(false);
-        setProjects(projectsRes?.data?.projects || []);
-        setSkills(skillsRes?.data?.skills || []);
-        setResources(resourcesRes?.data?.resources || []);
-        setSeeking(seekingRes?.data?.seeking || []);
+        setProjects(projectsRes?.data?.data || []);
+        setSkills(skillsRes?.data?.data || []);
+        setResources(resourcesRes?.data?.data || []);
+        setSeeking(seekingRes?.data?.data || []);
         setBusinessInfo(businessRes?.data?.data || {
           company_name: '',
           job_title: '',
@@ -157,7 +157,7 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
         newProject,
         { headers: { Authorization: `Bearer ${authToken}` } }
       );
-      setProjects([...projects, res.data.project]);
+      setProjects([...projects, res.data.data]);
     } catch (error) {
       console.error('Failed to add project:', error);
       // Fallback to demo mode
@@ -182,7 +182,7 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
         updates,
         { headers: { Authorization: `Bearer ${authToken}` } }
       );
-      setProjects(projects.map(p => p.id === id ? res.data.project : p));
+      setProjects(projects.map(p => p.id === id ? res.data.data : p));
     } catch (error) {
       console.error('Failed to update project:', error);
       // Fallback to local update
@@ -236,7 +236,7 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
         newSkill,
         { headers: { Authorization: `Bearer ${authToken}` } }
       );
-      setSkills([...skills, res.data.skill]);
+      setSkills([...skills, res.data.data]);
     } catch (error) {
       console.error('Failed to add skill:', error);
       const updated = [...skills, { ...newSkill, id: Date.now() }];
@@ -260,7 +260,7 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
         updates,
         { headers: { Authorization: `Bearer ${authToken}` } }
       );
-      setSkills(skills.map(s => s.id === id ? res.data.skill : s));
+      setSkills(skills.map(s => s.id === id ? res.data.data : s));
     } catch (error) {
       console.error('Failed to update skill:', error);
       const updated = skills.map(s => s.id === id ? { ...s, ...updates } : s);
@@ -314,7 +314,7 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
         newResource,
         { headers: { Authorization: `Bearer ${authToken}` } }
       );
-      setResources([...resources, res.data.resource]);
+      setResources([...resources, res.data.data]);
     } catch (error) {
       console.error('Failed to add resource:', error);
       const updated = [...resources, { ...newResource, id: Date.now() }];
@@ -338,7 +338,7 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
         updates,
         { headers: { Authorization: `Bearer ${authToken}` } }
       );
-      setResources(resources.map(r => r.id === id ? res.data.resource : r));
+      setResources(resources.map(r => r.id === id ? res.data.data : r));
     } catch (error) {
       console.error('Failed to update resource:', error);
       const updated = resources.map(r => r.id === id ? { ...r, ...updates } : r);
@@ -393,7 +393,7 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
         newSeeking,
         { headers: { Authorization: `Bearer ${authToken}` } }
       );
-      setSeeking([...seeking, res.data.seeking]);
+      setSeeking([...seeking, res.data.data]);
     } catch (error) {
       console.error('Failed to add seeking:', error);
       const updated = [...seeking, { ...newSeeking, id: Date.now() }];
@@ -417,7 +417,7 @@ const ProfileEditDialog = ({ isOpen, onClose, userId, authToken }) => {
         updates,
         { headers: { Authorization: `Bearer ${authToken}` } }
       );
-      setSeeking(seeking.map(s => s.id === id ? res.data.seeking : s));
+      setSeeking(seeking.map(s => s.id === id ? res.data.data : s));
     } catch (error) {
       console.error('Failed to update seeking:', error);
       const updated = seeking.map(s => s.id === id ? { ...s, ...updates } : s);
