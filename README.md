@@ -2,7 +2,7 @@
 
 > **🌐 Live Demo**: [https://dchat.pro](https://dchat.pro) | [Short Link](https://tinyurl.com/2apne32a)  
 > **📝 Team**: Everest  
-> **🏆 ETHShanghai 2025 Hackathon Project**
+> **🏆 ClawHunt 2026 Hackathon Project**
 
 ---
 
